@@ -1,12 +1,13 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 import { getContact, ContactInfo } from '@/lib/storage';
 import logo from '@/assets/starlink-logo-full.png';
 import Zelle from '@/assets/paylogo/Zelle_(payment_service)-Logo.wine.png';
 import Venmo from '@/assets/paylogo/Venmo-Logo.wine.png';
 import Google from '@/assets/paylogo/Google_Pay-Logo.wine.png';
-import PayPal from '@/assets/paylogo/PayPal-Logo.wine.png';
 import Bank from '@/assets/paylogo/Wells_Fargo-Logo.wine.png';
 import Visa from '@/assets/paylogo/Visa_Inc.-Logo.wine.png';
 import GIA from '@/assets/paylogo/GIA_Logo.png';
@@ -65,7 +66,7 @@ const Footer = () => {
                 {trustedBadges.map((method) => (
                   <img
                     key={method.name}
-                    src={method.logo}
+                    src={typeof method.logo === 'string' ? method.logo : (method.logo as any)?.src || String(method.logo)}
                     alt={method.name}
                     className="h-20 w-20 rounded-full object-contain bg-white/20 p-0.5 shadow-sm"
                     loading="lazy"
@@ -78,7 +79,7 @@ const Footer = () => {
             {/* Center: Brand Logo */}
             <div className="flex justify-center lg:justify-center">
               <img
-                src={logo}
+                src={typeof logo === 'string' ? logo : (logo as any)?.src || logo}
                 alt="Starlink Jewels"
                 className="h-20 w-auto mx-auto p-1 object-contain"
               />
@@ -91,7 +92,7 @@ const Footer = () => {
                 {paymentMethods.map((method) => (
                   <img
                     key={method.name}
-                    src={method.logo}
+                    src={typeof method.logo === 'string' ? method.logo : (method.logo as any)?.src || String(method.logo)}
                     alt={method.name}
                     className="h-20 w-20 rounded-full object-contain bg-white/20 p-0.5 shadow-sm"
                     loading="lazy"
@@ -107,7 +108,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <img src={logo} alt="Starlink Jewels" className="h-20 w-auto" />
+            <img src={typeof logo === 'string' ? logo : (logo as any)?.src || String(logo)} alt="Starlink Jewels" className="h-20 w-auto" />
             <p className="text-sm text-muted-foreground">
               Discover Exquisite Lab-Lrown and Natural Diamond Jewelry. Premium Luxury Collections
               for Every Occasion.
@@ -118,27 +119,27 @@ const Footer = () => {
             <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/categories" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Categories
                 </Link>
               </li>
               <li>
-                <Link to="/gallery" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/gallery" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Gallery
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Contact
                 </Link>
               </li>

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { getBuyingGuides, BuyingGuide } from '@/lib/buyingGuides';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { useGlobalData } from '@/hooks/useGlobalData';
 
@@ -13,7 +11,8 @@ const BuyingGuidePage = () => {
   const { categories, promoHeader } = useGlobalData();
   const [guides, setGuides] = useState<BuyingGuide[]>([]);
   const [selected, setSelected] = useState<BuyingGuide | null>(null);
-  const { slug } = useParams<{ slug?: string }>();
+  const params = useParams<{ slug?: string }>();
+  const slug = params?.slug as string | undefined;
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -45,15 +44,10 @@ const BuyingGuidePage = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <SEOHead title="Jewelry Buying Guide" description="Learn how to buy jewelry like a pro." keywords="jewelry buying guide" canonicalUrl="https://starlinkjewels.com/buying-guide" />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 flex items-center justify-center py-20" style={{ paddingTop: `${paddingTop}px` }}>
           <div className="text-center">
             <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
             <p className="text-xl text-muted-foreground">No buying guides available yet.</p>
           </div>
-        </main>
-        <Footer />
       </div>
     );
   }
@@ -68,10 +62,7 @@ const BuyingGuidePage = () => {
         structuredData={structuredData}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
 
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Jewelry Buying Guide</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">Expert advice to help you make the perfect choice</p>
@@ -83,7 +74,7 @@ const BuyingGuidePage = () => {
               <h2 className="font-bold text-xl mb-6 flex items-center gap-3"><BookOpen className="h-6 w-6" />All Guides</h2>
               <nav className="space-y-2">
                 {guides.map((guide) => (
-                  <Link key={guide.id} to={`/buying-guide/${guide.slug}`} className={`block p-4 rounded-xl transition-all duration-300 border ${selected?.id === guide.id ? 'bg-primary text-primary-foreground border-primary shadow-md font-medium' : 'hover:bg-muted border-transparent'}`}>
+                  <Link key={guide.id} href={`/buying-guide/${guide.slug}`} className={`block p-4 rounded-xl transition-all duration-300 border ${selected?.id === guide.id ? 'bg-primary text-primary-foreground border-primary shadow-md font-medium' : 'hover:bg-muted border-transparent'}`}>
                     {guide.title}
                   </Link>
                 ))}
@@ -99,7 +90,7 @@ const BuyingGuidePage = () => {
                   <h2 className="text-4xl md:text-5xl font-bold mb-8">{selected.title}</h2>
                   <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: selected.content }} />
                   <div className="mt-16 pt-10 border-t border-border">
-                    <Button asChild variant="outline" size="lg"><Link to="/buying-guide"><ArrowLeft className="h-5 w-5 mr-2" />Back to All Guides</Link></Button>
+                    <Button asChild variant="outline" size="lg"><Link href="/buying-guide"><ArrowLeft className="h-5 w-5 mr-2" />Back to All Guides</Link></Button>
                   </div>
                 </div>
               </div>
@@ -108,9 +99,7 @@ const BuyingGuidePage = () => {
             )}
           </article>
         </div>
-      </main>
 
-      <Footer />
     </div>
   );
 };

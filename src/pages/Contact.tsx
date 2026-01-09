@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { useGlobalData } from '@/hooks/useGlobalData';
 import { Button } from '@/components/ui/button';
@@ -80,10 +77,7 @@ const Contact = () => {
         structuredData={structuredData}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
       
-      <main className="flex-1" style={{ paddingTop: `${paddingTop}px` }}>
         {sortedOffices.length > 0 && (
           <section className="py-20 bg-muted/30">
             <div className="container mx-auto px-4">
@@ -124,7 +118,7 @@ const Contact = () => {
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">Get In Touch</h2>
-              <p className="text-lg text-muted-foreground">We're here to help and answer any question you might have.</p>
+              <p className="text-lg text-muted-foreground">We&rsquo;re here to help and answer any question you might have.</p>
             </div>
           </div>
         </section>
@@ -168,9 +162,7 @@ const Contact = () => {
             </div>
           </div>
         </section>
-      </main>
 
-      <Footer />
     </div>
   );
 };

@@ -1,11 +1,8 @@
 import { useEffect, useRef } from 'react';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
+import Link from 'next/link';
 import SEOHead from '@/components/SEOHead';
 import { useGlobalData } from '@/hooks/useGlobalData';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import { Award, Shield, Heart, Globe, Sparkles, Users, Clock, Target, Gem, Diamond, Crown, Zap } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -72,7 +69,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEOHead
         title="About Us - 11+ Years of Diamond Jewelry Excellence | Starlink Jewels"
         description="Discover Starlink Jewels - 11+ years of crafting exceptional GIA certified diamond and gold jewelry. Master craftsmanship, ethical sourcing, 50K+ happy clients worldwide. Learn our story."
@@ -80,11 +77,6 @@ const About = () => {
         canonicalUrl="https://starlinkjewels.com/about"
         structuredData={structuredData}
       />
-
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
-
-      <main className="flex-1" style={{ paddingTop: `${paddingTop}px` }}>
         {/* Hero Section */}
         <section className="about-hero relative py-20 md:py-32 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10" />
@@ -101,7 +93,7 @@ const About = () => {
                 Crafting Dreams Into Reality
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              For Over 11 Years, Starlink Jewels Has Been Transforming Precious Metals and Gems Into Timeless Masterpieces that Celebrate Life's Most Precious Moments.
+              For Over 11 Years, Starlink Jewels Has Been Transforming Precious Metals and Gems Into Timeless Masterpieces that Celebrate Life&rsquo;s Most Precious Moments.
               </p>
             </div>
           </div>
@@ -256,17 +248,14 @@ const About = () => {
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">Begin Your Journey With Us</h2>
               <p className="text-lg text-muted-foreground mb-8">Discover the perfect piece that tells your unique story</p>
               <div className="flex flex-wrap gap-4 justify-center">
-                <Link to="/categories"><Button size="lg" className="text-lg h-14 px-8">Browse Collections</Button></Link>
-                <Link to="/contact"><Button size="lg" variant="outline" className="text-lg h-14 px-8">Schedule Consultation</Button></Link>
+                <Link href="/categories"><Button size="lg" className="text-lg h-14 px-8">Browse Collections</Button></Link>
+                <Link href="/contact"><Button size="lg" variant="outline" className="text-lg h-14 px-8">Schedule Consultation</Button></Link>
               </div>
             </div>
           </div>
         </section>
-      </main>
+      </>
+    );
+  };
 
-      <Footer />
-    </div>
-  );
-};
-
-export default About;
+  export default About;

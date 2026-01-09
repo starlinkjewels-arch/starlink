@@ -74,7 +74,7 @@ const AdminContact = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contact-whatsapp">WhatsApp Number (Fixed for "Buy on WhatsApp")</Label>
+          <Label htmlFor="contact-whatsapp">WhatsApp Number (Fixed for &quot;Buy on WhatsApp&quot;)</Label>
           <Input
             id="contact-whatsapp"
             value={contact.whatsapp}

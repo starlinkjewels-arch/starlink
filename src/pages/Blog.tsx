@@ -1,8 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
+import { useSearchParams } from 'next/navigation';
 import SEOHead from '@/components/SEOHead';
 import BlogDialog from '@/components/BlogDialog';
 import { useGlobalData } from '@/hooks/useGlobalData';
@@ -13,7 +10,7 @@ const Blog = () => {
   const { categories, blogs, promoHeader, contactInfo } = useGlobalData();
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -39,12 +36,10 @@ const Blog = () => {
   const handleBlogClick = (blog: BlogPost) => {
     setSelectedBlog(blog);
     setIsDialogOpen(true);
-    setSearchParams({ id: blog.id });
   };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setSearchParams({});
   };
 
   const structuredData = {
@@ -85,10 +80,7 @@ const Blog = () => {
         structuredData={structuredData}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
 
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Jewelry Blog</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -130,9 +122,7 @@ const Blog = () => {
             ))}
           </div>
         )}
-      </main>
 
-      <Footer />
 
       <BlogDialog
         blog={selectedBlog}

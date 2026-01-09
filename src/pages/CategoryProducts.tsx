@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import ProductDialog from '@/components/ProductDialog';
 import SEOHead from '@/components/SEOHead';
@@ -141,20 +139,15 @@ const CategoryProducts = () => {
           description="The requested category could not be found."
           canonicalUrl={`https://starlinkjewels.com/category/${id}`}
         />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-4">Category Not Found</h1>
-            <Link to="/categories">
+            <Link href="/categories">
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Categories
               </Button>
             </Link>
           </div>
-        </main>
-        <Footer />
       </div>
     );
   }
@@ -169,11 +162,8 @@ const CategoryProducts = () => {
         structuredData={structuredData}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
 
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-        <Link to="/categories">
+        <Link href="/categories">
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Categories
@@ -227,7 +217,6 @@ const CategoryProducts = () => {
             ))}
           </div>
         )}
-      </main>
 
       <ProductDialog
         product={selectedProduct}
@@ -235,7 +224,6 @@ const CategoryProducts = () => {
         onOpenChange={setIsDialogOpen}
       />
 
-      <Footer />
     </div>
   );
 };

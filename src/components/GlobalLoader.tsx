@@ -83,7 +83,7 @@ const GlobalLoader = ({ isLoading, imagesToPreload = [] }: GlobalLoaderProps) =>
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-ping" />
           <img
-            src={logo}
+            src={typeof logo === 'string' ? logo : (logo as any)?.src || String(logo)}
             alt="Starlink Jewels"
             className="h-16 sm:h-20 w-auto relative z-10 animate-[pulse_2s_ease-in-out_infinite]"
           />

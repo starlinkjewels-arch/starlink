@@ -144,7 +144,7 @@ const AdminTestimonials = () => {
             <Card key={testimonial.id} className="relative">
               <CardContent className="p-6 space-y-3">
                 <Quote className="h-8 w-8 text-primary/20" />
-                <p className="text-sm italic text-muted-foreground">"{testimonial.text}"</p>
+                <p className="text-sm italic text-muted-foreground">&quot;{testimonial.text}&quot;</p>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: testimonial.rating }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />

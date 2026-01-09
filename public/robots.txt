@@ -10,7 +10,32 @@ Crawl-delay: 1
 User-agent: Googlebot-Image
 Allow: /
 
-User-agent: Googlebot-News
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: *
+Allow: /
+Crawl-delay: 2
+
+# Disallow admin and private areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /private/
+Disallow: /*.json$
+Disallow: /.env
+Disallow: /.git
+
+# Allow sitemap discovery
+Sitemap: https://starlinkjewels.com/sitemap.xml
+
+# Allow search results and caching
+User-agent: AdsBot-Google
 Allow: /
 
 User-agent: Googlebot-Video

@@ -24,7 +24,6 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
   };
 
   const currentMediaType = getMediaType(displayMedia);
-  const hasVideo = media.some(url => getMediaType(url) === 'video');
 
   return (
     <div 

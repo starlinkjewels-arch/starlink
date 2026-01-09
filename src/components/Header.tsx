@@ -1,5 +1,8 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -18,7 +21,7 @@ const Header = ({ promoHeader }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
-  const location = useLocation();
+  const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
@@ -34,7 +37,7 @@ const Header = ({ promoHeader }: HeaderProps) => {
 
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -78,9 +81,9 @@ const Header = ({ promoHeader }: HeaderProps) => {
         <div className="w-full px-4 md:px-8 lg:px-12">
           <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-16' : 'h-20'}`}>
             {/* Logo */}
-            <Link to="/" className="flex items-center z-50">
+            <Link href="/" className="flex items-center z-50">
               <img 
-                src={logo} 
+                src={typeof logo === 'string' ? logo : (logo as any)?.src || String(logo)} 
                 alt="Starlink Jewels - Premium Diamond Jewelry Store" 
                 className={`w-auto transition-all duration-300 ${isScrolled ? 'h-9' : 'h-11'}`} 
               />
@@ -92,9 +95,9 @@ const Header = ({ promoHeader }: HeaderProps) => {
                 {navLinks.map((link) => (
                   <Link
                     key={link.path}
-                    to={link.path}
+                    href={link.path}
                     className={`text-sm font-medium transition-all duration-300 relative group ${
-                      location.pathname === link.path
+                      pathname === link.path
                         ? 'text-blue-600'
                         : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                     }`}
@@ -140,7 +143,7 @@ const Header = ({ promoHeader }: HeaderProps) => {
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
-                  to={link.path}
+                  href={link.path}
                   onClick={() => setIsMenuOpen(false)}
                   className={`text-base font-medium py-2 transition-colors ${
                     location.pathname === link.path 

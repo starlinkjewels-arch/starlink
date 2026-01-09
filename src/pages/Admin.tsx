@@ -1,6 +1,6 @@
 // src/pages/Admin.tsx
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,8 +19,8 @@ import AdminOffices from '@/components/admin/AdminOffices';
 import AdminBlogs from '@/components/admin/AdminBlogs';
 import AdminInstagram from '@/components/admin/AdminInstagram';
 import AdminVisitors from '@/components/admin/AdminVisitors';
-import AdminPromoHeader from '@/components/admin/AdminPromoHeader';
 import AdminTestimonials from '@/components/admin/AdminTestimonials';
+import AdminPromoHeader from '@/components/admin/AdminPromoHeader';
 import { toast } from 'sonner';
 import AdminBuyingGuides from '@/components/admin/AdminBuyingGuides';
 import { BookOpen } from 'lucide-react';
@@ -29,7 +29,7 @@ const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +45,7 @@ const Admin = () => {
     setIsAuthenticated(false);
     setUsername('');
     setPassword('');
-    navigate('/');
+    router.push('/');
     toast('Logged out successfully');
   };
 
@@ -122,7 +122,6 @@ const Admin = () => {
         </div>
       </header>
 
-      <main className="max-w-full mx-auto px-6 py-8">
         <Tabs defaultValue="banners" className="w-full">
           {/* Clean Professional Tab Bar */}
           <ScrollArea className="w-full whitespace-nowrap mb-10">
@@ -189,7 +188,6 @@ const Admin = () => {
 </TabsContent>
           </div>
         </Tabs>
-      </main>
     </div>
   );
 };

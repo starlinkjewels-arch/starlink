@@ -1,10 +1,8 @@
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
+import Link from 'next/link';
 import SEOHead from '@/components/SEOHead';
 import { useGlobalData } from '@/hooks/useGlobalData';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const Categories = () => {
   const { categories, promoHeader } = useGlobalData();
@@ -36,7 +34,7 @@ const Categories = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEOHead
         title="Jewelry Collections - Diamond Rings, Gold Necklaces, Earrings & Bracelets | Starlink Jewels"
         description="Explore our curated jewelry collections. Shop premium GIA certified diamond rings, 18K gold necklaces, elegant earrings, platinum bracelets. Best prices, free shipping worldwide."
@@ -45,10 +43,7 @@ const Categories = () => {
         structuredData={structuredData}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
-
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
+      <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Collections</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Explore our carefully curated categories of premium jewelry.</p>
@@ -59,7 +54,7 @@ const Categories = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {categories.map((category) => (
-              <Link key={category.id} to={`/category/${category.id}`} className="group">
+              <Link key={category.id} href={`/category/${category.id}`} className="group">
                 <Card className="overflow-hidden hover-lift h-full">
                   <div className="aspect-[4/3] overflow-hidden bg-muted">
                     <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
@@ -73,10 +68,8 @@ const Categories = () => {
             ))}
           </div>
         )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 };
 

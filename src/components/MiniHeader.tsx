@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Category } from '@/lib/storage';
 import { Sparkles, ChevronRight } from 'lucide-react';
 
@@ -52,7 +54,7 @@ const MiniHeader = ({ categories = [], promoHeight = 0 }: MiniHeaderProps) => {
             {categories.map((category) => (
               <Link
                 key={category.id}
-                to={`/category/${category.id}`}
+                href={`/category/${category.id}`}
                 className="relative text-sm font-medium whitespace-nowrap px-4 py-2 rounded-full transition-all duration-300 bg-card hover:bg-primary hover:text-primary-foreground border border-border/50 hover:border-primary group shadow-sm hover:shadow-md"
                 style={{ border: "1px solid #7d95c8" ,display:"flex",alignItems:"center",gap:"10px"}}
               >
@@ -71,7 +73,7 @@ const MiniHeader = ({ categories = [], promoHeight = 0 }: MiniHeaderProps) => {
           {/* View All Link */}
           {categories.length > 0 && (
             <Link
-              to="/categories"
+              href="/categories"
               className="ml-auto flex-shrink-0 text-sm font-medium text-primary hover:text-primary/80 transition-colors whitespace-nowrap flex items-center gap-1"
             >
               View All

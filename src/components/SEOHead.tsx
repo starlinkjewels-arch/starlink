@@ -1,4 +1,6 @@
-import { Helmet } from 'react-helmet-async';
+'use client';
+
+import { useEffect } from 'react';
 
 interface SEOHeadProps {
   title: string;
@@ -42,72 +44,85 @@ const SEOHead = ({
     ],
   };
 
-  return (
-    <Helmet>
-      {/* Primary Meta Tags */}
-      <title>{fullTitle}</title>
-      <meta name="title" content={fullTitle} />
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywords} />
-      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-      <meta name="language" content="English" />
-      <meta name="author" content={siteName} />
-      <meta name="publisher" content={siteName} />
-      <meta name="revisit-after" content="7 days" />
-      <meta name="distribution" content="global" />
-      <meta name="rating" content="general" />
-      <meta httpEquiv="content-language" content="en" />
-      <meta name="geo.region" content="IN-GJ" />
-      <meta name="geo.placename" content="Surat" />
-      <meta name="geo.position" content="21.1702;72.8311" />
-      <meta name="ICBM" content="21.1702, 72.8311" />
-      
-      {/* Canonical URL */}
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-      
-      {/* Alternate Languages */}
-      <link rel="alternate" hrefLang="en" href={canonicalUrl || baseUrl} />
-      <link rel="alternate" hrefLang="x-default" href={canonicalUrl || baseUrl} />
-      
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content={ogType} />
-      <meta property="og:site_name" content={siteName} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:image:alt" content={title} />
-      <meta property="og:locale" content="en_US" />
-      {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
-      
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@starlinkjewels" />
-      <meta name="twitter:creator" content="@starlinkjewels" />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`} />
-      <meta name="twitter:image:alt" content={title} />
-      
-      {/* Pinterest */}
-      <meta name="pinterest-rich-pin" content="true" />
-      
-      {/* Apple */}
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="apple-mobile-web-app-title" content={siteName} />
-      
-      {/* Microsoft */}
-      <meta name="msapplication-TileColor" content="#1a1a1a" />
-      <meta name="theme-color" content="#1a1a1a" />
-      
-      {/* Structured Data */}
-      <script type="application/ld+json">
-        {JSON.stringify(structuredData || defaultStructuredData)}
-      </script>
-    </Helmet>
-  );
+  useEffect(() => {
+    // Update document meta tags dynamically
+    document.title = fullTitle;
+    
+    const setMetaTag = (name: string, content: string, isProperty = false) => {
+      let element = document.querySelector(
+        isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`
+      );
+      if (!element) {
+        element = document.createElement('meta');
+        if (isProperty) {
+          element.setAttribute('property', name);
+        } else {
+          element.setAttribute('name', name);
+        }
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    // Primary Meta Tags
+    setMetaTag('title', fullTitle);
+    setMetaTag('description', description);
+    setMetaTag('keywords', keywords);
+    setMetaTag('robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    setMetaTag('language', 'English');
+    setMetaTag('author', siteName);
+    setMetaTag('publisher', siteName);
+    setMetaTag('revisit-after', '7 days');
+    setMetaTag('distribution', 'global');
+    setMetaTag('rating', 'general');
+    setMetaTag('geo.region', 'IN-GJ');
+    setMetaTag('geo.placename', 'Surat');
+    setMetaTag('geo.position', '21.1702;72.8311');
+    setMetaTag('ICBM', '21.1702, 72.8311');
+
+    // Open Graph / Facebook
+    setMetaTag('og:type', ogType, true);
+    setMetaTag('og:site_name', siteName, true);
+    setMetaTag('og:title', fullTitle, true);
+    setMetaTag('og:description', description, true);
+    setMetaTag('og:image', ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`, true);
+    setMetaTag('og:image:width', '1200', true);
+    setMetaTag('og:image:height', '630', true);
+    setMetaTag('og:image:alt', title, true);
+    setMetaTag('og:locale', 'en_US', true);
+
+    // Twitter
+    setMetaTag('twitter:card', 'summary_large_image');
+    setMetaTag('twitter:site', '@starlinkjewels');
+    setMetaTag('twitter:creator', '@starlinkjewels');
+    setMetaTag('twitter:title', fullTitle);
+    setMetaTag('twitter:description', description);
+    setMetaTag('twitter:image', ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`);
+    setMetaTag('twitter:image:alt', title);
+
+    // Structured Data
+    const scriptTag = (document.getElementById('structured-data') || document.createElement('script')) as HTMLScriptElement;
+    scriptTag.id = 'structured-data';
+    scriptTag.type = 'application/ld+json';
+    scriptTag.textContent = JSON.stringify(structuredData || defaultStructuredData);
+    if (!document.getElementById('structured-data')) {
+      document.head.appendChild(scriptTag);
+    }
+
+    // Canonical URL
+    if (canonicalUrl) {
+      setMetaTag('og:url', canonicalUrl, true);
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute('href', canonicalUrl);
+    }
+  }, [title, description, canonicalUrl, ogImage, ogType, structuredData]);
+
+  return null;
 };
 
 export default SEOHead;

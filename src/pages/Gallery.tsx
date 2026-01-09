@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { useGlobalData } from '@/hooks/useGlobalData';
 import { getContact } from '@/lib/storage';
@@ -74,10 +71,7 @@ const Gallery = () => {
         structuredData={structuredData}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
 
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
         {/* Hero Section */}
         <div className={`text-center mb-12 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
@@ -93,7 +87,7 @@ const Gallery = () => {
           <div className="text-center py-20 bg-gray-50 rounded-lg">
             <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Gallery Coming Soon</h3>
-            <p className="text-gray-600">We're curating an exceptional collection for you.</p>
+            <p className="text-gray-600">We&rsquo;re curating an exceptional collection for you.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -147,9 +141,7 @@ const Gallery = () => {
             </Button>
           </div>
         )}
-      </main>
 
-      <Footer />
 
       {/* Modal */}
       <Dialog open={selectedIndex !== null} onOpenChange={() => setSelectedIndex(null)}>

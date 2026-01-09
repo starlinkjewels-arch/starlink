@@ -1,6 +1,5 @@
 import { useEffect, useState, memo } from 'react';
 import { Banner } from '@/lib/storage';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface BannerCarouselProps {
@@ -45,14 +44,6 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
       }
     });
   }, [currentIndex, banners, imagesLoaded]);
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-  };
-
-  const goToPrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-  };
 
   if (banners.length === 0) {
     return (

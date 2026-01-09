@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
 import BannerCarousel from '@/components/BannerCarousel';
 import SEOHead from '@/components/SEOHead';
 import ServicesSection from '@/components/ServicesSection';
@@ -104,7 +101,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEOHead
         title="Premium Diamond & Gold Jewelry | Lab Grown & Natural Diamonds | Starlink Jewels"
         description="Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore GIA certified engagement rings, wedding bands, necklaces, earrings & bracelets. Free worldwide shipping. Best prices guaranteed."
@@ -112,12 +109,8 @@ const Index = () => {
         canonicalUrl="https://starlinkjewels.com"
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
-
-      <main className="flex-1" style={{ paddingTop: `${paddingTop}px` }}>
-        {/* Hero Banner */}
-        <section className="w-full px-4 md:px-6 mb-16 md:mb-20">
+      {/* Hero Banner */}
+      <section className="w-full px-4 md:px-6 mb-16 md:mb-20">
           <BannerCarousel banners={banners} />
         </section>
 
@@ -131,7 +124,7 @@ const Index = () => {
           </div>
 
           <div className="text-center mt-8">
-            <Link to="/about"><Button size="lg" variant="outline">Read More</Button></Link>
+            <Link href="/about"><Button size="lg" variant="outline">Read More</Button></Link>
           </div>
         </section>
 
@@ -144,7 +137,7 @@ const Index = () => {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
               {categories.slice(0, 6).map((category) => (
-                <Link key={category.id} to={`/category/${category.id}`} className="category-card group">
+                <Link key={category.id} href={`/category/${category.id}`} className="category-card group">
                   <div className="aspect-square rounded-2xl overflow-hidden mb-3 bg-muted">
                     <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
                   </div>
@@ -154,7 +147,7 @@ const Index = () => {
             </div>
 
             <div className="text-center mt-8">
-              <Link to="/categories"><Button size="lg" className="luxury-gradient">View All Categories</Button></Link>
+              <Link href="/categories"><Button size="lg" className="luxury-gradient">View All Categories</Button></Link>
             </div>
           </section>
         )}
@@ -320,7 +313,7 @@ const Index = () => {
               ))}
             </div>
             <div className="text-center mt-6 md:mt-8 px-4">
-              <Link to="/gallery"><Button size="lg" variant="outline">View Full Gallery</Button></Link>
+              <Link href="/gallery"><Button size="lg" variant="outline">View Full Gallery</Button></Link>
             </div>
           </section>
         )}
@@ -354,7 +347,7 @@ const Index = () => {
               })}
             </div>
             <div className="text-center mt-8">
-              <Link to="/blog"><Button size="lg" variant="outline">Read More Articles</Button></Link>
+              <Link href="/blog"><Button size="lg" variant="outline">Read More Articles</Button></Link>
             </div>
           </section>
         )}
@@ -422,9 +415,6 @@ const Index = () => {
 
         {/* Services Section */}
         <ServicesSection />
-      </main>
-
-      <Footer />
 
       <BlogDialog
         blog={selectedBlog}
@@ -432,7 +422,7 @@ const Index = () => {
         onClose={() => setIsBlogDialogOpen(false)}
         whatsappNumber={contactInfo?.whatsapp}
       />
-    </div>
+    </>
   );
 };
 

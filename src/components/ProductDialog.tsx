@@ -30,7 +30,7 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
            url.toLowerCase().includes('mov') ? 'video' : 'image';
   };
 
-  const allMediaUrls = product?.images?.length > 0 ? product.images : product?.image ? [product.image] : [];
+  const allMediaUrls = product?.images && product.images.length > 0 ? product.images : product?.image ? [product.image] : [];
   const media: MediaItem[] = allMediaUrls.map(url => ({
     url,
     type: getMediaType(url)
