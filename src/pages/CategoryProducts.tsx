@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
 const CategoryProducts = () => {
   const { id } = useParams<{ id: string }>();
   const { categories, promoHeader } = useGlobalData();
@@ -27,11 +26,10 @@ const CategoryProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>('newest');
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
   const paddingTop = promoHeight + 80 + 52 + 24;
-
   useEffect(() => {
     if (id) {
       getCategoryById(id).then((cat) => {
@@ -41,76 +39,105 @@ const CategoryProducts = () => {
     }
   }, [id]);
 
-  useEffect(() => {
-    if (!products || products.length === 0) {
-      setFilteredProducts([]);
-      return;
-    }
-
-    let sorted = [...products];
+  const getProductTime = (item: Product): number => {
+    if (!item) return 0;
     
-    switch (sortBy) {
+    // Check createdAt field
+    if (item.createdAt) {
+      if (typeof item.createdAt === 'object' && item.createdAt !== null && 'seconds' in item.createdAt) {
+        return item.createdAt.seconds * 1000;
+      } else if (typeof item.createdAt === 'number') {
+        return item.createdAt;
+      } else if (typeof item.createdAt === 'string') {
+        const date = new Date(item.createdAt);
+        return isNaN(date.getTime()) ? 0 : date.getTime();
+      }
+    }
+    
+    // Fallback: extract timestamp from id
+    if (item.id && typeof item.id === 'string') {
+      const idParts = item.id.split('_');
+      if (idParts.length > 1) {
+        const timestamp = parseInt(idParts[idParts.length - 1], 10);
+        if (!isNaN(timestamp) && timestamp > 0) {
+          return timestamp;
+        }
+      }
+    }
+    
+    return 0;
+  };
+
+  const sortProducts = (productsToSort: Product[], sortOption: string): Product[] => {
+    const result = [...productsToSort];
+
+    switch (sortOption) {
       case 'price-low':
-        sorted.sort((a, b) => {
+        result.sort((a, b) => {
           const priceA = parseFloat(String(a.price || 0));
           const priceB = parseFloat(String(b.price || 0));
           return priceA - priceB;
         });
         break;
       case 'price-high':
-        sorted.sort((a, b) => {
+        result.sort((a, b) => {
           const priceA = parseFloat(String(a.price || 0));
           const priceB = parseFloat(String(b.price || 0));
           return priceB - priceA;
         });
         break;
       case 'oldest':
-        sorted.sort((a, b) => {
-          // Use id as fallback if createdAt doesn't exist
-          const getTime = (item: Product) => {
-            if (item.createdAt) {
-              return new Date(item.createdAt).getTime();
-            }
-            // Extract timestamp from id if it exists (format: cat_timestamp)
-            const idParts = item.id?.split('_');
-            if (idParts && idParts.length > 1) {
-              const timestamp = parseInt(idParts[idParts.length - 1]);
-              if (!isNaN(timestamp)) return timestamp;
-            }
-            return 0;
-          };
-          return getTime(a) - getTime(b);
+        result.sort((a, b) => {
+          const timeA = getProductTime(a);
+          const timeB = getProductTime(b);
+          return timeA - timeB;
         });
         break;
       case 'newest':
       default:
-        sorted.sort((a, b) => {
-          // Use id as fallback if createdAt doesn't exist
-          const getTime = (item: Product) => {
-            if (item.createdAt) {
-              return new Date(item.createdAt).getTime();
-            }
-            // Extract timestamp from id if it exists (format: cat_timestamp)
-            const idParts = item.id?.split('_');
-            if (idParts && idParts.length > 1) {
-              const timestamp = parseInt(idParts[idParts.length - 1]);
-              if (!isNaN(timestamp)) return timestamp;
-            }
-            return 0;
-          };
-          return getTime(b) - getTime(a);
+        result.sort((a, b) => {
+          const timeA = getProductTime(a);
+          const timeB = getProductTime(b);
+          return timeB - timeA;
         });
         break;
     }
-    
+
+    return result;
+  };
+
+  useEffect(() => {
+    if (!products || products.length === 0) {
+      setFilteredProducts([]);
+      return;
+    }
+
+    const sorted = sortProducts(products, sortBy);
     setFilteredProducts(sorted);
   }, [products, sortBy]);
-
+  useEffect(() => {
+    if (products.length > 0) {
+      const prodId = searchParams.get('product');
+      if (prodId) {
+        const prod = products.find(p => p.id === prodId);
+        if (prod) {
+          setSelectedProduct(prod);
+          setIsDialogOpen(true);
+        }
+      }
+    }
+  }, [products, searchParams]);
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
+    setSearchParams({ product: product.id });
   };
-
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setSearchParams({});
+    }
+  };
   const structuredData = category ? {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -132,11 +159,10 @@ const CategoryProducts = () => {
       })),
     },
   } : undefined;
-
   if (!category) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead 
+        <SEOHead
           title="Category Not Found"
           description="The requested category could not be found."
           canonicalUrl={`https://starlinkjewels.com/category/${id}`}
@@ -158,7 +184,6 @@ const CategoryProducts = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
@@ -168,10 +193,8 @@ const CategoryProducts = () => {
         canonicalUrl={`https://starlinkjewels.com/category/${id}`}
         structuredData={structuredData}
       />
-
       <Header promoHeader={promoHeader} />
       <MiniHeader categories={categories} promoHeight={promoHeight} />
-
       <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
         <Link to="/categories">
           <Button variant="ghost" className="mb-6">
@@ -179,19 +202,17 @@ const CategoryProducts = () => {
             Back to Categories
           </Button>
         </Link>
-
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{category.name}</h1>
           <p className="text-lg text-muted-foreground">{category.description}</p>
         </div>
-
         {/* Filter Bar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 p-4 bg-muted/30 rounded-lg border">
           {/* <div className="flex items-center gap-2 text-muted-foreground">
             <span className="text-2xl font-bold text-foreground">{filteredProducts.length}</span>
             <span className="text-sm">Product{filteredProducts.length !== 1 ? 's' : ''} Found</span>
           </div> */}
-          
+
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <SlidersHorizontal className="h-4 w-4" />
@@ -203,14 +224,13 @@ const CategoryProducts = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
+                {/* <SelectItem value="oldest">Oldest First</SelectItem> */}
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-
         {filteredProducts.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-lg text-muted-foreground">No products in this category yet.</p>
@@ -219,8 +239,8 @@ const CategoryProducts = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
+              <ProductCard
+                key={product.id}
                 product={product}
                 onClick={() => handleProductClick(product)}
               />
@@ -228,16 +248,14 @@ const CategoryProducts = () => {
           </div>
         )}
       </main>
-
       <ProductDialog
         product={selectedProduct}
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={handleDialogOpenChange}
+        catId={id}
       />
-
       <Footer />
     </div>
   );
 };
-
 export default CategoryProducts;
