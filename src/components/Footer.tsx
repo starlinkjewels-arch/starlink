@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from "react";
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
-import { getContact, ContactInfo } from '@/lib/storage';
 import logo from '@/assets/starlink-logo-full.png';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import Zelle from '@/assets/paylogo/Zelle_(payment_service)-Logo.wine.png';
 import Venmo from '@/assets/paylogo/Venmo-Logo.wine.png';
 import Google from '@/assets/paylogo/Google_Pay-Logo.wine.png';
@@ -23,32 +24,23 @@ import Bourse from '@/assets/paylogo/SDB LOGO.png';
 
 
 const Footer = () => {
-  const [contact, setContact] = useState<ContactInfo>({
-    address: '',
-    phone: '',
-    email: '',
-    whatsapp: '',
-  });
+  const { contactInfo } = useAppSelector(selectGlobalData);
 
-  useEffect(() => {
-    getContact().then(setContact);
-  }, []);
-
-  const paymentMethods = [
+  const paymentMethods = useMemo(() => [
     { name: 'Zelle', logo: Zelle },
     { name: 'Venmo', logo: Venmo },
     { name: 'Google Pay', logo: Google },
     // { name: 'PayPal', logo: PayPal },
     { name: 'Visa', logo: Visa },
     { name: 'Bank Wire', logo: Bank }
-  ];
-  const trustedBadges = [
+  ], []);
+  const trustedBadges = useMemo(() => [
     { name: 'GIA', logo: GIA },
     { name: 'Rapaport', logo: Rapaport },
     { name: 'Surat Diamond Association', logo: SDA },
     { name: 'Surat Diamond Bourse', logo:Bourse },
     { name: 'Surat Jewelery Association', logo: 'https://sjma.in/cdn/shop/files/SJMA_Logo.png?v=1755163553&width=210' }
-  ];
+  ], []);
 
 
   return (
@@ -148,25 +140,25 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-3">
-              {contact.address && (
+              {contactInfo?.address && (
                 <li className="flex items-start gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>{contact.address}</span>
+                  <span>{contactInfo.address}</span>
                 </li>
               )}
-              {contact.phone && (
+              {contactInfo?.phone && (
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Phone className="h-4 w-4 flex-shrink-0" />
-                  <a href={`tel:${contact.phone}`} className="hover:text-primary transition-colors">
-                    {contact.phone}
+                  <a href={`tel:${contactInfo.phone}`} className="hover:text-primary transition-colors">
+                    {contactInfo.phone}
                   </a>
                 </li>
               )}
-              {contact.email && (
+              {contactInfo?.email && (
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Mail className="h-4 w-4 flex-shrink-0" />
-                  <a href={`mailto:${contact.email}`} className="hover:text-primary transition-colors">
-                    {contact.email}
+                  <a href={`mailto:${contactInfo.email}`} className="hover:text-primary transition-colors">
+                    {contactInfo.email}
                   </a>
                 </li>
               )}
@@ -176,9 +168,9 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-lg mb-4">Follow Us</h3>
             <div className="flex flex-wrap gap-3">
-              {contact.facebook && (
+              {contactInfo?.facebook && (
                 <a
-                  href={contact.facebook}
+                  href={contactInfo.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground flex items-center justify-center transition-all"
@@ -187,9 +179,9 @@ const Footer = () => {
                   <Facebook className="h-5 w-5" />
                 </a>
               )}
-              {contact.instagram && (
+              {contactInfo?.instagram && (
                 <a
-                  href={contact.instagram}
+                  href={contactInfo.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground flex items-center justify-center transition-all"
@@ -198,9 +190,9 @@ const Footer = () => {
                   <Instagram className="h-5 w-5" />
                 </a>
               )}
-              {contact.twitter && (
+              {contactInfo?.twitter && (
                 <a
-                  href={contact.twitter}
+                  href={contactInfo.twitter}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground flex items-center justify-center transition-all"
@@ -209,9 +201,9 @@ const Footer = () => {
                   <Twitter className="h-5 w-5" />
                 </a>
               )}
-              {contact.pinterest && (
+              {contactInfo?.pinterest && (
                 <a
-                  href={contact.pinterest}
+                  href={contactInfo.pinterest}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground flex items-center justify-center transition-all"

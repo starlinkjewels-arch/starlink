@@ -9,7 +9,8 @@ import BannerCarousel from '@/components/BannerCarousel';
 import SEOHead from '@/components/SEOHead';
 import ServicesSection from '@/components/ServicesSection';
 import BlogDialog from '@/components/BlogDialog';
-import { useGlobalData } from '@/hooks/useGlobalData';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
 import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck } from 'lucide-react';
 import { BlogPost } from '@/lib/storage';
@@ -27,7 +28,7 @@ const Index = () => {
     testimonials,
     promoHeader,
     contactInfo
-  } = useGlobalData();
+  } = useAppSelector(selectGlobalData);
 
   const animationRef = useRef<gsap.Context | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);

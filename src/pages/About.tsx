@@ -3,7 +3,8 @@ import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import { useGlobalData } from '@/hooks/useGlobalData';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Award, Shield, Heart, Globe, Sparkles, Users, Clock, Target, Gem, Diamond, Crown, Zap } from 'lucide-react';
@@ -17,7 +18,7 @@ import logo4 from '@/assets/05.jpg';
 gsap.registerPlugin(ScrollTrigger);
 
 const About = () => {
-  const { categories, promoHeader } = useGlobalData();
+  const { categories, promoHeader } = useAppSelector(selectGlobalData);
   const animationRef = useRef<gsap.Context | null>(null);
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;

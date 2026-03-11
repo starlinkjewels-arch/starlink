@@ -9,6 +9,7 @@ import { Plus, Trash2, Pencil, X, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactQuill, { ReactQuillProps } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface MediaPreview {
   url: string;
@@ -29,6 +30,10 @@ const AdminProducts = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [bulkDelta, setBulkDelta] = useState('10');
+  const [bulkPreviewOpen, setBulkPreviewOpen] = useState(false);
+  const [bulkPreview, setBulkPreview] = useState<Product[]>([]);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   useEffect(() => {
     getProducts().then(setProducts);
@@ -165,6 +170,60 @@ const AdminProducts = () => {
       toast.error(editingId ? 'Failed to update product' : 'Failed to add product');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const parsePriceNumber = (value: string): number => {
+    const numeric = parseFloat(String(value || '').replace(/[^0-9.]/g, ''));
+    return isNaN(numeric) ? 0 : numeric;
+  };
+
+  const formatPrice = (value: number): string => {
+    const safe = Number.isFinite(value) ? value : 0;
+    return safe.toFixed(2);
+  };
+
+  const handleOpenBulkPreview = () => {
+    const delta = parsePriceNumber(bulkDelta);
+    if (delta === 0) {
+      toast.error('Please enter a non-zero amount');
+      return;
+    }
+    if (products.length === 0) {
+      toast.error('No products to update');
+      return;
+    }
+
+    const next = products.map((p) => {
+      const current = parsePriceNumber(p.price);
+      const updated = Math.max(0, current + delta);
+      return {
+        ...p,
+        price: formatPrice(updated),
+      };
+    });
+
+    setBulkPreview(next);
+    setBulkPreviewOpen(true);
+  };
+
+  const handleConfirmBulkUpdate = async () => {
+    if (bulkPreview.length === 0) {
+      setBulkPreviewOpen(false);
+      return;
+    }
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(bulkPreview.map((p) => saveProduct(p)));
+      const updated = await getProducts();
+      setProducts(updated);
+      toast.success('All product prices updated');
+      setBulkPreviewOpen(false);
+    } catch (error) {
+      console.error('Error updating prices:', error);
+      toast.error('Failed to update prices');
+    } finally {
+      setIsBulkUpdating(false);
     }
   };
 
@@ -417,6 +476,33 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Bulk Price Update</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+            <div className="space-y-2 w-full sm:w-64">
+              <Label htmlFor="bulk-delta">Increase/Decrease Amount ($)</Label>
+              <Input
+                id="bulk-delta"
+                value={bulkDelta}
+                onChange={(e) => setBulkDelta(e.target.value)}
+                placeholder="e.g., 10"
+                type="number"
+                step="0.01"
+              />
+              <p className="text-xs text-muted-foreground">
+                Use negative value to decrease prices.
+              </p>
+            </div>
+            <Button onClick={handleOpenBulkPreview} disabled={isUploading || isBulkUpdating}>
+              Preview Changes
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => {
           const productMedia = product.images || [product.image];
@@ -504,6 +590,43 @@ const AdminProducts = () => {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={bulkPreviewOpen} onOpenChange={setBulkPreviewOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Confirm Price Update</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-auto pr-2">
+            {bulkPreview.map((p) => {
+              const original = products.find((x) => x.id === p.id);
+              const originalPrice = original ? parsePriceNumber(original.price) : 0;
+              const newPrice = parsePriceNumber(p.price);
+              return (
+                <div key={p.id} className="flex items-center justify-between border-b border-border pb-2">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{p.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {categories.find((c) => c.id === p.categoryId)?.name || 'Unknown'}
+                    </div>
+                  </div>
+                  <div className="text-right text-sm">
+                    <div className="text-muted-foreground line-through">${formatPrice(originalPrice)}</div>
+                    <div className="font-semibold text-primary">${formatPrice(newPrice)}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setBulkPreviewOpen(false)} disabled={isBulkUpdating}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmBulkUpdate} disabled={isBulkUpdating}>
+              {isBulkUpdating ? 'Updating...' : 'Confirm Update'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

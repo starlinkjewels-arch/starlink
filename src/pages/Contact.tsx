@@ -1,22 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from "react";
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import { useGlobalData } from '@/hooks/useGlobalData';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Phone, Mail, Clock, Send, Flag, Loader2 } from 'lucide-react';
-import { getContact, getOffices, ContactInfo, Office } from '@/lib/storage';
 import { toast } from 'sonner';
 
 const Contact = () => {
-  const { categories, promoHeader } = useGlobalData();
-  const [contact, setContact] = useState<ContactInfo | null>(null);
-  const [offices, setOffices] = useState<Office[]>([]);
+  const { categories, promoHeader, contactInfo, offices } = useAppSelector(selectGlobalData);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -27,11 +25,6 @@ const Contact = () => {
   const promoHeight = hasPromo ? 40 : 0;
   const paddingTop = promoHeight + 80 + 52;
 
-  useEffect(() => {
-    getContact().then(setContact);
-    getOffices().then(setOffices);
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
@@ -41,7 +34,7 @@ const Contact = () => {
     setIsSubmitting(true);
     try {
       const whatsappMessage = `*New Contact Form*\n\n*Name:* ${name.trim()}\n*Email:* ${email.trim()}\n*Subject:* ${subject.trim()}\n*Message:*\n${message.trim()}`;
-      window.open(`https://wa.me/${contact?.whatsapp || '919967381180'}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+      window.open(`https://wa.me/${contactInfo?.whatsapp || '919967381180'}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
       setName(''); setEmail(''); setSubject(''); setMessage('');
       toast.success('Message sent!');
     } finally {
@@ -49,7 +42,10 @@ const Contact = () => {
     }
   };
 
-  const sortedOffices = [...offices].sort((a, b) => (a.isHeadquarters ? -1 : 0) - (b.isHeadquarters ? -1 : 0));
+  const sortedOffices = useMemo(
+    () => [...offices].sort((a, b) => (a.isHeadquarters ? -1 : 0) - (b.isHeadquarters ? -1 : 0)),
+    [offices]
+  );
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -60,8 +56,8 @@ const Contact = () => {
     mainEntity: {
       '@type': 'Organization',
       name: 'Starlink Jewels',
-      telephone: contact?.phone,
-      email: contact?.email,
+      telephone: contactInfo?.phone,
+      email: contactInfo?.email,
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'Mumbai',
@@ -147,16 +143,16 @@ const Contact = () => {
               <div className="space-y-8">
                 <h3 className="text-3xl font-bold mb-6">Quick Contact</h3>
                 <div className="space-y-4">
-                  {contact?.phone && (
+                  {contactInfo?.phone && (
                     <Card><CardContent className="p-6 flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Phone className="h-6 w-6 text-primary" /></div>
-                      <div><h4 className="font-semibold mb-1">Phone</h4><a href={`tel:${contact.phone}`} className="text-muted-foreground hover:text-primary">{contact.phone}</a></div>
+                      <div><h4 className="font-semibold mb-1">Phone</h4><a href={`tel:${contactInfo.phone}`} className="text-muted-foreground hover:text-primary">{contactInfo.phone}</a></div>
                     </CardContent></Card>
                   )}
-                  {contact?.email && (
+                  {contactInfo?.email && (
                     <Card><CardContent className="p-6 flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Mail className="h-6 w-6 text-primary" /></div>
-                      <div><h4 className="font-semibold mb-1">Email</h4><a href={`mailto:${contact.email}`} className="text-muted-foreground hover:text-primary">{contact.email}</a></div>
+                      <div><h4 className="font-semibold mb-1">Email</h4><a href={`mailto:${contactInfo.email}`} className="text-muted-foreground hover:text-primary">{contactInfo.email}</a></div>
                     </CardContent></Card>
                   )}
                   <Card><CardContent className="p-6 flex items-start gap-4">

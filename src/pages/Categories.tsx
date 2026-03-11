@@ -3,11 +3,12 @@ import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import { useGlobalData } from '@/hooks/useGlobalData';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import { Card, CardContent } from '@/components/ui/card';
 
 const Categories = () => {
-  const { categories, promoHeader } = useGlobalData();
+  const { categories, promoHeader } = useAppSelector(selectGlobalData);
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;

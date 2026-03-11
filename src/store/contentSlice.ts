@@ -1,0 +1,218 @@
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  getBanners,
+  getCategories,
+  getProducts,
+  getGallery,
+  getFeaturedCollection,
+  getBlogs,
+  getInstagramPosts,
+  getTestimonials,
+  getPromoHeader,
+  getContact,
+  getOffices,
+  initializeDefaultData,
+  type Banner,
+  type Category,
+  type Product,
+  type GalleryItem,
+  type FeaturedCollection,
+  type BlogPost,
+  type InstagramPost,
+  type Testimonial,
+  type PromoHeader,
+  type ContactInfo,
+  type Office,
+} from "@/lib/storage";
+import { getBuyingGuides, type BuyingGuide } from "@/lib/buyingGuides";
+import type { RootState } from "./store";
+
+export interface GlobalData {
+  banners: Banner[];
+  categories: Category[];
+  products: Product[];
+  galleryItems: GalleryItem[];
+  featuredCollection: FeaturedCollection[];
+  blogs: BlogPost[];
+  instagramPosts: InstagramPost[];
+  testimonials: Testimonial[];
+  promoHeader: PromoHeader | null;
+  contactInfo: ContactInfo | null;
+  offices: Office[];
+  buyingGuides: BuyingGuide[];
+}
+
+interface ContentState {
+  data: GlobalData;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+  hydrated: boolean;
+  lastUpdated: number | null;
+}
+
+const SESSION_KEY = "starlink_global_data_v3";
+
+const emptyData: GlobalData = {
+  banners: [],
+  categories: [],
+  products: [],
+  galleryItems: [],
+  featuredCollection: [],
+  blogs: [],
+  instagramPosts: [],
+  testimonials: [],
+  promoHeader: null,
+  contactInfo: null,
+  offices: [],
+  buyingGuides: [],
+};
+
+const safeParse = (value: string | null) => {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+const readSessionCache = (): { data: GlobalData; savedAt: number } | null => {
+  if (typeof window === "undefined") return null;
+  const raw = safeParse(sessionStorage.getItem(SESSION_KEY));
+  if (raw?.data) {
+    return { data: raw.data as GlobalData, savedAt: raw.savedAt || Date.now() };
+  }
+  return null;
+};
+
+const saveSessionCache = (data: GlobalData) => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ savedAt: Date.now(), data })
+    );
+  } catch {
+    // ignore quota / privacy errors
+  }
+};
+
+const cached = readSessionCache();
+
+const initialState: ContentState = {
+  data: cached?.data ?? emptyData,
+  status: cached ? "succeeded" : "idle",
+  error: null,
+  hydrated: Boolean(cached),
+  lastUpdated: cached?.savedAt ?? null,
+};
+
+export const loadGlobalData = createAsyncThunk<
+  GlobalData,
+  { force?: boolean } | undefined,
+  { state: RootState }
+>(
+  "content/loadGlobalData",
+  async (args) => {
+    if (!args?.force) {
+      const session = readSessionCache();
+      if (session?.data) return session.data;
+    }
+
+    await initializeDefaultData();
+
+    const [
+      banners,
+      categories,
+      products,
+      galleryItems,
+      featuredCollection,
+      blogs,
+      instagramPosts,
+      testimonials,
+      promoHeader,
+      contactInfo,
+      offices,
+      buyingGuides,
+    ] = await Promise.all([
+      getBanners(),
+      getCategories(),
+      getProducts(),
+      getGallery(),
+      getFeaturedCollection(),
+      getBlogs(),
+      getInstagramPosts(),
+      getTestimonials(),
+      getPromoHeader(),
+      getContact(),
+      getOffices(),
+      getBuyingGuides(),
+    ]);
+
+    return {
+      banners,
+      categories,
+      products,
+      galleryItems,
+      featuredCollection,
+      blogs,
+      instagramPosts,
+      testimonials,
+      promoHeader,
+      contactInfo,
+      offices,
+      buyingGuides,
+    };
+  },
+  {
+    condition: (args, { getState }) => {
+      const { content } = getState();
+      if (args?.force) return true;
+      if (content.status === "loading") return false;
+      if (content.hydrated) return false;
+      return true;
+    },
+  }
+);
+
+const contentSlice = createSlice({
+  name: "content",
+  initialState,
+  reducers: {
+    setGlobalData(state, action: PayloadAction<GlobalData>) {
+      state.data = action.payload;
+      state.status = "succeeded";
+      state.error = null;
+      state.hydrated = true;
+      state.lastUpdated = Date.now();
+      saveSessionCache(action.payload);
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadGlobalData.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(loadGlobalData.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.data = action.payload;
+        state.hydrated = true;
+        state.lastUpdated = Date.now();
+        saveSessionCache(action.payload);
+      })
+      .addCase(loadGlobalData.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message ?? "Failed to load data";
+      });
+  },
+});
+
+export const { setGlobalData } = contentSlice.actions;
+
+export const selectGlobalData = (state: RootState) => state.content.data;
+export const selectContentStatus = (state: RootState) => state.content.status;
+export const selectContentHydrated = (state: RootState) => state.content.hydrated;
+export const selectContentError = (state: RootState) => state.content.error;
+
+export default contentSlice.reducer;

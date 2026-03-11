@@ -516,10 +516,136 @@ const addWatermark = async (file: File): Promise<File> => {
   });
 };
 
+const getSupportedVideoMimeType = () => {
+  const candidates = [
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm",
+  ];
+  for (const type of candidates) {
+    if (MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return "";
+};
+
+// Add watermark to video by rendering frames to canvas and recording
+const addVideoWatermark = async (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    if (typeof MediaRecorder === "undefined") {
+      resolve(file);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.src = url;
+    video.crossOrigin = "anonymous";
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+    };
+
+    video.onerror = () => {
+      cleanup();
+      resolve(file);
+    };
+
+    video.onloadedmetadata = async () => {
+      const mimeType = getSupportedVideoMimeType();
+      if (!mimeType) {
+        cleanup();
+        resolve(file);
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        cleanup();
+        resolve(file);
+        return;
+      }
+
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+
+      if (!("captureStream" in canvas)) {
+        cleanup();
+        resolve(file);
+        return;
+      }
+
+      const stream = canvas.captureStream();
+      const audioStream =
+        (video as HTMLVideoElement & { captureStream?: () => MediaStream })
+          .captureStream?.() ||
+        (video as HTMLVideoElement & { mozCaptureStream?: () => MediaStream })
+          .mozCaptureStream?.();
+
+      if (audioStream) {
+        audioStream.getAudioTracks().forEach((track) => stream.addTrack(track));
+      }
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        const extension = mimeType.includes("webm") ? "webm" : "mp4";
+        const watermarked = new File([blob], file.name.replace(/\.\w+$/, `.${extension}`), {
+          type: mimeType,
+        });
+        cleanup();
+        resolve(watermarked);
+      };
+
+      const drawFrame = () => {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const fontSize = Math.max(24, Math.floor(canvas.width / 20));
+        ctx.font = `${fontSize}px Cinzel`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.20)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("STARLINK JEWELS", canvas.width / 2, canvas.height / 2);
+
+        if (!video.paused && !video.ended) {
+          requestAnimationFrame(drawFrame);
+        }
+      };
+
+      try {
+        recorder.start(250);
+        await video.play();
+        drawFrame();
+      } catch {
+        recorder.stop();
+      }
+
+      video.onended = () => {
+        if (recorder.state !== "inactive") recorder.stop();
+      };
+    };
+  });
+};
+
 export const uploadImageToStorage = async (file: File, path: string, skipWatermark: boolean = false): Promise<string> => {
   try {
     // Add watermark before uploading (unless skipped)
-    const fileToUpload = skipWatermark ? file : await addWatermark(file);
+    let fileToUpload = file;
+    if (!skipWatermark) {
+      if (file.type.startsWith("video/")) {
+        fileToUpload = await addVideoWatermark(file);
+      } else {
+        fileToUpload = await addWatermark(file);
+      }
+    }
     const storageRef = ref(storage, `${path}/${Date.now()}_${fileToUpload.name}`);
     const snapshot = await uploadBytes(storageRef, fileToUpload);
     const downloadURL = await getDownloadURL(snapshot.ref);

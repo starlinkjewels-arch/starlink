@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
@@ -6,8 +6,9 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import ProductDialog from '@/components/ProductDialog';
 import SEOHead from '@/components/SEOHead';
-import { useGlobalData } from '@/hooks/useGlobalData';
-import { getCategoryById, getProductsByCategory, Product, Category } from '@/lib/storage';
+import { useAppSelector } from "@/store/hooks";
+import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
+import { Product } from "@/lib/storage";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import {
@@ -19,9 +20,10 @@ import {
 } from '@/components/ui/select';
 const CategoryProducts = () => {
   const { id } = useParams<{ id: string }>();
-  const { categories, promoHeader } = useGlobalData();
-  const [category, setCategory] = useState<Category | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const { categories, promoHeader, products } = useAppSelector(selectGlobalData);
+  const status = useAppSelector(selectContentStatus);
+  const hydrated = useAppSelector(selectContentHydrated);
+  const isReady = status === "succeeded" || hydrated;
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,14 +32,15 @@ const CategoryProducts = () => {
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
   const paddingTop = promoHeight + 80 + 52 + 24;
-  useEffect(() => {
-    if (id) {
-      getCategoryById(id).then((cat) => {
-        setCategory(cat || null);
-      });
-      getProductsByCategory(id).then(setProducts);
-    }
-  }, [id]);
+  const category = useMemo(
+    () => categories.find((c) => c.id === id) ?? null,
+    [categories, id]
+  );
+
+  const productsForCategory = useMemo(
+    () => products.filter((p) => p.categoryId === id),
+    [products, id]
+  );
 
   const getProductTime = (item: Product): number => {
     if (!item) return 0;
@@ -107,26 +110,26 @@ const CategoryProducts = () => {
   };
 
   useEffect(() => {
-    if (!products || products.length === 0) {
+    if (!productsForCategory || productsForCategory.length === 0) {
       setFilteredProducts([]);
       return;
     }
 
-    const sorted = sortProducts(products, sortBy);
+    const sorted = sortProducts(productsForCategory, sortBy);
     setFilteredProducts(sorted);
-  }, [products, sortBy]);
+  }, [productsForCategory, sortBy]);
   useEffect(() => {
-    if (products.length > 0) {
+    if (productsForCategory.length > 0) {
       const prodId = searchParams.get('product');
       if (prodId) {
-        const prod = products.find(p => p.id === prodId);
+        const prod = productsForCategory.find(p => p.id === prodId);
         if (prod) {
           setSelectedProduct(prod);
           setIsDialogOpen(true);
         }
       }
     }
-  }, [products, searchParams]);
+  }, [productsForCategory, searchParams]);
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
@@ -159,6 +162,32 @@ const CategoryProducts = () => {
       })),
     },
   } : undefined;
+  if (!category && !isReady) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <SEOHead
+          title="Loading Category"
+          description="Loading category details."
+          canonicalUrl={`https://starlinkjewels.com/category/${id}`}
+        />
+        <Header promoHeader={promoHeader} />
+        <MiniHeader categories={categories} promoHeight={promoHeight} />
+        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
+          <div className="mb-8">
+            <div className="h-10 w-64 bg-muted rounded-md animate-pulse mb-3" />
+            <div className="h-4 w-96 bg-muted/70 rounded-md animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!category) {
     return (
       <div className="min-h-screen bg-background flex flex-col">

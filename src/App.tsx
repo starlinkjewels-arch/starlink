@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,8 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
-import GlobalLoader from "@/components/GlobalLoader";
-import { useGlobalData } from "@/hooks/useGlobalData";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { loadGlobalData, selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Categories from "./pages/Categories";
@@ -20,13 +20,24 @@ import BuyingGuidePage from "./pages/BuyingGuide";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
+import { preloadAssets } from "@/lib/preload";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isLoading, banners, categories, featuredCollection, galleryItems } = useGlobalData();
+  const dispatch = useAppDispatch();
+  const data = useAppSelector(selectGlobalData);
+  const status = useAppSelector(selectContentStatus);
+  const hydrated = useAppSelector(selectContentHydrated);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+
+  useEffect(() => {
+    if (status === "idle" && !hydrated) {
+      dispatch(loadGlobalData());
+    }
+  }, [dispatch, hydrated, status]);
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,19 +47,38 @@ const AppContent = () => {
   }, []);
 
   // Collect important images to preload (banners are most critical)
-  const imagesToPreload = [
-    ...banners.map(b => b.image),
-    ...categories.slice(0, 6).map(c => c.image),
-    ...featuredCollection.slice(0, 4).map(f => f.image),
-    ...galleryItems.slice(0, 4).map(g => g.image),
-  ].filter(Boolean);
+  const assetUrls = useMemo(() => {
+    const productImages = data.products.flatMap((p) => [p.image, ...(p.images || [])]);
+    const blogImages = data.blogs.flatMap((b) => [b.image, b.thumbnail || ""]);
+    const officeFlags = data.offices.map((o) => o.flagImage || "");
 
-  // Only show loader on home page
-  const showLoader = isLoading && isHomePage;
+    return [
+      ...data.banners.map((b) => b.image),
+      ...data.categories.map((c) => c.image),
+      ...data.featuredCollection.map((f) => f.image),
+      ...data.galleryItems.map((g) => g.image),
+      ...productImages,
+      ...blogImages,
+      ...officeFlags,
+    ].filter(Boolean);
+  }, [
+    data.banners,
+    data.categories,
+    data.featuredCollection,
+    data.galleryItems,
+    data.products,
+    data.blogs,
+    data.offices,
+  ]);
+
+  useEffect(() => {
+    if (status === "succeeded" || hydrated) {
+      preloadAssets(assetUrls);
+    }
+  }, [assetUrls, hydrated, status]);
 
   return (
     <>
-      <GlobalLoader isLoading={showLoader} imagesToPreload={imagesToPreload} />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />

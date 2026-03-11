@@ -5,12 +5,13 @@ import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import BlogDialog from '@/components/BlogDialog';
-import { useGlobalData } from '@/hooks/useGlobalData';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import { Card, CardContent } from '@/components/ui/card';
 import { BlogPost } from '@/lib/storage';
 
 const Blog = () => {
-  const { categories, blogs, promoHeader, contactInfo } = useGlobalData();
+  const { categories, blogs, promoHeader, contactInfo } = useAppSelector(selectGlobalData);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();

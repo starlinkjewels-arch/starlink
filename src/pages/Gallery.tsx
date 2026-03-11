@@ -1,19 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import { useGlobalData } from '@/hooks/useGlobalData';
-import { getContact } from '@/lib/storage';
+import { useAppSelector } from "@/store/hooks";
+import { selectGlobalData } from "@/store/contentSlice";
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X, Image as ImageIcon } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 
 const Gallery = () => {
-  const { categories, galleryItems, promoHeader } = useGlobalData();
+  const { categories, galleryItems, promoHeader, contactInfo } = useAppSelector(selectGlobalData);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [whatsappNumber, setWhatsappNumber] = useState('919967381180');
   const [filter, setFilter] = useState('all');
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -23,10 +22,12 @@ const Gallery = () => {
 
   useEffect(() => {
     setIsLoaded(true);
-    getContact().then(contact => {
-      if (contact?.whatsapp) setWhatsappNumber(contact.whatsapp);
-    });
   }, []);
+
+  const whatsappNumber = useMemo(
+    () => contactInfo?.whatsapp || "919967381180",
+    [contactInfo?.whatsapp]
+  );
 
   const handlePrevious = () => {
     if (selectedIndex !== null && selectedIndex > 0) setSelectedIndex(selectedIndex - 1);

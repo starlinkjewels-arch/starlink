@@ -1,16 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from 'react-router-dom';
-import { getBuyingGuides, BuyingGuide } from '@/lib/buyingGuides';
+import { BuyingGuide } from "@/lib/buyingGuides";
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import { useGlobalData } from '@/hooks/useGlobalData';
+import { useAppSelector } from "@/store/hooks";
+import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
 
 const BuyingGuidePage = () => {
-  const { categories, promoHeader } = useGlobalData();
+  const { categories, promoHeader, buyingGuides } = useAppSelector(selectGlobalData);
+  const status = useAppSelector(selectContentStatus);
+  const hydrated = useAppSelector(selectContentHydrated);
+  const isReady = status === "succeeded" || hydrated;
   const [guides, setGuides] = useState<BuyingGuide[]>([]);
   const [selected, setSelected] = useState<BuyingGuide | null>(null);
   const { slug } = useParams<{ slug?: string }>();
@@ -19,20 +23,20 @@ const BuyingGuidePage = () => {
   const promoHeight = hasPromo ? 40 : 0;
   const paddingTop = promoHeight + 80 + 52 + 12 + 26;
 
+  const publishedGuides = useMemo(
+    () => buyingGuides.filter((g) => g.published).sort((a, b) => (a.order || 0) - (b.order || 0)),
+    [buyingGuides]
+  );
+
   useEffect(() => {
-    const load = async () => {
-      const data = await getBuyingGuides();
-      const published = data.filter(g => g.published).sort((a, b) => (a.order || 0) - (b.order || 0));
-      setGuides(published);
-      if (slug) {
-        const found = published.find(g => g.slug === slug);
-        setSelected(found || published[0] || null);
-      } else if (published.length > 0) {
-        setSelected(published[0]);
-      }
-    };
-    load();
-  }, [slug]);
+    setGuides(publishedGuides);
+    if (slug) {
+      const found = publishedGuides.find((g) => g.slug === slug);
+      setSelected(found || publishedGuides[0] || null);
+    } else if (publishedGuides.length > 0) {
+      setSelected(publishedGuides[0]);
+    }
+  }, [publishedGuides, slug]);
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -40,6 +44,31 @@ const BuyingGuidePage = () => {
     name: selected?.title || 'Jewelry Buying Guide',
     description: 'Expert advice to help you make the perfect jewelry choice.',
   };
+
+  if (guides.length === 0 && !isReady) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <SEOHead title="Jewelry Buying Guide" description="Learn how to buy jewelry like a pro." keywords="jewelry buying guide" canonicalUrl="https://starlinkjewels.com/buying-guide" />
+        <Header promoHeader={promoHeader} />
+        <MiniHeader categories={categories} promoHeight={promoHeight} />
+        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
+          <div className="text-center mb-12">
+            <div className="h-12 w-72 bg-muted rounded-md mx-auto animate-pulse mb-4" />
+            <div className="h-5 w-96 bg-muted/70 rounded-md mx-auto animate-pulse" />
+          </div>
+          <div className="grid lg:grid-cols-4 gap-10">
+            <div className="lg:col-span-1">
+              <div className="h-80 bg-muted rounded-2xl animate-pulse" />
+            </div>
+            <div className="lg:col-span-3">
+              <div className="h-[420px] bg-muted rounded-2xl animate-pulse" />
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (guides.length === 0) {
     return (
