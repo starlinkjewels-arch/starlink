@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import ReactQuill, { ReactQuillProps } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface MediaPreview {
   url: string;
@@ -31,9 +32,11 @@ const AdminProducts = () => {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [bulkDelta, setBulkDelta] = useState('10');
+  const [bulkMode, setBulkMode] = useState<'amount' | 'percent'>('amount');
   const [bulkPreviewOpen, setBulkPreviewOpen] = useState(false);
   const [bulkPreview, setBulkPreview] = useState<Product[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     getProducts().then(setProducts);
@@ -189,14 +192,22 @@ const AdminProducts = () => {
       toast.error('Please enter a non-zero amount');
       return;
     }
-    if (products.length === 0) {
+    const targetProducts =
+      bulkSelectedIds.length > 0
+        ? products.filter((p) => bulkSelectedIds.includes(p.id))
+        : products;
+
+    if (targetProducts.length === 0) {
       toast.error('No products to update');
       return;
     }
 
-    const next = products.map((p) => {
+    const next = targetProducts.map((p) => {
       const current = parsePriceNumber(p.price);
-      const updated = Math.max(0, current + delta);
+      const updated =
+        bulkMode === 'percent'
+          ? Math.max(0, current + (current * delta) / 100)
+          : Math.max(0, current + delta);
       return {
         ...p,
         price: formatPrice(updated),
@@ -217,6 +228,7 @@ const AdminProducts = () => {
       await Promise.all(bulkPreview.map((p) => saveProduct(p)));
       const updated = await getProducts();
       setProducts(updated);
+      setBulkSelectedIds([]);
       toast.success('All product prices updated');
       setBulkPreviewOpen(false);
     } catch (error) {
@@ -243,6 +255,9 @@ const AdminProducts = () => {
   };
 
   const allMediaCount = existingMedia.length + mediaPreviews.length;
+
+  const allSelected = products.length > 0 && bulkSelectedIds.length === products.length;
+  const someSelected = bulkSelectedIds.length > 0 && bulkSelectedIds.length < products.length;
 
   const modules = {
     toolbar: [
@@ -483,7 +498,7 @@ const AdminProducts = () => {
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="space-y-2 w-full sm:w-64">
-              <Label htmlFor="bulk-delta">Increase/Decrease Amount ($)</Label>
+              <Label htmlFor="bulk-delta">Increase/Decrease Value</Label>
               <Input
                 id="bulk-delta"
                 value={bulkDelta}
@@ -496,10 +511,60 @@ const AdminProducts = () => {
                 Use negative value to decrease prices.
               </p>
             </div>
+            <div className="space-y-2 w-full sm:w-48">
+              <Label>Mode</Label>
+              <Select value={bulkMode} onValueChange={(v) => setBulkMode(v as 'amount' | 'percent')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="amount">$ Amount</SelectItem>
+                  <SelectItem value="percent">% Percent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button onClick={handleOpenBulkPreview} disabled={isUploading || isBulkUpdating}>
               Preview Changes
             </Button>
           </div>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              checked={allSelected ? true : someSelected ? "indeterminate" : false}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setBulkSelectedIds(products.map((p) => p.id));
+                } else {
+                  setBulkSelectedIds([]);
+                }
+              }}
+              id="bulk-select-all"
+            />
+            <Label htmlFor="bulk-select-all">Select all products</Label>
+            <span className="text-xs text-muted-foreground">
+              {bulkSelectedIds.length > 0
+                ? `${bulkSelectedIds.length} selected`
+                : 'No selection = all products'}
+            </span>
+          </div>
+          {products.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-52 overflow-auto pr-2">
+              {products.map((p) => (
+                <label key={p.id} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={bulkSelectedIds.includes(p.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setBulkSelectedIds((prev) => [...prev, p.id]);
+                      } else {
+                        setBulkSelectedIds((prev) => prev.filter((id) => id !== p.id));
+                      }
+                    }}
+                  />
+                  <span className="truncate">{p.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
