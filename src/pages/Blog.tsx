@@ -53,13 +53,13 @@ const Blog = () => {
     '@type': 'Blog',
     name: 'Starlink Jewels Blog - Expert Jewelry Insights & Guides',
     description: 'Expert insights, trends, and comprehensive guides about luxury jewelry, diamonds, gemstones, and precious metals from Starlink Jewels.',
-    url: 'https://starlinkjewels.com/blog',
+    url: 'https://www.starlinkjewels.com/blog',
     publisher: {
       '@type': 'Organization',
       name: 'Starlink Jewels',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://starlinkjewels.com/logo.png'
+        url: 'https://www.starlinkjewels.com/icon.png'
       }
     },
     blogPost: sortedBlogs.slice(0, 10).map(blog => ({
@@ -76,14 +76,37 @@ const Blog = () => {
     })),
   };
 
+  const faqItems = [
+    {
+      question: "What topics do you cover in the Starlink Jewels blog?",
+      answer:
+        "We cover diamond buying guides, engagement ring tips, jewelry care, gemstone education, and luxury jewelry trends.",
+    },
+    {
+      question: "Are your blog guides suitable for lab-grown and natural diamonds?",
+      answer:
+        "Yes. Our guides explain both lab-grown and natural diamond options with practical buying advice.",
+    },
+    {
+      question: "Can I request a topic?",
+      answer:
+        "Yes. You can contact us to request specific jewelry or diamond topics.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title="Jewelry Blog - Diamond Tips, Engagement Ring Guides & Luxury Trends | Starlink Jewels"
         description="Discover expert jewelry insights, diamond buying guides, engagement ring tips, gemstone education, and the latest luxury jewelry trends from Starlink Jewels experts."
         keywords="jewelry blog, diamond buying guide, engagement ring tips, jewelry trends 2024, gemstone guide, diamond education, luxury jewelry tips, how to buy diamonds, jewelry care tips, wedding ring guide, precious stones, gold jewelry guide, platinum jewelry, custom jewelry design, jewelry investment"
-        canonicalUrl="https://starlinkjewels.com/blog"
+        canonicalUrl="https://www.starlinkjewels.com/blog"
         structuredData={structuredData}
+        breadcrumbs={[
+          { name: "Home", url: "https://www.starlinkjewels.com" },
+          { name: "Blog", url: "https://www.starlinkjewels.com/blog" },
+        ]}
+        faqItems={faqItems}
       />
 
       <Header promoHeader={promoHeader} />

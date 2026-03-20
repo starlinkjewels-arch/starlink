@@ -46,7 +46,7 @@ const About = () => {
     '@type': 'AboutPage',
     name: 'About Starlink Jewels - Premium Diamond Jewelry Since 2011',
     description: 'Learn about Starlink Jewels - a premier luxury jewelry brand with over 29 years of excellence in diamond and gold jewelry craftsmanship.',
-    url: 'https://starlinkjewels.com/about',
+    url: 'https://www.starlinkjewels.com/about',
     mainEntity: {
       '@type': 'Organization',
       name: 'Starlink Jewels',
@@ -57,6 +57,24 @@ const About = () => {
       knowsAbout: ['Diamond Jewelry', 'Gold Jewelry', 'Custom Jewelry Design', 'Lab Grown Diamonds']
     }
   };
+
+  const faqItems = [
+    {
+      question: "How long has Starlink Jewels been in business?",
+      answer:
+        "We have 11+ years of experience in diamond and gold jewelry design, manufacturing, and exports.",
+    },
+    {
+      question: "Do you offer certified diamonds?",
+      answer:
+        "Yes. We offer certified lab-grown and natural diamonds with trusted grading standards.",
+    },
+    {
+      question: "Do you serve international clients?",
+      answer:
+        "Yes. We serve clients globally with secure delivery and customer support.",
+    },
+  ];
 
   const coreValues = [
     { icon: Award, title: 'Excellence', description: 'We never compromise on quality, ensuring every piece meets our exacting standards.', color: 'from-amber-500/20 to-yellow-500/20' },
@@ -78,8 +96,13 @@ const About = () => {
         title="About Us - 11+ Years of Diamond Jewelry Excellence | Starlink Jewels"
         description="Discover Starlink Jewels - 11+ years of crafting exceptional GIA certified diamond and gold jewelry. Master craftsmanship, ethical sourcing, 50K+ happy clients worldwide. Learn our story."
         keywords="about starlink jewels, jewelry brand story, luxury jewelry heritage, diamond jewelry craftsmanship, GIA certified jeweler, ethical diamond sourcing, custom jewelry makers, best jewelry store India, diamond manufacturer, wholesale jewelry supplier"
-        canonicalUrl="https://starlinkjewels.com/about"
+        canonicalUrl="https://www.starlinkjewels.com/about"
         structuredData={structuredData}
+        breadcrumbs={[
+          { name: "Home", url: "https://www.starlinkjewels.com" },
+          { name: "About", url: "https://www.starlinkjewels.com/about" },
+        ]}
+        faqItems={faqItems}
       />
 
       <Header promoHeader={promoHeader} />

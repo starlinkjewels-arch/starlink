@@ -45,10 +45,38 @@ const BuyingGuidePage = () => {
     description: 'Expert advice to help you make the perfect jewelry choice.',
   };
 
+  const faqItems = [
+    {
+      question: "What are Starlink Jewels buying guides?",
+      answer:
+        "They are expert guides covering diamond quality, ring styles, certifications, and purchase tips.",
+    },
+    {
+      question: "Do the guides cover lab-grown and natural diamonds?",
+      answer:
+        "Yes. The guides explain both lab-grown and natural options to help you choose confidently.",
+    },
+    {
+      question: "Can I request a custom recommendation?",
+      answer:
+        "Yes. Contact us for personalized advice based on your budget and preferences.",
+    },
+  ];
+
   if (guides.length === 0 && !isReady) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead title="Jewelry Buying Guide" description="Learn how to buy jewelry like a pro." keywords="jewelry buying guide" canonicalUrl="https://starlinkjewels.com/buying-guide" />
+        <SEOHead
+          title="Jewelry Buying Guide"
+          description="Learn how to buy jewelry like a pro."
+          keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
+          canonicalUrl="https://www.starlinkjewels.com/buying-guide"
+          breadcrumbs={[
+            { name: "Home", url: "https://www.starlinkjewels.com" },
+            { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
+          ]}
+          faqItems={faqItems}
+        />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
         <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
@@ -73,7 +101,17 @@ const BuyingGuidePage = () => {
   if (guides.length === 0) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead title="Jewelry Buying Guide" description="Learn how to buy jewelry like a pro." keywords="jewelry buying guide" canonicalUrl="https://starlinkjewels.com/buying-guide" />
+        <SEOHead
+          title="Jewelry Buying Guide"
+          description="Learn how to buy jewelry like a pro."
+          keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
+          canonicalUrl="https://www.starlinkjewels.com/buying-guide"
+          breadcrumbs={[
+            { name: "Home", url: "https://www.starlinkjewels.com" },
+            { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
+          ]}
+          faqItems={faqItems}
+        />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
         <main className="flex-1 flex items-center justify-center py-20" style={{ paddingTop: `${paddingTop}px` }}>
@@ -93,8 +131,14 @@ const BuyingGuidePage = () => {
         title={selected ? `${selected.title} - Buying Guide` : 'Jewelry Buying Guide'}
         description={selected ? `Learn about ${selected.title}.` : 'Comprehensive jewelry buying guides.'}
         keywords="jewelry buying guide, diamond 4cs"
-        canonicalUrl={`https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
+        canonicalUrl={`https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
         structuredData={structuredData}
+        breadcrumbs={[
+          { name: "Home", url: "https://www.starlinkjewels.com" },
+          { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
+          ...(selected ? [{ name: selected.title, url: `https://www.starlinkjewels.com/buying-guide/${selected.slug}` }] : []),
+        ]}
+        faqItems={faqItems}
       />
 
       <Header promoHeader={promoHeader} />

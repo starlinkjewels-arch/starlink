@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Product } from '@/lib/storage';
+import { formatPriceRounded } from "@/lib/utils";
 import WhatsAppButton from './WhatsAppButton';
 import { Images, Play } from 'lucide-react';
 
@@ -99,7 +100,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-bold text-primary">
-              ${product.price.replace(/[^0-9.]/g, '')}
+              ${formatPriceRounded(product.price)}
             </span>
             <span className="text-xs text-muted-foreground uppercase tracking-wider">
               USD

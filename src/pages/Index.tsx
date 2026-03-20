@@ -104,13 +104,32 @@ const Index = () => {
     },
   ];
 
+  const faqItems = [
+    {
+      question: "Do you offer both lab-grown and natural diamonds?",
+      answer:
+        "Yes. Starlink Jewels offers certified lab-grown diamonds and natural diamonds with authenticated grading and quality checks.",
+    },
+    {
+      question: "Can I customize an engagement ring or jewelry design?",
+      answer:
+        "Yes. We provide custom design and manufacturing for engagement rings, wedding bands, and fine jewelry to match your preferences.",
+    },
+    {
+      question: "Do you ship internationally?",
+      answer:
+        "Yes. We ship globally with secure packaging and insured delivery options for select regions.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title="Premium Diamond & Gold Jewelry | Lab Grown & Natural Diamonds | Starlink Jewels"
         description="Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore GIA certified engagement rings, wedding bands, necklaces, earrings & bracelets. Free worldwide shipping. Best prices guaranteed."
         keywords="diamond jewelry, gold rings, engagement rings, wedding bands, lab grown diamonds, natural diamonds, certified jewelry, luxury jewelry store, GIA certified diamonds, platinum rings, solitaire rings, diamond necklaces, gold earrings, diamond bracelets, custom jewelry design, wholesale diamond jewelry, buy diamonds online, best diamond jewelry store, affordable diamond rings, diamond jewelry Mumbai India"
-        canonicalUrl="https://starlinkjewels.com"
+        canonicalUrl="https://www.starlinkjewels.com"
+        faqItems={faqItems}
       />
 
       <Header promoHeader={promoHeader} />

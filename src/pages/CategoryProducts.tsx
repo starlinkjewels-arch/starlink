@@ -146,7 +146,7 @@ const CategoryProducts = () => {
     '@type': 'CollectionPage',
     name: `${category.name} - Starlink Jewels`,
     description: category.description || `Shop our ${category.name} collection`,
-    url: `https://starlinkjewels.com/category/${id}`,
+    url: `https://www.starlinkjewels.com/category/${id}`,
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: filteredProducts.length,
@@ -162,13 +162,37 @@ const CategoryProducts = () => {
       })),
     },
   } : undefined;
+
+  const faqItems = category ? [
+    {
+      question: `Are ${category.name} diamonds certified?`,
+      answer:
+        "Yes. We offer certified lab-grown and natural diamonds with trusted grading standards.",
+    },
+    {
+      question: `Can I customize ${category.name} designs?`,
+      answer:
+        "Yes. We offer custom design and manufacturing for select categories and styles.",
+    },
+    {
+      question: "Do you ship internationally?",
+      answer:
+        "Yes. We provide international shipping with secure packaging for select regions.",
+    },
+  ] : [
+    {
+      question: "Are your diamonds certified?",
+      answer:
+        "Yes. We offer certified lab-grown and natural diamonds with trusted grading standards.",
+    },
+  ];
   if (!category && !isReady) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <SEOHead
           title="Loading Category"
           description="Loading category details."
-          canonicalUrl={`https://starlinkjewels.com/category/${id}`}
+          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -194,7 +218,7 @@ const CategoryProducts = () => {
         <SEOHead
           title="Category Not Found"
           description="The requested category could not be found."
-          canonicalUrl={`https://starlinkjewels.com/category/${id}`}
+          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -219,8 +243,14 @@ const CategoryProducts = () => {
         title={`${category.name} - Premium Jewelry Collection`}
         description={category.description || `Explore our premium ${category.name} collection. Shop certified diamonds, gold, and luxury jewelry.`}
         keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, gold ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
-        canonicalUrl={`https://starlinkjewels.com/category/${id}`}
+        canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
         structuredData={structuredData}
+        breadcrumbs={[
+          { name: "Home", url: "https://www.starlinkjewels.com" },
+          { name: "Categories", url: "https://www.starlinkjewels.com/categories" },
+          { name: category.name, url: `https://www.starlinkjewels.com/category/${id}` },
+        ]}
+        faqItems={faqItems}
       />
       <Header promoHeader={promoHeader} />
       <MiniHeader categories={categories} promoHeight={promoHeight} />

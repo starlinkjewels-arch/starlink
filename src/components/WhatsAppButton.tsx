@@ -1,6 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Product } from '@/lib/storage';
+import { formatPriceRounded } from '@/lib/utils';
 
 interface WhatsAppButtonProps {
   product: Product;
@@ -19,7 +20,7 @@ const WhatsAppButton = ({ product, className }: WhatsAppButtonProps) => {
     // Optional: Replace multiple spaces or bullet-like characters with proper WhatsApp bullets
     cleanDescription = cleanDescription.replace(/●/g, '•');
 
-    const priceInDollars = `$${product.price.replace(/[^0-9.]/g, '')}`;
+    const priceInDollars = `$${formatPriceRounded(product.price)}`;
 
     const message = `Hi! I'm interested in:\n\n*${
       product.name
@@ -38,7 +39,7 @@ const WhatsAppButton = ({ product, className }: WhatsAppButtonProps) => {
       className={`luxury-gradient text-primary-foreground hover:opacity-90 transition-opacity ${className}`}
     >
       <MessageCircle className="h-4 w-4 mr-2" />
-      Request For More Details
+      Request More Details
     </Button>
   );
 };

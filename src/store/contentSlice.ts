@@ -67,6 +67,27 @@ const emptyData: GlobalData = {
   buyingGuides: [],
 };
 
+const normalizeBuyingGuides = (guides: BuyingGuide[]): BuyingGuide[] => {
+  return guides.map((g) => {
+    const anyGuide = g as BuyingGuide & { createdAt?: unknown };
+    const createdAt = anyGuide.createdAt;
+    const asDate =
+      createdAt && typeof createdAt === "object" && "toDate" in (createdAt as object)
+        ? (createdAt as { toDate: () => Date }).toDate()
+        : createdAt instanceof Date
+        ? createdAt
+        : typeof createdAt === "number"
+        ? new Date(createdAt)
+        : typeof createdAt === "string"
+        ? new Date(createdAt)
+        : null;
+    return {
+      ...g,
+      createdAt: asDate ? asDate.toISOString() : (g as BuyingGuide).createdAt,
+    };
+  });
+};
+
 const safeParse = (value: string | null) => {
   if (!value) return null;
   try {
@@ -161,7 +182,7 @@ export const loadGlobalData = createAsyncThunk<
       promoHeader,
       contactInfo,
       offices,
-      buyingGuides,
+      buyingGuides: normalizeBuyingGuides(buyingGuides),
     };
   },
   {

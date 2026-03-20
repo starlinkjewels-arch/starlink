@@ -51,6 +51,7 @@ export interface Product {
   images?: string[]; // Multiple product images
   description: string;
   price: string;
+  createdAt?: number | string | { seconds: number; nanoseconds?: number };
 }
 
 export interface GalleryItem {

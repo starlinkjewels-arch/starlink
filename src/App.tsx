@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
 import { preloadAssets } from "@/lib/preload";
+import GlobalLoader from "@/components/GlobalLoader";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,8 @@ const AppContent = () => {
       dispatch(loadGlobalData());
     }
   }, [dispatch, hydrated, status]);
+
+  const showLoader = status === "loading" && !hydrated;
 
 
   useEffect(() => {
@@ -79,6 +82,7 @@ const AppContent = () => {
 
   return (
     <>
+      <GlobalLoader isLoading={showLoader} imagesToPreload={[]} />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />

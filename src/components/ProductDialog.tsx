@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Product } from '@/lib/storage';
+import { formatPriceRounded } from '@/lib/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import WhatsAppButton from './WhatsAppButton';
@@ -79,7 +80,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
     const shareUrl = `${window.location.origin}/category/${catId}?product=${product.id}`;
     const shareData = {
       title: product.name,
-      text: `Check out this ${product.name} from Starlink Jewels! Price: $${product.price.replace(/[^0-9.]/g, '')} USD`,
+      text: `Check out this ${product.name} from Starlink Jewels! Price: $${formatPriceRounded(product.price)} USD`,
       url: shareUrl,
     };
     if (navigator.share) {
@@ -243,7 +244,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
             </h1>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                ${product.price.replace(/[^0-9.]/g, '')}
+                ${formatPriceRounded(product.price)}
               </span>
               <span className="text-sm text-zinc-500 uppercase tracking-wide">USD</span>
             </div>
@@ -360,7 +361,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
               </h1>
               <div className="flex items-baseline gap-2.5 pb-5 border-b border-zinc-200 dark:border-zinc-800">
                 <span className="text-4xl xl:text-3xl font-bold bg-gradient-to-br from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                  ${product.price.replace(/[^0-9.]/g, '')}
+                  ${formatPriceRounded(product.price)}
                 </span>
                 <span className="text-base text-zinc-500 uppercase tracking-wide">USD</span>
               </div>

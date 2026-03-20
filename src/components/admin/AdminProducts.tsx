@@ -11,6 +11,7 @@ import ReactQuill, { ReactQuillProps } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { formatPriceRounded } from '@/lib/utils';
 
 interface MediaPreview {
   url: string;
@@ -144,6 +145,7 @@ const AdminProducts = () => {
         allMediaUrls = [...allMediaUrls, ...newMediaUrls];
       }
       
+      const existing = editingId ? products.find((p) => p.id === editingId) : null;
       const productData: Product = {
         id: editingId || Date.now().toString(),
         name,
@@ -152,6 +154,7 @@ const AdminProducts = () => {
         categoryId,
         image: allMediaUrls[0],
         images: allMediaUrls,
+        createdAt: existing?.createdAt ?? Date.now(),
       };
 
       await saveProduct(productData);
@@ -617,7 +620,7 @@ const AdminProducts = () => {
                   />
                 )}
                 <p className="font-bold text-xl text-primary mb-4">
-                  ${parseFloat(product.price.replace(/[^0-9.]/g, '')).toFixed(2)}
+                  ${formatPriceRounded(product.price)}
                 </p>
                 
                 <div className="flex gap-2">
@@ -675,8 +678,8 @@ const AdminProducts = () => {
                     </div>
                   </div>
                   <div className="text-right text-sm">
-                    <div className="text-muted-foreground line-through">${formatPrice(originalPrice)}</div>
-                    <div className="font-semibold text-primary">${formatPrice(newPrice)}</div>
+                    <div className="text-muted-foreground line-through">${formatPriceRounded(originalPrice)}</div>
+                    <div className="font-semibold text-primary">${formatPriceRounded(newPrice)}</div>
                   </div>
                 </div>
               );

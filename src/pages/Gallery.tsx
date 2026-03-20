@@ -60,10 +60,28 @@ const Gallery = () => {
     '@type': 'ImageGallery',
     name: 'Starlink Jewels Gallery - Diamond & Gold Jewelry Collection',
     description: 'Browse our stunning collection of GIA certified diamond jewelry, engagement rings, gold necklaces, and luxury pieces.',
-    url: 'https://starlinkjewels.com/gallery',
+    url: 'https://www.starlinkjewels.com/gallery',
     image: galleryItems.slice(0, 10).map(item => item.image),
     numberOfItems: galleryItems.length
   };
+
+  const faqItems = [
+    {
+      question: "What is shown in the Starlink Jewels gallery?",
+      answer:
+        "Our gallery showcases premium diamond and gold jewelry, including rings, earrings, necklaces, and bracelets.",
+    },
+    {
+      question: "Can I request a similar design from the gallery?",
+      answer:
+        "Yes. You can contact us on WhatsApp to request similar or customized designs.",
+    },
+    {
+      question: "Are gallery items available for international shipping?",
+      answer:
+        "Yes. We ship worldwide with secure packaging for select regions.",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -71,8 +89,13 @@ const Gallery = () => {
         title="Jewelry Gallery - Diamond & Gold Collection Photos | Starlink Jewels"
         description="Browse our gallery of exquisite GIA certified diamond jewelry. View stunning engagement rings, gold necklaces, earrings, bracelets. High-quality photos of luxury jewelry pieces."
         keywords="jewelry gallery, diamond jewelry photos, gold jewelry images, engagement ring photos, luxury jewelry collection, diamond necklace gallery, gold earrings photos, jewelry design gallery, real jewelry photos, diamond ring images"
-        canonicalUrl="https://starlinkjewels.com/gallery"
+        canonicalUrl="https://www.starlinkjewels.com/gallery"
         structuredData={structuredData}
+        breadcrumbs={[
+          { name: "Home", url: "https://www.starlinkjewels.com" },
+          { name: "Gallery", url: "https://www.starlinkjewels.com/gallery" },
+        ]}
+        faqItems={faqItems}
       />
 
       <Header promoHeader={promoHeader} />
