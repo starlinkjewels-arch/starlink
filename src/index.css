@@ -187,6 +187,14 @@ All colors MUST be HSL.
   }
 }
 
+/* Ensure typography plugin doesn't override global font */
+.prose {
+  font-family: inherit;
+}
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);

@@ -28,6 +28,23 @@ const BuyingGuidePage = () => {
     [buyingGuides]
   );
 
+  const safeContent = useMemo(() => {
+    if (!selected?.content) return "";
+    try {
+      const doc = new DOMParser().parseFromString(selected.content, "text/html");
+      doc.querySelectorAll("style, link, script").forEach((el) => el.remove());
+      doc.querySelectorAll("[style]").forEach((el) => el.removeAttribute("style"));
+      doc.querySelectorAll("[face], [color], [size]").forEach((el) => {
+        el.removeAttribute("face");
+        el.removeAttribute("color");
+        el.removeAttribute("size");
+      });
+      return doc.body.innerHTML;
+    } catch {
+      return selected.content;
+    }
+  }, [selected?.content]);
+
   useEffect(() => {
     setGuides(publishedGuides);
     if (slug) {
@@ -170,7 +187,7 @@ const BuyingGuidePage = () => {
                 {selected.image && <img src={selected.image} alt={selected.title} className="w-full h-96 md:h-[500px] object-cover" loading="lazy" />}
                 <div className="p-8 md:p-12">
                   <h2 className="text-4xl md:text-5xl font-bold mb-8">{selected.title}</h2>
-                  <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: selected.content }} />
+                  <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: safeContent }} />
                   <div className="mt-16 pt-10 border-t border-border">
                     <Button asChild variant="outline" size="lg"><Link to="/buying-guide"><ArrowLeft className="h-5 w-5 mr-2" />Back to All Guides</Link></Button>
                   </div>

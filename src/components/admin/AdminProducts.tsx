@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getProducts, saveProduct, deleteProduct, getCategories, Product, Category, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,16 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Pencil, X, Play } from 'lucide-react';
 import { toast } from 'sonner';
-import ReactQuill, { ReactQuillProps } from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPriceRounded } from '@/lib/utils';
 
-interface MediaPreview {
+interface MediaItem {
+  id: string;
   url: string;
   type: 'image' | 'video';
   file?: File;
+  source: 'existing' | 'new';
 }
 
 const AdminProducts = () => {
@@ -26,9 +27,13 @@ const AdminProducts = () => {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
-  const [existingMedia, setExistingMedia] = useState<MediaPreview[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [activePointerId, setActivePointerId] = useState<number | null>(null);
+  const draggedIdRef = useRef<string | null>(null);
+  const isDraggingRef = useRef(false);
+  const hoverIdRef = useRef<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -59,25 +64,22 @@ const AdminProducts = () => {
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-
-    const newFiles = [...mediaFiles, ...files];
-    setMediaFiles(newFiles);
-    
-    const newPreviews: MediaPreview[] = [];
+    const newItems: MediaItem[] = [];
     let processedCount = 0;
 
-    files.forEach((file) => {
+    files.forEach((file, index) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        newPreviews.push({
+        newItems.push({
+          id: `new-${Date.now()}-${index}`,
           url: reader.result as string,
           type: getMediaType(file),
-          file: file
+          file,
+          source: 'new',
         });
         processedCount++;
-        
         if (processedCount === files.length) {
-          setMediaPreviews(prev => [...prev, ...newPreviews]);
+          setMediaItems(prev => [...prev, ...newItems]);
         }
       };
       reader.readAsDataURL(file);
@@ -86,14 +88,77 @@ const AdminProducts = () => {
     e.target.value = '';
   };
 
-  const handleRemoveNewMedia = (index: number) => {
-    setMediaPreviews(prev => prev.filter((_, i) => i !== index));
-    setMediaFiles(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveMedia = (id: string) => {
+    setMediaItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleRemoveExistingMedia = (index: number) => {
-    setExistingMedia(prev => prev.filter((_, i) => i !== index));
+  const reorderMedia = (activeId: string, targetId: string) => {
+    setMediaItems(prev => {
+      const fromIndex = prev.findIndex(i => i.id === activeId);
+      const toIndex = prev.findIndex(i => i.id === targetId);
+      if (fromIndex === -1 || toIndex === -1) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   };
+
+
+  const handlePointerDown = (e: React.PointerEvent, id: string) => {
+    e.preventDefault();
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    setDraggedId(id);
+    setIsDragging(true);
+    setActivePointerId(e.pointerId);
+    draggedIdRef.current = id;
+    isDraggingRef.current = true;
+    hoverIdRef.current = id;
+  };
+
+  const handlePointerUp = (pointerId?: number) => {
+    if (pointerId !== undefined && activePointerId !== null && pointerId === activePointerId) {
+      const el = document.querySelector('[data-media-grid]') as Element | null;
+      el?.releasePointerCapture?.(pointerId);
+    }
+    const activeId = draggedIdRef.current;
+    const targetId = hoverIdRef.current;
+    if (activeId && targetId && activeId !== targetId) {
+      reorderMedia(activeId, targetId);
+    }
+    setDraggedId(null);
+    setIsDragging(false);
+    setActivePointerId(null);
+    draggedIdRef.current = null;
+    isDraggingRef.current = false;
+    hoverIdRef.current = null;
+  };
+
+  useEffect(() => {
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDraggingRef.current) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+      const tile = el?.closest?.('[data-media-id]') as HTMLElement | null;
+      const targetId = tile?.dataset?.mediaId;
+      if (targetId) {
+        hoverIdRef.current = targetId;
+      }
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (!isDraggingRef.current) return;
+      handlePointerUp(e.pointerId);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+    };
+  }, [activePointerId]);
 
   const handleEdit = (product: Product) => {
     setEditingId(product.id);
@@ -103,14 +168,14 @@ const AdminProducts = () => {
     setCategoryId(product.categoryId);
     
     const existingUrls = product.images || [product.image];
-    const existingMediaItems = existingUrls.map(url => ({
+    const existingMediaItems: MediaItem[] = existingUrls.map((url, index) => ({
+      id: `existing-${index}-${url}`,
       url,
-      type: getMediaTypeFromUrl(url)
+      type: getMediaTypeFromUrl(url),
+      source: 'existing',
     }));
     
-    setExistingMedia(existingMediaItems);
-    setMediaPreviews([]);
-    setMediaFiles([]);
+    setMediaItems(existingMediaItems);
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -121,13 +186,11 @@ const AdminProducts = () => {
     setDescription('');
     setPrice('');
     setCategoryId('');
-    setMediaFiles([]);
-    setMediaPreviews([]);
-    setExistingMedia([]);
+    setMediaItems([]);
   };
 
   const handleAddProduct = async () => {
-    const totalMedia = existingMedia.length + mediaFiles.length;
+    const totalMedia = mediaItems.length;
     
     if (!name || !price || !categoryId || totalMedia === 0) {
       toast.error('Please fill all required fields and add at least one image/video');
@@ -136,14 +199,17 @@ const AdminProducts = () => {
 
     setIsUploading(true);
     try {
-      let allMediaUrls = [...existingMedia.map(m => m.url)];
-      
-      if (mediaFiles.length > 0) {
-        const newMediaUrls = await Promise.all(
-          mediaFiles.map(file => uploadImageToStorage(file, 'products'))
-        );
-        allMediaUrls = [...allMediaUrls, ...newMediaUrls];
-      }
+      const newFiles = mediaItems.filter(m => m.source === 'new' && m.file).map(m => m.file as File);
+      const newUploads = newFiles.length > 0
+        ? await Promise.all(newFiles.map(file => uploadImageToStorage(file, 'products')))
+        : [];
+      let uploadIndex = 0;
+      const allMediaUrls = mediaItems.map(m => {
+        if (m.source === 'existing') return m.url;
+        const url = newUploads[uploadIndex];
+        uploadIndex += 1;
+        return url;
+      }).filter(Boolean) as string[];
       
       const existing = editingId ? products.find((p) => p.id === editingId) : null;
       const productData: Product = {
@@ -165,9 +231,7 @@ const AdminProducts = () => {
       setDescription('');
       setPrice('');
       setCategoryId('');
-      setMediaFiles([]);
-      setMediaPreviews([]);
-      setExistingMedia([]);
+      setMediaItems([]);
       setEditingId(null);
       
       toast.success(editingId ? 'Product updated successfully' : 'Product added successfully');
@@ -257,37 +321,10 @@ const AdminProducts = () => {
     }
   };
 
-  const allMediaCount = existingMedia.length + mediaPreviews.length;
+  const allMediaCount = mediaItems.length;
 
   const allSelected = products.length > 0 && bulkSelectedIds.length === products.length;
   const someSelected = bulkSelectedIds.length > 0 && bulkSelectedIds.length < products.length;
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'font': [] }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      ['link', 'image'],
-      ['clean']
-    ],
-  };
-
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'align',
-    'color', 'background',
-    'font',
-    'size',
-    'link', 'image'
-  ];
-
-  const QuillComponent = ReactQuill as unknown as React.FC<ReactQuillProps>;
 
   return (
     <div className="space-y-8">
@@ -324,14 +361,10 @@ const AdminProducts = () => {
           
           <div className="space-y-2">
             <Label htmlFor="product-description">Description</Label>
-            <QuillComponent
-              theme="snow"
+            <RichTextEditor
               value={description}
               onChange={setDescription}
-              modules={modules}
-              formats={formats}
               placeholder="Enter product description with rich formatting (bold, italic, lists, etc.)"
-              style={{ height: '60%' }}
             />
           </div>
           
@@ -360,18 +393,28 @@ const AdminProducts = () => {
               disabled={isUploading}
             />
             
-            {(existingMedia.length > 0 || mediaPreviews.length > 0) && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-3">
-                {existingMedia.map((media, index) => (
-                  <div key={`existing-${index}`} className="relative group">
-                    <div className="aspect-square rounded-lg border-2 border-border overflow-hidden bg-muted">
+            {mediaItems.length > 0 && (
+              <div
+                data-media-grid
+                className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-3 ${isDragging ? 'select-none' : ''}`}
+                style={{ touchAction: 'none' }}
+              >
+                {mediaItems.map((media, index) => (
+                  <div
+                    key={media.id}
+                    data-media-id={media.id}
+                    className={`relative group cursor-move ${isDragging && draggedId === media.id ? 'ring-2 ring-primary' : ''}`}
+                    onPointerDown={(e) => handlePointerDown(e, media.id)}
+                  >
+                    <div className={`aspect-square rounded-lg border-2 ${media.source === 'new' ? 'border-primary' : 'border-border'} overflow-hidden bg-muted`}>
                       {media.type === 'video' ? (
                         <div className="relative w-full h-full">
-                          <video 
+                          <video
                             className="w-full h-full object-cover"
                             preload="metadata"
                             muted
                             playsInline
+                            draggable={false}
                           >
                             <source src={media.url} type="video/mp4" />
                           </video>
@@ -380,90 +423,45 @@ const AdminProducts = () => {
                           </div>
                         </div>
                       ) : (
-                        <img 
-                          src={media.url} 
-                          alt={`Existing ${index + 1}`} 
-                          className="w-full h-full object-cover" 
+                        <img
+                          src={media.url}
+                          alt={`Media ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          draggable={false}
                         />
                       )}
                     </div>
-                    
+
                     <button
                       type="button"
-                      onClick={() => handleRemoveExistingMedia(index)}
+                      onClick={() => handleRemoveMedia(media.id)}
                       className="absolute -top-2 -right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                       disabled={isUploading}
                       title="Remove"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
-                    
-                    <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium shadow-sm">
-                      {media.type === 'video' ? '🎥 Video' : '🖼️ Image'}
+
+                    <div className={`absolute bottom-2 left-2 ${media.source === 'new' ? 'bg-primary/90 text-primary-foreground' : 'bg-background/90'} backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium shadow-sm`}>
+                      {media.type === 'video' ? 'Video' : 'Image'}
                     </div>
-                    
+
+                    {media.source === 'new' && (
+                      <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
+                        New
+                      </div>
+                    )}
+
                     {index === 0 && (
                       <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-md text-xs font-bold shadow-sm">
                         Main
                       </div>
                     )}
-                  </div>
-                ))}
-                
-                {mediaPreviews.map((preview, index) => (
-                  <div key={`preview-${index}`} className="relative group">
-                    <div className="aspect-square rounded-lg border-2 border-primary overflow-hidden bg-muted">
-                      {preview.type === 'video' ? (
-                        <div className="relative w-full h-full">
-                          <video 
-                            className="w-full h-full object-cover"
-                            preload="metadata"
-                            muted
-                            playsInline
-                          >
-                            <source src={preview.url} type="video/mp4" />
-                          </video>
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <Play className="h-8 w-8 text-white" fill="white" />
-                          </div>
-                        </div>
-                      ) : (
-                        <img 
-                          src={preview.url} 
-                          alt={`Preview ${index + 1}`} 
-                          className="w-full h-full object-cover" 
-                        />
-                      )}
-                    </div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveNewMedia(index)}
-                      className="absolute -top-2 -right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                      disabled={isUploading}
-                      title="Remove"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                    
-                    <div className="absolute bottom-2 left-2 bg-primary/90 backdrop-blur-sm text-primary-foreground px-2 py-1 rounded-md text-xs font-medium shadow-sm">
-                      {preview.type === 'video' ? '🎥 Video' : '🖼️ Image'}
-                    </div>
-                    
-                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
-                      New
-                    </div>
-                    
-                    {existingMedia.length === 0 && index === 0 && (
-                      <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-md text-xs font-bold shadow-sm">
-                        Main
-                      </div>
-                    )}
+
                   </div>
                 ))}
               </div>
             )}
-            
             <p className="text-xs text-muted-foreground mt-2">
               Supported formats: Images (JPG, PNG, GIF, WebP) and Videos (MP4, WebM, MOV). First file will be the main product image.
             </p>

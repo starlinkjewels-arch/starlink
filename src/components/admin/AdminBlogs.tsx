@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Pencil, Image } from 'lucide-react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 
 const AdminBlogs = () => {
@@ -130,19 +129,6 @@ const AdminBlogs = () => {
     return html.replace(/<[^>]*>/g, '').trim().substring(0, 100) + (html.length > 100 ? '...' : '');
   };
 
-  const quillModules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ color: [] }, { background: [] }],
-      [{ size: ['small', false, 'large', 'huge'] }],
-      [{ align: [] }],
-      ['blockquote', 'code-block'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link', 'image'],
-      ['clean']
-    ]
-  };
 
   return (
     <div className="space-y-8">
@@ -163,11 +149,9 @@ const AdminBlogs = () => {
           <div className="space-y-2">
             <Label htmlFor="blog-content">Content *</Label>
             <div className="h-auto min-h-64">
-              <ReactQuill
-                theme="snow"
+              <RichTextEditor
                 value={content}
                 onChange={setContent}
-                modules={quillModules}
                 placeholder="Enter blog content with formatting..."
               />
             </div>

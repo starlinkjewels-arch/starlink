@@ -186,7 +186,7 @@ const Index = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Featured Collection</h2>
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Handpicked treasures for the discerning</p>
             </div>
-            <div className="flex gap-3 sm:gap-4 animate-[scroll_25s_linear_infinite] sm:animate-[scroll_18s_linear_infinite] hover:pause pl-4">
+            <div className="flex gap-3 sm:gap-4 animate-[scroll_10s_linear_infinite] sm:animate-[scroll_18s_linear_infinite] hover:pause pl-4">
               {[...featuredCollection, ...featuredCollection].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="flex-shrink-0 w-[280px] sm:w-72 md:w-80 rounded-xl sm:rounded-2xl overflow-hidden bg-card border border-border shadow-lg hover:shadow-2xl transition-all duration-300">
                   <div className="w-full h-[280px] sm:h-72 md:h-80 overflow-hidden">
@@ -332,7 +332,7 @@ const Index = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Gallery Showcase</h2>
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Exquisite moments captured in time</p>
             </div>
-            <div className="flex gap-3 sm:gap-4 animate-[scroll_20s_linear_infinite] sm:animate-[scroll_15s_linear_infinite] hover:pause pl-4">
+            <div className="flex gap-3 sm:gap-4 animate-[scroll_9s_linear_infinite] sm:animate-[scroll_15s_linear_infinite] hover:pause pl-4">
               {[...galleryItems, ...galleryItems].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="flex-shrink-0 w-[260px] sm:w-72 md:w-80 h-[260px] sm:h-72 md:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg">
                   <img src={item.image} alt={item.description || 'Gallery'} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" />
@@ -388,7 +388,7 @@ const Index = () => {
                 <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Connect with us on Instagram</p>
               </div>
             </div>
-            <div className="flex gap-3 sm:gap-4 animate-[scroll_25s_linear_infinite] sm:animate-[scroll_20s_linear_infinite] hover:pause pl-4">
+            <div className="flex gap-3 sm:gap-4 animate-[scroll_10s_linear_infinite] sm:animate-[scroll_20s_linear_infinite] hover:pause pl-4">
               {[...instagramPosts.slice(0, 10), ...instagramPosts.slice(0, 10)].map((post, index) => {
                 const getEmbedUrl = (url: string) => {
                   const postMatch = url.match(/instagram\.com\/(p|reel)\/([^/?]+)/);
