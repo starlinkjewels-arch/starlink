@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Product } from '@/lib/storage';
 import { formatPriceRounded } from "@/lib/utils";
 import WhatsAppButton from './WhatsAppButton';
@@ -111,6 +112,14 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
           <div onClick={(e) => e.stopPropagation()}>
             <WhatsAppButton product={product} className="w-full" />
           </div>
+
+          <Link
+            to={`/product/${product.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="block text-center text-sm font-semibold underline text-primary"
+          >
+            View Product Details
+          </Link>
         </div>
       </div>
     </div>

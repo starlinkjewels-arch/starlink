@@ -1,5 +1,5 @@
 # Starlink Jewels - Premium Diamond & Gold Jewelry
-# https://starlinkjewels.com
+# https://www.starlinkjewels.com
 # robots.txt - Search Engine Crawler Directives
 
 # Allow all major search engines
@@ -66,9 +66,9 @@ Allow: /
 # Disallow admin and private areas
 Disallow: /admin
 Disallow: /admin/
+Disallow: /aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3
 Disallow: /api/
 Disallow: /*.json$
-Disallow: /*?*
 Disallow: /private/
 Disallow: /tmp/
 Disallow: /node_modules/
@@ -89,10 +89,10 @@ Allow: /*.woff$
 Allow: /*.woff2$
 
 # Sitemap location - Very Important for SEO
-Sitemap: https://starlinkjewels.com/sitemap.xml
+Sitemap: https://www.starlinkjewels.com/sitemap.xml
 
 # Host directive for search engines
-Host: https://starlinkjewels.com
+Host: https://www.starlinkjewels.com
 
 # Clean URLs preferred
 Clean-param: utm_source&utm_medium&utm_campaign&ref&fbclid

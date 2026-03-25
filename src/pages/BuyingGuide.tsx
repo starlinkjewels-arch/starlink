@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { useAppSelector } from "@/store/hooks";
 import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
+import { buildMetaDescriptionFromHtml } from "@/lib/seo";
 
 const BuyingGuidePage = () => {
   const { categories, promoHeader, buyingGuides } = useAppSelector(selectGlobalData);
@@ -59,10 +60,12 @@ const BuyingGuidePage = () => {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
     name: selected?.title || 'Jewelry Buying Guide',
-    description: 'Expert advice to help you make the perfect jewelry choice.',
+    description: selected?.content
+      ? buildMetaDescriptionFromHtml(selected.content, 160)
+      : 'Expert advice to help you make the perfect jewelry choice.',
   };
 
-  const faqItems = [
+  const defaultFaqItems = [
     {
       question: "What are Starlink Jewels buying guides?",
       answer:
@@ -79,6 +82,7 @@ const BuyingGuidePage = () => {
         "Yes. Contact us for personalized advice based on your budget and preferences.",
     },
   ];
+  const faqItems = selected?.seoFaq && selected.seoFaq.length > 0 ? selected.seoFaq : defaultFaqItems;
 
   if (guides.length === 0 && !isReady) {
     return (
@@ -145,8 +149,10 @@ const BuyingGuidePage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={selected ? `${selected.title} - Buying Guide` : 'Jewelry Buying Guide'}
-        description={selected ? `Learn about ${selected.title}.` : 'Comprehensive jewelry buying guides.'}
+        title={selected ? (selected.metaTitle || `${selected.title} - Buying Guide`) : 'Jewelry Buying Guide'}
+        description={selected
+          ? (selected.metaDescription || buildMetaDescriptionFromHtml(selected.content, 160))
+          : 'Comprehensive jewelry buying guides.'}
         keywords="jewelry buying guide, diamond 4cs"
         canonicalUrl={`https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
         structuredData={structuredData}

@@ -19,6 +19,12 @@ const AdminCategories = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [autoSeo, setAutoSeo] = useState(true);
+  const [lastSeoHash, setLastSeoHash] = useState('');
 
   useEffect(() => {
     getCategories().then(setCategories);
@@ -50,6 +56,10 @@ const AdminCategories = () => {
     setDescription(category.description || '');
     setImage(category.image);
     setPriority(category.priority || 1);
+    setMetaTitle(category.metaTitle || '');
+    setMetaDescription(category.metaDescription || '');
+    setSeoFaq(category.seoFaq || []);
+    setLastSeoHash(`${category.name}|${category.description || ''}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -60,6 +70,10 @@ const AdminCategories = () => {
     setImage('');
     setImageFile(null);
     setPriority(1);
+    setMetaTitle('');
+    setMetaDescription('');
+    setSeoFaq([]);
+    setLastSeoHash('');
   };
 
   const handleAddCategory = async () => {
@@ -81,6 +95,9 @@ const AdminCategories = () => {
         description,
         image: imageUrl,
         priority,
+        metaTitle: metaTitle || undefined,
+        metaDescription: metaDescription || undefined,
+        seoFaq: seoFaq.length > 0 ? seoFaq : undefined,
       };
 
       await saveCategory(categoryData);
@@ -91,6 +108,10 @@ const AdminCategories = () => {
       setImage('');
       setImageFile(null);
       setPriority(1);
+      setMetaTitle('');
+      setMetaDescription('');
+      setSeoFaq([]);
+      setLastSeoHash('');
       setEditingId(null);
       toast.success(editingId ? 'Category updated successfully' : 'Category added successfully');
     } catch (error) {
@@ -116,6 +137,52 @@ const AdminCategories = () => {
 
   const usedPriorities = getUsedPriorities();
   const sortedCategories = [...categories].sort((a, b) => (a.priority || 99) - (b.priority || 99));
+
+  const aiEndpoint = import.meta.env.VITE_AI_API_URL || "http://localhost:5174";
+
+  const runAiSeo = async () => {
+    if (!name.trim()) {
+      toast.error('Please enter category name first');
+      return;
+    }
+    setIsAiGenerating(true);
+    try {
+      const res = await fetch(`${aiEndpoint}/api/ai/category`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          description,
+          brand: "Starlink Jewels",
+        }),
+      });
+      if (!res.ok) throw new Error("AI error");
+      const data = await res.json();
+      setMetaTitle(data.metaTitle || '');
+      setMetaDescription(data.metaDescription || '');
+      setSeoFaq(Array.isArray(data.faqItems) ? data.faqItems : []);
+      const hash = `${name}|${description}`;
+      setLastSeoHash(hash);
+      toast.success('SEO generated');
+    } catch (error) {
+      toast.error('Failed to generate SEO');
+    } finally {
+      setIsAiGenerating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoSeo) return;
+    if (!name.trim()) return;
+    const hash = `${name}|${description}`;
+    if (hash === lastSeoHash) return;
+    const timer = setTimeout(() => {
+      if (!isAiGenerating) {
+        runAiSeo();
+      }
+    }, 900);
+    return () => clearTimeout(timer);
+  }, [name, description, autoSeo, lastSeoHash]);
 
   return (
     <div className="space-y-8">
@@ -163,6 +230,40 @@ const AdminCategories = () => {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter category description"
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="category-meta-title">Meta Title (SEO)</Label>
+              <Input
+                id="category-meta-title"
+                value={metaTitle}
+                onChange={(e) => setMetaTitle(e.target.value)}
+                placeholder="SEO meta title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category-meta-description">Meta Description (SEO)</Label>
+              <Textarea
+                id="category-meta-description"
+                value={metaDescription}
+                onChange={(e) => setMetaDescription(e.target.value)}
+                placeholder="SEO meta description"
+                rows={4}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button type="button" variant="outline" onClick={runAiSeo} disabled={isAiGenerating}>
+              {isAiGenerating ? 'Generating...' : 'Generate SEO (AI)'}
+            </Button>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={autoSeo}
+                onChange={(e) => setAutoSeo(e.target.checked)}
+              />
+              Auto refresh meta on changes
+            </label>
           </div>
           <div className="space-y-2">
             <Label htmlFor="category-image">Image *</Label>

@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import About from "./pages/About";
 import Categories from "./pages/Categories";
 import CategoryProducts from "./pages/CategoryProducts";
+import ProductDetail from "./pages/ProductDetail";
 import Gallery from "./pages/Gallery";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
@@ -21,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
 import { preloadAssets } from "@/lib/preload";
+import { pingSitemapOncePerDay } from "@/lib/seo";
 import GlobalLoader from "@/components/GlobalLoader";
 
 const queryClient = new QueryClient();
@@ -80,6 +82,12 @@ const AppContent = () => {
     }
   }, [assetUrls, hydrated, status]);
 
+  useEffect(() => {
+    if (status === "succeeded" || hydrated) {
+      pingSitemapOncePerDay();
+    }
+  }, [hydrated, status]);
+
   return (
     <>
       <GlobalLoader isLoading={showLoader} imagesToPreload={[]} />
@@ -89,6 +97,7 @@ const AppContent = () => {
         <Route path="/about" element={<About />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/category/:id" element={<CategoryProducts />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />

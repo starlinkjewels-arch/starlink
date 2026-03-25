@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -9,6 +9,7 @@ import { useAppSelector } from "@/store/hooks";
 import { selectGlobalData } from "@/store/contentSlice";
 import { Card, CardContent } from '@/components/ui/card';
 import { BlogPost } from '@/lib/storage';
+import { buildMetaDescriptionForBlog, buildMetaTitleForBlog } from '@/lib/seo';
 
 const Blog = () => {
   const { categories, blogs, promoHeader, contactInfo } = useAppSelector(selectGlobalData);
@@ -48,7 +49,7 @@ const Blog = () => {
     setSearchParams({});
   };
 
-  const structuredData = {
+  const baseStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     name: 'Starlink Jewels Blog - Expert Jewelry Insights & Guides',
@@ -76,7 +77,37 @@ const Blog = () => {
     })),
   };
 
-  const faqItems = [
+  const blogStructuredData = selectedBlog
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: selectedBlog.title,
+        datePublished: selectedBlog.date,
+        dateModified: selectedBlog.date,
+        image: selectedBlog.image,
+        description: buildMetaDescriptionForBlog(selectedBlog.content),
+        author: {
+          '@type': 'Organization',
+          name: 'Starlink Jewels',
+        },
+        mainEntityOfPage: `https://www.starlinkjewels.com/blog?id=${selectedBlog.id}`,
+      }
+    : undefined;
+
+  const structuredData = [
+    baseStructuredData,
+    ...(blogStructuredData ? [blogStructuredData] : []),
+  ];
+
+  const seoTitle = selectedBlog
+    ? (selectedBlog.metaTitle || buildMetaTitleForBlog(selectedBlog.title))
+    : "Jewelry Blog - Diamond Tips, Engagement Ring Guides & Luxury Trends | Starlink Jewels";
+
+  const seoDescription = selectedBlog
+    ? (selectedBlog.metaDescription || buildMetaDescriptionForBlog(selectedBlog.content))
+    : "Discover expert jewelry insights, diamond buying guides, engagement ring tips, gemstone education, and the latest luxury jewelry trends from Starlink Jewels experts.";
+
+  const defaultFaqItems = [
     {
       question: "What topics do you cover in the Starlink Jewels blog?",
       answer:
@@ -93,14 +124,15 @@ const Blog = () => {
         "Yes. You can contact us to request specific jewelry or diamond topics.",
     },
   ];
+  const faqItems = selectedBlog?.seoFaq && selectedBlog.seoFaq.length > 0 ? selectedBlog.seoFaq : defaultFaqItems;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="Jewelry Blog - Diamond Tips, Engagement Ring Guides & Luxury Trends | Starlink Jewels"
-        description="Discover expert jewelry insights, diamond buying guides, engagement ring tips, gemstone education, and the latest luxury jewelry trends from Starlink Jewels experts."
+        title={seoTitle}
+        description={seoDescription}
         keywords="jewelry blog, diamond buying guide, engagement ring tips, jewelry trends 2024, gemstone guide, diamond education, luxury jewelry tips, how to buy diamonds, jewelry care tips, wedding ring guide, precious stones, gold jewelry guide, platinum jewelry, custom jewelry design, jewelry investment"
-        canonicalUrl="https://www.starlinkjewels.com/blog"
+        canonicalUrl={`https://www.starlinkjewels.com/blog${selectedBlog ? `?id=${selectedBlog.id}` : ''}`}
         structuredData={structuredData}
         breadcrumbs={[
           { name: "Home", url: "https://www.starlinkjewels.com" },
@@ -153,6 +185,29 @@ const Blog = () => {
               </article>
             ))}
           </div>
+        )}
+
+        {categories.length > 0 && (
+          <section className="mt-16">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">Explore Jewelry Collections</h2>
+              <p className="text-base text-muted-foreground">Discover categories you may love</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.slice(0, 6).map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/category/${category.id}`}
+                  className="rounded-xl border bg-card/50 p-3 text-center hover:bg-card transition-colors"
+                >
+                  <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
+                    <img src={category.image} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <p className="text-sm font-semibold">Shop {category.name} Jewelry</p>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
       </main>
 

@@ -12,6 +12,9 @@ export interface BuyingGuide {
   order: number;       // For sorting
   published: boolean;
   createdAt: Date;
+  metaTitle?: string;
+  metaDescription?: string;
+  seoFaq?: { question: string; answer: string }[];
 }
 
 const COLLECTION = 'buying-guides';

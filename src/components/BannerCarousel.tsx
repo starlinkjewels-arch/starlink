@@ -24,22 +24,16 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
   // Preload next image when current changes
   useEffect(() => {
     if (banners.length === 0) return;
-    
+
     const nextIndex = (currentIndex + 1) % banners.length;
     const prevIndex = (currentIndex - 1 + banners.length) % banners.length;
-    
+
     [currentIndex, nextIndex, prevIndex].forEach((idx) => {
       if (!imagesLoaded.has(idx)) {
         const banner = banners[idx];
-        if (banner) {
-          if (banner.mediaType === 'video') {
-            const video = document.createElement('video');
-            video.preload = 'auto';
-            video.src = banner.image;
-          } else {
-            const img = new Image();
-            img.src = banner.image;
-          }
+        if (banner && banner.mediaType !== 'video') {
+          const img = new Image();
+          img.src = banner.image;
           setImagesLoaded((prev) => new Set([...prev, idx]));
         }
       }
@@ -70,9 +64,15 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     );
   }
 
+  const nextIndex = banners.length > 0 ? (currentIndex + 1) % banners.length : 0;
+  const prevIndex = banners.length > 0 ? (currentIndex - 1 + banners.length) % banners.length : 0;
+  const visibleIndexes = new Set([currentIndex, nextIndex, prevIndex]);
+
   return (
     <div className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] min-h-[400px] max-h-[800px] overflow-hidden w-full shadow-2xl rounded-lg border border-border/20">
-      {banners.map((banner, index) => (
+      {banners.map((banner, index) => {
+        if (!visibleIndexes.has(index)) return null;
+        return (
         <div
           key={banner.id}
           className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
@@ -83,19 +83,20 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             <video
               src={banner.image}
               className="w-full h-full object-cover"
-              autoPlay
+              autoPlay={index === currentIndex}
               muted
               loop
               playsInline
-              preload="auto"
+              preload="metadata"
             />
           ) : (
             <img
               src={banner.image}
               alt={banner.title}
               className="w-full h-full object-cover"
-              loading={index === 0 ? 'eager' : 'lazy'}
+              loading={index === currentIndex ? 'eager' : 'lazy'}
               decoding="async"
+              fetchpriority={index === currentIndex ? 'high' : 'auto'}
             />
           )}
           
@@ -135,7 +136,8 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {banners.length > 1 && (
         <>

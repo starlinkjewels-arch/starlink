@@ -21,6 +21,13 @@ const AdminBuyingGuides = () => {
   const [image, setImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [published, setPublished] = useState(true);
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
+  const [isSeoGenerating, setIsSeoGenerating] = useState(false);
+  const [autoSeo, setAutoSeo] = useState(true);
+  const [lastSeoHash, setLastSeoHash] = useState('');
+  const [isBulkSeoRunning, setIsBulkSeoRunning] = useState(false);
 
   useEffect(() => { loadGuides(); }, []);
 
@@ -48,6 +55,9 @@ const AdminBuyingGuides = () => {
       order: editing?.order ?? guides.length,
       published,
       createdAt: editing?.createdAt || new Date(),
+      metaTitle: metaTitle || undefined,
+      metaDescription: metaDescription || undefined,
+      seoFaq: seoFaq.length > 0 ? seoFaq : undefined,
     };
 
     await saveBuyingGuide(guide);
@@ -64,6 +74,10 @@ const AdminBuyingGuides = () => {
     setImage(null);
     setImageUrl('');
     setPublished(true);
+    setMetaTitle('');
+    setMetaDescription('');
+    setSeoFaq([]);
+    setLastSeoHash('');
   };
 
   const startEdit = (guide: BuyingGuide) => {
@@ -72,6 +86,10 @@ const AdminBuyingGuides = () => {
     setContent(guide.content);
     setImageUrl(guide.image);
     setPublished(guide.published);
+    setMetaTitle(guide.metaTitle || '');
+    setMetaDescription(guide.metaDescription || '');
+    setSeoFaq(guide.seoFaq || []);
+    setLastSeoHash(`${guide.title}|${guide.content}`);
     setOpen(true);
   };
   const removeGuide = async (id: string) => {
@@ -85,6 +103,87 @@ const AdminBuyingGuides = () => {
     }
   }
 };
+
+  const aiEndpoint = import.meta.env.VITE_AI_API_URL || "http://localhost:5174";
+
+  const handleSeoGenerate = async () => {
+    if (!title.trim()) {
+      toast.error('Please enter a title first');
+      return;
+    }
+    setIsSeoGenerating(true);
+    try {
+      const res = await fetch(`${aiEndpoint}/api/ai/guide-seo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content,
+          brand: "Starlink Jewels",
+        }),
+      });
+      if (!res.ok) throw new Error("AI error");
+      const data = await res.json();
+      setMetaTitle(data.metaTitle || '');
+      setMetaDescription(data.metaDescription || '');
+      setSeoFaq(Array.isArray(data.faqItems) ? data.faqItems : []);
+      setLastSeoHash(`${title}|${content}`);
+      toast.success('SEO generated');
+    } catch (error) {
+      toast.error('Failed to generate SEO');
+    } finally {
+      setIsSeoGenerating(false);
+    }
+  };
+
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  const handleBulkSeo = async () => {
+    if (guides.length === 0) return;
+    if (isBulkSeoRunning) return;
+    setIsBulkSeoRunning(true);
+    try {
+      for (const guide of guides) {
+        const res = await fetch(`${aiEndpoint}/api/ai/guide-seo`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: guide.title,
+            content: guide.content,
+            brand: "Starlink Jewels",
+          }),
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        await saveBuyingGuide({
+          ...guide,
+          metaTitle: data.metaTitle || guide.metaTitle,
+          metaDescription: data.metaDescription || guide.metaDescription,
+          seoFaq: Array.isArray(data.faqItems) ? data.faqItems : guide.seoFaq,
+        });
+        await sleep(1200);
+      }
+      await loadGuides();
+      toast.success('Bulk SEO completed');
+    } catch (error) {
+      toast.error('Bulk SEO failed');
+    } finally {
+      setIsBulkSeoRunning(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoSeo) return;
+    if (!title.trim()) return;
+    const hash = `${title}|${content}`;
+    if (hash === lastSeoHash) return;
+    const timer = setTimeout(() => {
+      if (!isSeoGenerating) {
+        handleSeoGenerate();
+      }
+    }, 900);
+    return () => clearTimeout(timer);
+  }, [title, content, autoSeo, lastSeoHash]);
 
   return (
     <div className="space-y-6">
@@ -117,6 +216,17 @@ const AdminBuyingGuides = () => {
           </Card>
         ))}
       </div>
+      <Card className="p-4">
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold">Bulk SEO Generation</h3>
+          <p className="text-sm text-muted-foreground">
+            Generates SEO meta + FAQ for all buying guides with a safe rate-limited queue.
+          </p>
+          <Button onClick={handleBulkSeo} disabled={isBulkSeoRunning || guides.length === 0}>
+            {isBulkSeoRunning ? 'Generating...' : 'Generate SEO for All Buying Guides'}
+          </Button>
+        </div>
+      </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
@@ -144,6 +254,40 @@ const AdminBuyingGuides = () => {
                 className="min-h-96 font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">Supports &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;img&gt;, etc.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Meta Title (SEO)</Label>
+                <Input
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  placeholder="SEO meta title"
+                />
+              </div>
+              <div>
+                <Label>Meta Description (SEO)</Label>
+                <Textarea
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  placeholder="SEO meta description"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="outline" onClick={handleSeoGenerate} disabled={isSeoGenerating}>
+                {isSeoGenerating ? 'Generating...' : 'Generate SEO (AI)'}
+              </Button>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={autoSeo}
+                  onChange={(e) => setAutoSeo(e.target.checked)}
+                />
+                Auto refresh meta on changes
+              </label>
             </div>
 
             <div className="flex items-center gap-3">

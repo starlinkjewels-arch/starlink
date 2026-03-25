@@ -41,6 +41,9 @@ export interface Category {
   image: string;
   description: string;
   priority?: number;
+  metaTitle?: string;
+  metaDescription?: string;
+  seoFaq?: { question: string; answer: string }[];
 }
 
 export interface Product {
@@ -52,6 +55,9 @@ export interface Product {
   description: string;
   price: string;
   createdAt?: number | string | { seconds: number; nanoseconds?: number };
+  metaTitle?: string;
+  metaDescription?: string;
+  seoFaq?: { question: string; answer: string }[];
 }
 
 export interface GalleryItem {
@@ -74,6 +80,9 @@ export interface BlogPost {
   image: string;
   thumbnail?: string;
   date: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  seoFaq?: { question: string; answer: string }[];
 }
 
 export interface InstagramPost {

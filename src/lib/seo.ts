@@ -46,3 +46,94 @@ export const buildKeywords = (extra?: string) => {
   const base = SITE.keywords.join(", ");
   return extra ? `${extra}, ${base}` : base;
 };
+
+export const pingSitemapOncePerDay = () => {
+  if (typeof window === "undefined") return;
+  if (import.meta.env.MODE !== "production") return;
+
+  const key = "sitemap_ping_last";
+  const today = new Date().toISOString().slice(0, 10);
+  const last = window.localStorage.getItem(key);
+  if (last === today) return;
+
+  const sitemapUrl = `${SITE.url}/sitemap.xml`;
+  const targets = [
+    `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+    `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+  ];
+
+  targets.forEach((url) => {
+    fetch(url, { method: "GET", mode: "no-cors", keepalive: true }).catch(() => {});
+  });
+
+  window.localStorage.setItem(key, today);
+};
+
+export const stripHtml = (html: string) => {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+};
+
+export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
+  const text = stripHtml(html);
+  if (!text) return "";
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${cut.slice(0, lastSpace > 60 ? lastSpace : max).trim()}...`;
+};
+
+export const buildMetaTitleForCategory = (categoryName: string) => {
+  return `${categoryName} Jewelry | Premium Diamond & Gold | ${SITE.name}`;
+};
+
+export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
+  if (desc && desc.trim().length > 40) return desc.trim();
+  return `Shop premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide shipping.`;
+};
+
+export const buildMetaTitleForProduct = (productName: string) => {
+  return `${productName} | ${SITE.name}`;
+};
+
+export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string) => {
+  const categoryText = categoryName ? ` in ${categoryName}` : "";
+  return `Shop ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds, premium craftsmanship, worldwide delivery.`;
+};
+
+export const buildMetaTitleForBlog = (title: string) => {
+  return `${title} | ${SITE.name} Blog`;
+};
+
+export const buildMetaDescriptionForBlog = (html: string) => {
+  return buildMetaDescriptionFromHtml(html, 165);
+};
+
+export const buildFaqForCategory = (categoryName: string) => [
+  {
+    question: `Are ${categoryName} diamonds certified?`,
+    answer: "Yes. We offer certified lab-grown and natural diamonds with trusted grading standards.",
+  },
+  {
+    question: `Can I customize ${categoryName} designs?`,
+    answer: "Yes. We offer custom design and manufacturing for select categories and styles.",
+  },
+  {
+    question: "Do you ship internationally?",
+    answer: "Yes. We provide international shipping with secure packaging for select regions.",
+  },
+];
+
+export const buildFaqForProduct = (productName: string, categoryName?: string) => [
+  {
+    question: `Is ${productName} certified?`,
+    answer: "Yes. We provide certification for lab-grown and natural diamonds where applicable.",
+  },
+  {
+    question: `Can ${productName} be customized?`,
+    answer: "Yes. Contact us for custom sizing, metal options, or design adjustments.",
+  },
+  {
+    question: `What is the delivery time for ${categoryName || "this item"}?`,
+    answer: "We offer secure, insured shipping with delivery timelines based on your region.",
+  },
+];

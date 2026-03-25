@@ -6,6 +6,14 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import ProductDialog from '@/components/ProductDialog';
 import SEOHead from '@/components/SEOHead';
+import {
+  buildFaqForCategory,
+  buildFaqForProduct,
+  buildMetaDescriptionForCategory,
+  buildMetaDescriptionForProduct,
+  buildMetaTitleForCategory,
+  buildMetaTitleForProduct,
+} from '@/lib/seo';
 import { useAppSelector } from "@/store/hooks";
 import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
 import { Product } from "@/lib/storage";
@@ -141,7 +149,7 @@ const CategoryProducts = () => {
       setSearchParams({});
     }
   };
-  const structuredData = category ? {
+  const baseStructuredData = category ? {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: `${category.name} - Starlink Jewels`,
@@ -150,18 +158,87 @@ const CategoryProducts = () => {
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: filteredProducts.length,
-      itemListElement: filteredProducts.slice(0, 10).map((p, i) => ({
+      itemListElement: filteredProducts.slice(0, 20).map((p, i) => ({
         '@type': 'ListItem',
         position: i + 1,
         item: {
           '@type': 'Product',
           name: p.name,
-          image: p.images?.[0] || p.image,
-          description: p.description,
+          image: (p.images && p.images.length > 0) ? p.images : [p.image],
+          description: p.description || `${p.name} from Starlink Jewels`,
+          sku: p.id,
+          category: category.name,
+          brand: {
+            '@type': 'Brand',
+            name: 'Starlink Jewels',
+          },
+          offers: {
+            '@type': 'Offer',
+            price: String(p.price || '').replace(/[^\d.]/g, '') || undefined,
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock',
+            url: `https://www.starlinkjewels.com/category/${id}?product=${p.id}`,
+          },
         },
       })),
     },
   } : undefined;
+
+  const activeProduct = selectedProduct;
+  const productStructuredData =
+    category && activeProduct
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: activeProduct.name,
+          image:
+            activeProduct.images && activeProduct.images.length > 0
+              ? activeProduct.images
+              : [activeProduct.image],
+          description: activeProduct.description || `${activeProduct.name} from Starlink Jewels`,
+          sku: activeProduct.id,
+          category: category.name,
+          brand: {
+            '@type': 'Brand',
+            name: 'Starlink Jewels',
+          },
+          offers: {
+            '@type': 'Offer',
+            price: String(activeProduct.price || '').replace(/[^\d.]/g, '') || undefined,
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock',
+            url: `https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
+          },
+        }
+      : undefined;
+
+  const structuredData = [
+    ...(baseStructuredData ? [baseStructuredData] : []),
+    ...(productStructuredData ? [productStructuredData] : []),
+  ];
+
+  const seoTitle = category
+    ? activeProduct
+      ? (activeProduct.metaTitle || buildMetaTitleForProduct(activeProduct.name))
+      : (category.metaTitle || buildMetaTitleForCategory(category.name))
+    : 'Category';
+
+  const seoDescription = category
+    ? activeProduct
+      ? (activeProduct.metaDescription || buildMetaDescriptionForProduct(activeProduct.name, category.name))
+      : (category.metaDescription || buildMetaDescriptionForCategory(category.name, category.description))
+    : 'Category';
+
+  const seoFaqItems = category
+    ? activeProduct
+      ? (activeProduct.seoFaq && activeProduct.seoFaq.length > 0 ? activeProduct.seoFaq : buildFaqForProduct(activeProduct.name, category.name))
+      : (category.seoFaq && category.seoFaq.length > 0 ? category.seoFaq : buildFaqForCategory(category.name))
+    : undefined;
+
+  const relatedCategories = useMemo(
+    () => categories.filter((c) => c.id !== id).slice(0, 6),
+    [categories, id]
+  );
 
   const faqItems = category ? [
     {
@@ -240,17 +317,17 @@ const CategoryProducts = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={`${category.name} - Premium Jewelry Collection`}
-        description={category.description || `Explore our premium ${category.name} collection. Shop certified diamonds, gold, and luxury jewelry.`}
+        title={seoTitle}
+        description={seoDescription}
         keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, gold ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
-        canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+        canonicalUrl={`https://www.starlinkjewels.com/category/${id}${activeProduct ? `?product=${activeProduct.id}` : ''}`}
         structuredData={structuredData}
         breadcrumbs={[
           { name: "Home", url: "https://www.starlinkjewels.com" },
           { name: "Categories", url: "https://www.starlinkjewels.com/categories" },
           { name: category.name, url: `https://www.starlinkjewels.com/category/${id}` },
         ]}
-        faqItems={faqItems}
+        faqItems={seoFaqItems || faqItems}
       />
       <Header promoHeader={promoHeader} />
       <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -305,6 +382,29 @@ const CategoryProducts = () => {
               />
             ))}
           </div>
+        )}
+
+        {relatedCategories.length > 0 && (
+          <section className="mt-16">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">Explore More Collections</h2>
+              <p className="text-base text-muted-foreground">Browse other popular jewelry categories</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {relatedCategories.map((c) => (
+                <Link
+                  key={c.id}
+                  to={`/category/${c.id}`}
+                  className="group rounded-xl border bg-card/50 hover:bg-card transition-all p-3 text-center"
+                >
+                  <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
+                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                  <span className="text-sm font-semibold block">Shop {c.name} Jewelry</span>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
       </main>
       <ProductDialog

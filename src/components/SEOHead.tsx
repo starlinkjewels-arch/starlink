@@ -154,6 +154,10 @@ const SEOHead = ({
         property="og:image"
         content={ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`}
       />
+      <meta
+        property="og:image:secure_url"
+        content={ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`}
+      />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={title} />
