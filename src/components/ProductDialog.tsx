@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Product } from '@/lib/storage';
 import { formatPriceRounded } from '@/lib/utils';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import WhatsAppButton from './WhatsAppButton';
 import { X, ChevronLeft, ChevronRight, Truck, Shield, Zap, Play, Pause, Volume2, VolumeX, Share2 } from 'lucide-react';
@@ -51,7 +51,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
     setIsPlaying(true);
     setIsMuted(true);
   }, [open]);
-  if (!product || !product.image || media.length === 0) return null;
+  if (!product || media.length === 0) return null;
   const next = () => {
     setSelectedIndex((prev) => (prev + 1) % media.length);
   };
@@ -97,7 +97,8 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
       });
     }
   };
-  const renderMedia = (item: MediaItem, isThumbnail: boolean = false, index?: number) => {
+  const renderMedia = (item: MediaItem | null, isThumbnail: boolean = false, index?: number) => {
+    if (!item) return null;
     if (item.type === 'video') {
       if (isThumbnail) {
         return (
@@ -146,7 +147,11 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 w-[95vw] max-w-[420px] sm:max-w-[600px] lg:max-w-4xl h-[92vh] sm:h-[80vh] lg:h-[75vh] max-h-[750px] flex flex-col bg-white dark:bg-zinc-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
+      <DialogContent className="p-0 w-[96vw] max-w-[420px] sm:max-w-[680px] lg:max-w-5xl h-[94vh] sm:h-[82vh] lg:h-[78vh] max-h-[820px] flex flex-col bg-white dark:bg-zinc-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
+        <DialogTitle className="sr-only">{product.name}</DialogTitle>
+        <DialogDescription className="sr-only">
+          Product details, gallery, and actions
+        </DialogDescription>
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 h-9 w-9 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 flex items-center justify-center transition-colors shadow-lg"
@@ -238,12 +243,12 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
               </div>
             </div>
           )}
-          <div className="px-5 py-6 pb-28 space-y-5">
-            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
+          <div className="px-5 py-6 pb-32 space-y-6">
+            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
               {product.name}
             </h1>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                 ${formatPriceRounded(product.price)}
               </span>
               <span className="text-sm text-zinc-500 uppercase tracking-wide">USD</span>
@@ -272,7 +277,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
         </div>
         {/* DESKTOP */}
         <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
-          <div className="relative bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 w-[52%] flex flex-col shrink-0 border-r border-zinc-200 dark:border-zinc-800">
+          <div className="relative bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 w-[54%] flex flex-col shrink-0 border-r border-zinc-200 dark:border-zinc-800">
             <div className="flex-1 flex items-center justify-center p-6 min-h-0">
               {renderMedia(currentMedia)}
             </div>
@@ -355,12 +360,12 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
             )}
           </div>
           <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-950">
-            <div className="p-6 xl:p-8 space-y-5">
-              <h1 className="text-2xl xl:text-2xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
+            <div className="p-6 xl:p-8 space-y-6">
+              <h1 className="text-xl xl:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                 {product.name}
               </h1>
               <div className="flex items-baseline gap-2.5 pb-5 border-b border-zinc-200 dark:border-zinc-800">
-                <span className="text-4xl xl:text-3xl font-bold bg-gradient-to-br from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                <span className="text-3xl xl:text-3xl font-bold bg-gradient-to-br from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
                   ${formatPriceRounded(product.price)}
                 </span>
                 <span className="text-base text-zinc-500 uppercase tracking-wide">USD</span>
