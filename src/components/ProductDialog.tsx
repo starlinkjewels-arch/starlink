@@ -34,7 +34,8 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
     type: getMediaType(url)
   }));
   const hasMultiple = media.length > 1;
-  const currentMedia = media[selectedIndex] || null;
+  const clampedIndex = media.length > 0 ? Math.min(selectedIndex, media.length - 1) : 0;
+  const currentMedia = media.length > 0 ? media[clampedIndex] : null;
   // Auto-play video when media changes
   useEffect(() => {
     if (!currentMedia || currentMedia.type !== 'video' || !mainVideoRef.current || !open) return;
@@ -165,7 +166,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
             <div className="w-full h-full flex items-center justify-center p-6">
               {renderMedia(currentMedia)}
             </div>
-            {currentMedia.type === 'video' && (
+            {currentMedia?.type === 'video' && (
               <div className="absolute bottom-4 left-4 flex gap-2 z-10">
                 <button
                   onClick={handleVideoPlayPause}
@@ -212,7 +213,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
                 </div>
               </>
             )}
-            {currentMedia.type === 'video' && (
+            {currentMedia?.type === 'video' && (
               <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg flex items-center gap-1 z-10">
                 <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
                 VIDEO
@@ -328,7 +329,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
                 </div>
               </>
             )}
-            {currentMedia.type === 'video' && (
+            {currentMedia?.type === 'video' && (
               <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg flex items-center gap-1.5 z-10">
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                 VIDEO
