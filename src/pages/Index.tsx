@@ -166,7 +166,7 @@ const Index = () => {
               {categories.slice(0, 6).map((category) => (
                 <Link key={category.id} to={`/category/${category.id}`} className="category-card group">
                   <div className="aspect-square rounded-2xl overflow-hidden mb-3 bg-muted">
-                    <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                    <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" decoding="async" fetchpriority="low" />
                   </div>
                   <h3 className="font-semibold text-center group-hover:text-primary transition-colors">{category.name}</h3>
                 </Link>
@@ -190,7 +190,7 @@ const Index = () => {
               {[...featuredCollection, ...featuredCollection].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="flex-shrink-0 w-[280px] sm:w-72 md:w-80 rounded-xl sm:rounded-2xl overflow-hidden bg-card border border-border shadow-lg hover:shadow-2xl transition-all duration-300">
                   <div className="w-full h-[280px] sm:h-72 md:h-80 overflow-hidden">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" />
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" fetchpriority="low" />
                   </div>
                   <div className="p-3 sm:p-4">
                     <h3 className="text-base sm:text-lg font-bold mb-1 line-clamp-1">{item.title}</h3>
@@ -335,7 +335,7 @@ const Index = () => {
             <div className="flex gap-3 sm:gap-4 animate-[scroll_9s_linear_infinite] sm:animate-[scroll_15s_linear_infinite] hover:pause pl-4">
               {[...galleryItems, ...galleryItems].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="flex-shrink-0 w-[260px] sm:w-72 md:w-80 h-[260px] sm:h-72 md:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg">
-                  <img src={item.image} alt={item.description || 'Gallery'} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" />
+                  <img src={item.image} alt={item.description || 'Gallery'} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" fetchpriority="low" />
                 </div>
               ))}
             </div>
@@ -362,7 +362,7 @@ const Index = () => {
                     onClick={() => handleBlogClick(blog)}
                   >
                     <div className="aspect-video overflow-hidden bg-muted">
-                      <img src={blog.thumbnail || blog.image} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                      <img src={blog.thumbnail || blog.image} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" decoding="async" fetchpriority="low" />
                     </div>
                     <div className="p-6">
                       <time className="text-sm text-muted-foreground mb-2 block">{new Date(blog.date).toLocaleDateString()}</time>

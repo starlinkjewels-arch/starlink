@@ -484,16 +484,32 @@ export const deleteTestimonial = async (id: string) => {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from './firebase';
 
-// Add watermark to image
-const addWatermark = async (file: File): Promise<File> => {
+const getImageResizeConfig = (path: string) => {
+  const lower = path.toLowerCase();
+  if (lower.includes('banners')) return { max: 2000, quality: 0.82 };
+  if (lower.includes('products')) return { max: 1600, quality: 0.82 };
+  if (lower.includes('categories')) return { max: 1400, quality: 0.82 };
+  if (lower.includes('gallery')) return { max: 1400, quality: 0.82 };
+  if (lower.includes('blogs')) return { max: 1600, quality: 0.82 };
+  if (lower.includes('featured')) return { max: 1600, quality: 0.82 };
+  if (lower.includes('buying-guides')) return { max: 1600, quality: 0.82 };
+  return { max: 1600, quality: 0.82 };
+};
+
+const processImage = async (file: File, path: string, addMark: boolean): Promise<File> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+      const { max, quality } = getImageResizeConfig(path);
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const targetWidth = Math.round(img.width * scale);
+      const targetHeight = Math.round(img.height * scale);
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
       
       if (!ctx) {
         resolve(file);
@@ -501,24 +517,35 @@ const addWatermark = async (file: File): Promise<File> => {
       }
       
       // Draw original image
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
       
       // Add watermark
-      ctx.font = `${Math.max(20, img.width / 20)}px Cinzel`;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.20)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('STARLINK JEWELS', canvas.width / 2, canvas.height / 2);
+      if (addMark) {
+        ctx.font = `${Math.max(20, targetWidth / 20)}px Cinzel`;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.20)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('STARLINK JEWELS', canvas.width / 2, canvas.height / 2);
+      }
       
       // Convert canvas to blob
+      const fileName = file.name.replace(/\.\w+$/, '');
       canvas.toBlob((blob) => {
         if (blob) {
-          const watermarkedFile = new File([blob], file.name, { type: file.type });
-          resolve(watermarkedFile);
+          const optimizedFile = new File([blob], `${fileName}.webp`, { type: 'image/webp' });
+          resolve(optimizedFile);
         } else {
-          resolve(file);
+          // Fallback to JPEG
+          canvas.toBlob((jpegBlob) => {
+            if (jpegBlob) {
+              const optimizedFile = new File([jpegBlob], `${fileName}.jpg`, { type: 'image/jpeg' });
+              resolve(optimizedFile);
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', Math.min(0.9, quality + 0.08));
         }
-      }, file.type);
+      }, 'image/webp', quality);
     };
     
     img.onerror = () => resolve(file);
@@ -653,8 +680,11 @@ export const uploadImageToStorage = async (file: File, path: string, skipWaterma
       if (file.type.startsWith("video/")) {
         fileToUpload = await addVideoWatermark(file);
       } else {
-        fileToUpload = await addWatermark(file);
+        fileToUpload = await processImage(file, path, true);
       }
+    } else if (file.type.startsWith("image/")) {
+      // Optimize even when watermark is skipped
+      fileToUpload = await processImage(file, path, false);
     }
     const storageRef = ref(storage, `${path}/${Date.now()}_${fileToUpload.name}`);
     const snapshot = await uploadBytes(storageRef, fileToUpload);

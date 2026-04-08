@@ -61,6 +61,8 @@ const Footer = () => {
                     alt={method.name}
                     className="h-20 w-20 rounded-full object-contain bg-white/20 p-0.5 shadow-sm"
                     loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
                     title={method.name}
                   />
                 ))}
@@ -73,6 +75,9 @@ const Footer = () => {
                 src={logo}
                 alt="Starlink Jewels"
                 className="h-20 w-auto mx-auto p-1 object-contain"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
               />
             </div>
 
@@ -87,6 +92,8 @@ const Footer = () => {
                     alt={method.name}
                     className="h-20 w-20 rounded-full object-contain bg-white/20 p-0.5 shadow-sm"
                     loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
                     title={method.name}
                   />
                 ))}
@@ -99,7 +106,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <img src={logo} alt="Starlink Jewels" className="h-20 w-auto" />
+            <img src={logo} alt="Starlink Jewels" className="h-20 w-auto" loading="lazy" decoding="async" fetchpriority="low" />
             <p className="text-sm text-muted-foreground">
               Discover Exquisite Lab-Lrown and Natural Diamond Jewelry. Premium Luxury Collections
               for Every Occasion.

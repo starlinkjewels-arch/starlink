@@ -69,6 +69,9 @@ const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber = '9967381180' }: Bl
               src={blog.image}
               alt={blog.title}
               className="w-full h-auto max-h-[50vh] object-contain"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
             />
           </div>
           {/* Content Section */}

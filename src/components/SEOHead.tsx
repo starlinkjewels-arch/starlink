@@ -33,6 +33,7 @@ const SEOHead = ({
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "JewelryStore",
+    "@id": `${baseUrl}/#jewelry-store`,
     name: siteName,
     description:
       "Premium diamond and gold jewelry store offering certified lab-grown and natural diamonds, engagement rings, wedding bands, and custom jewelry designs.",
@@ -46,11 +47,29 @@ const SEOHead = ({
       addressRegion: SITE.addressIndia.region,
       addressLocality: SITE.addressIndia.locality,
     },
+    location: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: SITE.addressUsa.street,
+        addressLocality: SITE.addressUsa.locality,
+        addressRegion: SITE.addressUsa.region,
+        postalCode: SITE.addressUsa.postalCode,
+        addressCountry: SITE.addressUsa.country,
+      },
+    },
     contactPoint: [
       {
         "@type": "ContactPoint",
         telephone: SITE.phonePrimary,
         contactType: "sales",
+        areaServed: ["IN", "US", "GB"],
+        availableLanguage: ["English"],
+      },
+      {
+        "@type": "ContactPoint",
+        telephone: SITE.phoneWhatsApp,
+        contactType: "customer support",
         areaServed: ["IN", "US", "GB"],
         availableLanguage: ["English"],
       },
@@ -61,16 +80,35 @@ const SEOHead = ({
   const webSiteStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${baseUrl}/#website`,
     name: siteName,
     url: baseUrl,
+    publisher: {
+      "@id": `${baseUrl}/#jewelry-store`,
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${baseUrl}/categories?search={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const webPageStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
     name: fullTitle,
     description,
     url: pageUrl,
+    inLanguage: "en",
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteName,
+      url: baseUrl,
+    },
+    publisher: {
+      "@id": `${baseUrl}/#jewelry-store`,
+    },
   };
 
   const breadcrumbStructuredData =

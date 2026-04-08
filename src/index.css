@@ -214,6 +214,28 @@ All colors MUST be HSL.
     opacity: 1;
   }
 }
+
+@keyframes fade-swap {
+  0% {
+    opacity: 0;
+    transform: scale(1.03) translateZ(0);
+    filter: brightness(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes kenburns-soft {
+  0% {
+    transform: scale(1) translateZ(0);
+  }
+  100% {
+    transform: scale(1.035) translateZ(0);
+  }
+}
   
   .animate-marquee {
     display: inline-block;
@@ -222,5 +244,30 @@ All colors MUST be HSL.
   
   .pause {
     animation-play-state: paused !important;
+  }
+
+  .animate-fade-swap {
+    animation: fade-swap 1000ms ease;
+  }
+
+  .animate-kenburns-soft {
+    animation: kenburns-soft 4s ease-in-out both;
+  }
+
+  .animate-fade-slide {
+    animation: fade-slide 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes fade-slide {
+    0% {
+      opacity: 0;
+      transform: translateY(6px) scale(1.01);
+      filter: blur(1px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
   }
 }

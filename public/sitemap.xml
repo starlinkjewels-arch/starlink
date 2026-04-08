@@ -6,9 +6,11 @@
   <!-- Homepage - Highest Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/" />
     <image:image>
       <image:loc>https://www.starlinkjewels.com/icon.png</image:loc>
       <image:title>Starlink Jewels - Premium Diamond and Gold Jewelry</image:title>
@@ -19,49 +21,61 @@
   <!-- Main Category Pages - High Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/categories</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/categories" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/categories" />
   </url>
   
   <!-- Gallery - High Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/gallery</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/gallery" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/gallery" />
   </url>
   
   <!-- Blog - Medium-High Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/blog</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/blog" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/blog" />
   </url>
   
   <!-- Buying Guide - Medium-High Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/buying-guide</loc>
-    <lastmod>2026-03-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.80</priority>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/buying-guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/buying-guide" />
   </url>
   
   <!-- About Page - Medium Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/about</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/about" />
   </url>
   
   <!-- Contact Page - Medium Priority -->
   <url>
     <loc>https://www.starlinkjewels.com/contact</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.78</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.starlinkjewels.com/contact" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.starlinkjewels.com/contact" />
   </url>
 
 </urlset>

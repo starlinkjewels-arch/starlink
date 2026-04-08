@@ -7,9 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAppSelector } from "@/store/hooks";
 import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
-import { formatPriceRounded } from "@/lib/utils";
 import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct } from "@/lib/seo";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const ProductDetail = () => {
@@ -54,8 +52,6 @@ const ProductDetail = () => {
         },
         offers: {
           "@type": "Offer",
-          price: String(product.price || "").replace(/[^\d.]/g, "") || undefined,
-          priceCurrency: "USD",
           availability: "https://schema.org/InStock",
           url: `https://www.starlinkjewels.com/product/${product.id}`,
         },
@@ -135,7 +131,14 @@ const ProductDetail = () => {
                 <video src={currentMedia} className="w-full h-full object-cover" controls />
               ) : (
                 currentMedia && (
-                  <img src={currentMedia} alt={product.name} className="w-full h-full object-cover" />
+                  <img
+                    src={currentMedia}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                    decoding="async"
+                    fetchpriority="high"
+                  />
                 )
               )}
               {hasMultiple && (
@@ -168,7 +171,14 @@ const ProductDetail = () => {
                     {getMediaType(item) === "video" ? (
                       <video src={item} className="w-full h-full object-cover" muted />
                     ) : (
-                      <img src={item} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                      <img
+                        src={item}
+                        alt={`${product.name} ${i + 1}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        fetchpriority="low"
+                      />
                     )}
                   </button>
                 ))}
@@ -178,12 +188,7 @@ const ProductDetail = () => {
 
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-4">{product.name}</h1>
-            <div className="flex items-baseline gap-2 mb-6">
-              <span className="text-3xl font-bold text-primary">
-                ${formatPriceRounded(product.price)}
-              </span>
-              <span className="text-sm text-muted-foreground uppercase tracking-wider">USD</span>
-            </div>
+            <div className="mb-6" />
             {category && (
               <Link to={`/category/${category.id}`} className="text-sm text-primary underline">
                 Shop more {category.name} jewelry
@@ -195,11 +200,8 @@ const ProductDetail = () => {
                 dangerouslySetInnerHTML={{ __html: product.description }}
               />
             )}
-            <div className="mt-8 flex gap-3">
-              <WhatsAppButton product={product} className="flex-1" />
-              <Button variant="outline" asChild className="flex-1">
-                <Link to="/contact">Contact Us</Link>
-              </Button>
+            <div className="mt-8">
+              <WhatsAppButton product={product} className="w-full" />
             </div>
           </div>
         </div>

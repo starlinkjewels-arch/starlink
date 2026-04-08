@@ -170,7 +170,9 @@ const Blog = () => {
                       src={blog.thumbnail || blog.image} 
                       alt={blog.title} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      loading="lazy" 
+                      loading="lazy"
+                      decoding="async"
+                      fetchpriority="low"
                     />
                   </div>
                   <CardContent className="p-4">
@@ -201,7 +203,7 @@ const Blog = () => {
                   className="rounded-xl border bg-card/50 p-3 text-center hover:bg-card transition-colors"
                 >
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
-                    <img src={category.image} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={category.image} alt={category.name} className="w-full h-full object-cover" loading="lazy" decoding="async" fetchpriority="low" />
                   </div>
                   <p className="text-sm font-semibold">Shop {category.name} Jewelry</p>
                 </Link>

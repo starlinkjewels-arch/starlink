@@ -86,6 +86,9 @@ const GlobalLoader = ({ isLoading, imagesToPreload = [] }: GlobalLoaderProps) =>
             src={logo}
             alt="Starlink Jewels"
             className="h-16 sm:h-20 w-auto relative z-10 animate-[pulse_2s_ease-in-out_infinite]"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
           />
         </div>
 

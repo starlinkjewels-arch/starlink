@@ -168,7 +168,7 @@ const About = () => {
                   logo4,
                 ].map((src, i) => (
                   <div key={i} className={`story-image aspect-square rounded-2xl overflow-hidden shadow-xl ${i % 2 === 1 ? 'mt-8' : ''}`}>
-                    <img src={src} alt="Jewelry craftsmanship" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" loading="lazy" />
+                    <img src={src} alt="Jewelry craftsmanship" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" fetchpriority="low" />
                   </div>
                 ))}
               </div>

@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent, TouchEvent } from 'react';
 import { Product } from '@/lib/storage';
-import { formatPriceRounded } from "@/lib/utils";
 import WhatsAppButton from './WhatsAppButton';
 import { Images, Play } from 'lucide-react';
 
@@ -11,13 +10,20 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onClick }: ProductCardProps) => {
-  const [showSecondImage, setShowSecondImage] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [autoPlay] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   const media = product.images && product.images.length > 0 ? product.images : [product.image];
   const hasMultiple = media.length > 1;
   
-  // Show first image by default, second image on hover (if available)
-  const displayMedia = showSecondImage && hasMultiple ? media[1] : media[0];
+  const isCoarsePointer = useMemo(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(pointer: coarse)').matches;
+  }, []);
+
+  const displayMedia = media[currentIndex] || media[0];
 
   // Detect if media is video
   const getMediaType = (url: string): 'image' | 'video' => {
@@ -28,21 +34,63 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const currentMediaType = getMediaType(displayMedia);
   const hasVideo = media.some(url => getMediaType(url) === 'video');
 
+  useEffect(() => {
+    setCurrentIndex(0);
+    setIsHovered(false);
+  }, [product.id]);
+
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isCoarsePointer) return;
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isCoarsePointer || touchStartX.current === null) return;
+    const endX = e.changedTouches[0]?.clientX ?? touchStartX.current;
+    const deltaX = endX - touchStartX.current;
+    const threshold = 30;
+    if (Math.abs(deltaX) >= threshold && hasMultiple) {
+      setAutoPlay(false);
+      if (deltaX < 0) {
+        setCurrentIndex((prev) => (prev + 1) % media.length);
+      } else {
+        setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
+      }
+    }
+    touchStartX.current = null;
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (hasMultiple) {
+      setCurrentIndex(1);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
     <div 
       onClick={onClick}
-      onMouseEnter={() => setShowSecondImage(true)}
-      onMouseLeave={() => setShowSecondImage(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className="group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-full cursor-pointer"
     >
       {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden bg-muted">
+      <div
+        className="relative aspect-square overflow-hidden bg-muted"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {currentMediaType === 'video' ? (
           <div className="relative w-full h-full">
             <video
+              key={`${displayMedia}-${currentIndex}`}
               src={displayMedia}
-              className="w-full h-full object-cover transition-opacity duration-500"
-              autoPlay={showSecondImage}
+              className="w-full h-full object-cover transition-opacity duration-900 animate-fade-swap animate-kenburns-soft"
+              autoPlay={isHovered}
               loop
               muted
               playsInline
@@ -56,10 +104,13 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
           </div>
         ) : (
           <img
+            key={`${displayMedia}-${currentIndex}`}
             src={displayMedia}
             alt={product.name}
-            className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transition-all duration-900 group-hover:scale-110 animate-fade-swap animate-kenburns-soft"
             loading="lazy"
+            decoding="async"
+            fetchpriority="low"
           />
         )}
         
@@ -96,30 +147,13 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
           ) : null}
         </div>
         
-        {/* Price and Button Container */}
+        {/* Button Container */}
         <div className="space-y-4 mt-auto">
-          {/* Price */}
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-primary">
-              ${formatPriceRounded(product.price)}
-            </span>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">
-              USD
-            </span>
-          </div>
-          
           {/* WhatsApp Button */}
           <div onClick={(e) => e.stopPropagation()}>
             <WhatsAppButton product={product} className="w-full" />
           </div>
 
-          <Link
-            to={`/product/${product.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="block text-center text-sm font-semibold underline text-primary"
-          >
-            View Product Details
-          </Link>
         </div>
       </div>
     </div>

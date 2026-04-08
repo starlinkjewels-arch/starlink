@@ -53,27 +53,12 @@ const AppContent = () => {
 
   // Collect important images to preload (banners are most critical)
   const assetUrls = useMemo(() => {
-    const productImages = data.products.flatMap((p) => [p.image, ...(p.images || [])]);
-    const blogImages = data.blogs.flatMap((b) => [b.image, b.thumbnail || ""]);
-    const officeFlags = data.offices.map((o) => o.flagImage || "");
-
+    const take = (arr: string[], n: number) => arr.filter(Boolean).slice(0, n);
     return [
-      ...data.banners.map((b) => b.image),
-      ...data.categories.map((c) => c.image),
-      ...data.featuredCollection.map((f) => f.image),
-      ...data.galleryItems.map((g) => g.image),
-      ...productImages,
-      ...blogImages,
-      ...officeFlags,
-    ].filter(Boolean);
+      ...take(data.banners.map((b) => b.image), 1),
+    ];
   }, [
     data.banners,
-    data.categories,
-    data.featuredCollection,
-    data.galleryItems,
-    data.products,
-    data.blogs,
-    data.offices,
   ]);
 
   useEffect(() => {

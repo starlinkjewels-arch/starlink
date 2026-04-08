@@ -88,7 +88,7 @@ export const buildMetaTitleForCategory = (categoryName: string) => {
 
 export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
   if (desc && desc.trim().length > 40) return desc.trim();
-  return `Shop premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide shipping.`;
+  return `Explore premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery. WhatsApp inquiry available.`;
 };
 
 export const buildMetaTitleForProduct = (productName: string) => {
@@ -97,7 +97,7 @@ export const buildMetaTitleForProduct = (productName: string) => {
 
 export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string) => {
   const categoryText = categoryName ? ` in ${categoryName}` : "";
-  return `Shop ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds, premium craftsmanship, worldwide delivery.`;
+  return `Discover ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds, premium craftsmanship, worldwide delivery. WhatsApp inquiry available.`;
 };
 
 export const buildMetaTitleForBlog = (title: string) => {

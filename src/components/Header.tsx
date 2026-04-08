@@ -83,6 +83,9 @@ const Header = ({ promoHeader }: HeaderProps) => {
                 src={logo} 
                 alt="Starlink Jewels - Premium Diamond Jewelry Store" 
                 className={`w-auto transition-all duration-300 ${isScrolled ? 'h-9' : 'h-11'}`} 
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
               />
             </Link>
 

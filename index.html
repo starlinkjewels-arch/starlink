@@ -36,6 +36,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+  <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+  <link rel="preconnect" href="https://storage.googleapis.com">
+  <link rel="dns-prefetch" href="https://storage.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
 
@@ -97,6 +101,7 @@
     {
       "@context": "https://schema.org",
       "@type": "JewelryStore",
+      "@id": "https://www.starlinkjewels.com/#jewelry-store",
       "name": "Starlink Jewels",
       "alternateName": "Starlink Jewels",
       "url": "https://www.starlinkjewels.com",
@@ -122,6 +127,15 @@
         "https://instagram.com/starlinkjewels",
         "https://facebook.com/starlinkjewels",
         "https://pinterest.com/starlinkjewels"
+      ],
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+919967381180",
+          "contactType": "sales",
+          "areaServed": ["IN", "US", "GB"],
+          "availableLanguage": ["English"]
+        }
       ]
     }
     </script>
@@ -131,8 +145,17 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
+      "@id": "https://www.starlinkjewels.com/#website",
       "name": "Starlink Jewels",
-      "url": "https://www.starlinkjewels.com"
+      "url": "https://www.starlinkjewels.com",
+      "publisher": {
+        "@id": "https://www.starlinkjewels.com/#jewelry-store"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.starlinkjewels.com/categories?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     }
     </script>
 
@@ -141,9 +164,17 @@
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
+      "@id": "https://www.starlinkjewels.com/#webpage",
       "name": "Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online",
       "url": "https://www.starlinkjewels.com/",
-      "description": "Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop certified engagement rings, necklaces & custom designs with worldwide shipping."
+      "description": "Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop certified engagement rings, necklaces & custom designs with worldwide shipping.",
+      "isPartOf": {
+        "@id": "https://www.starlinkjewels.com/#website"
+      },
+      "publisher": {
+        "@id": "https://www.starlinkjewels.com/#jewelry-store"
+      },
+      "inLanguage": "en"
     }
   </script>
 </head>

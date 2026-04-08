@@ -83,20 +83,6 @@ const CategoryProducts = () => {
     const result = [...productsToSort];
 
     switch (sortOption) {
-      case 'price-low':
-        result.sort((a, b) => {
-          const priceA = parseFloat(String(a.price || 0));
-          const priceB = parseFloat(String(b.price || 0));
-          return priceA - priceB;
-        });
-        break;
-      case 'price-high':
-        result.sort((a, b) => {
-          const priceA = parseFloat(String(a.price || 0));
-          const priceB = parseFloat(String(b.price || 0));
-          return priceB - priceA;
-        });
-        break;
       case 'oldest':
         result.sort((a, b) => {
           const timeA = getProductTime(a);
@@ -174,8 +160,6 @@ const CategoryProducts = () => {
           },
           offers: {
             '@type': 'Offer',
-            price: String(p.price || '').replace(/[^\d.]/g, '') || undefined,
-            priceCurrency: 'USD',
             availability: 'https://schema.org/InStock',
             url: `https://www.starlinkjewels.com/category/${id}?product=${p.id}`,
           },
@@ -204,8 +188,6 @@ const CategoryProducts = () => {
           },
           offers: {
             '@type': 'Offer',
-            price: String(activeProduct.price || '').replace(/[^\d.]/g, '') || undefined,
-            priceCurrency: 'USD',
             availability: 'https://schema.org/InStock',
             url: `https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
           },
@@ -361,8 +343,6 @@ const CategoryProducts = () => {
               <SelectContent>
                 <SelectItem value="newest">Newest First</SelectItem>
                 {/* <SelectItem value="oldest">Oldest First</SelectItem> */}
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -398,7 +378,7 @@ const CategoryProducts = () => {
                   className="group rounded-xl border bg-card/50 hover:bg-card transition-all p-3 text-center"
                 >
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
-                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" fetchpriority="low" />
                   </div>
                   <span className="text-sm font-semibold block">Shop {c.name} Jewelry</span>
                 </Link>
@@ -411,7 +391,6 @@ const CategoryProducts = () => {
         product={selectedProduct}
         open={isDialogOpen}
         onOpenChange={handleDialogOpenChange}
-        catId={id}
       />
       <Footer />
     </div>

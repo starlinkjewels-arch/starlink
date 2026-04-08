@@ -137,7 +137,9 @@ const Gallery = () => {
                       src={item.image} 
                       alt={item.description || 'Luxury Jewelry'} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                      loading="lazy" 
+                      loading="lazy"
+                      decoding="async"
+                      fetchpriority="low"
                     />
                   </div>
 
@@ -222,6 +224,9 @@ const Gallery = () => {
                   src={galleryItems[selectedIndex].image} 
                   alt={galleryItems[selectedIndex].description || 'Gallery image'} 
                   className="w-full h-auto max-h-[70vh] object-contain"
+                  loading="eager"
+                  decoding="async"
+                  fetchpriority="high"
                 />
               </div>
 

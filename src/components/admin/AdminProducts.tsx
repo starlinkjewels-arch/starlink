@@ -46,10 +46,6 @@ const AdminProducts = () => {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
-  const [isAiGenerating, setIsAiGenerating] = useState(false);
-  const [autoSeo, setAutoSeo] = useState(true);
-  const [lastSeoHash, setLastSeoHash] = useState('');
-  const [isBulkSeoRunning, setIsBulkSeoRunning] = useState(false);
 
   useEffect(() => {
     getProducts().then(setProducts);
@@ -176,7 +172,6 @@ const AdminProducts = () => {
     setMetaTitle(product.metaTitle || '');
     setMetaDescription(product.metaDescription || '');
     setSeoFaq(product.seoFaq || []);
-    setLastSeoHash(`${product.name}|${product.description || ''}|${product.price}|${product.categoryId}`);
     
     const existingUrls = product.images || [product.image];
     const existingMediaItems: MediaItem[] = existingUrls.map((url, index) => ({
@@ -201,7 +196,6 @@ const AdminProducts = () => {
     setMetaTitle('');
     setMetaDescription('');
     setSeoFaq([]);
-    setLastSeoHash('');
   };
 
   const handleAddProduct = async () => {
@@ -253,7 +247,6 @@ const AdminProducts = () => {
       setMetaTitle('');
       setMetaDescription('');
       setSeoFaq([]);
-      setLastSeoHash('');
       setEditingId(null);
       
       toast.success(editingId ? 'Product updated successfully' : 'Product added successfully');
@@ -348,94 +341,7 @@ const AdminProducts = () => {
   const allSelected = products.length > 0 && bulkSelectedIds.length === products.length;
   const someSelected = bulkSelectedIds.length > 0 && bulkSelectedIds.length < products.length;
 
-  const aiEndpoint = import.meta.env.VITE_AI_API_URL || "http://localhost:5174";
-
-  const runAiSeo = async () => {
-    if (!name.trim()) {
-      toast.error('Please enter product name first');
-      return;
-    }
-    setIsAiGenerating(true);
-    try {
-      const categoryName = categories.find((c) => c.id === categoryId)?.name;
-      const res = await fetch(`${aiEndpoint}/api/ai/product`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          category: categoryName,
-          description,
-          price,
-          brand: "Starlink Jewels",
-        }),
-      });
-      if (!res.ok) throw new Error("AI error");
-      const data = await res.json();
-      setMetaTitle(data.metaTitle || '');
-      setMetaDescription(data.metaDescription || '');
-      setSeoFaq(Array.isArray(data.faqItems) ? data.faqItems : []);
-      const hash = `${name}|${description}|${price}|${categoryId}`;
-      setLastSeoHash(hash);
-      toast.success('SEO generated');
-    } catch (error) {
-      toast.error('Failed to generate SEO');
-    } finally {
-      setIsAiGenerating(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!autoSeo) return;
-    if (!name.trim()) return;
-    const hash = `${name}|${description}|${price}|${categoryId}`;
-    if (hash === lastSeoHash) return;
-    const timer = setTimeout(() => {
-      if (!isAiGenerating) {
-        runAiSeo();
-      }
-    }, 900);
-    return () => clearTimeout(timer);
-  }, [name, description, price, categoryId, autoSeo, lastSeoHash]);
-
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-  const handleBulkSeo = async () => {
-    if (products.length === 0) return;
-    if (isBulkSeoRunning) return;
-    setIsBulkSeoRunning(true);
-    try {
-      for (const product of products) {
-        const categoryName = categories.find((c) => c.id === product.categoryId)?.name;
-        const res = await fetch(`${aiEndpoint}/api/ai/product`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: product.name,
-            category: categoryName,
-            description: product.description,
-            price: product.price,
-            brand: "Starlink Jewels",
-          }),
-        });
-        if (!res.ok) continue;
-        const data = await res.json();
-        await saveProduct({
-          ...product,
-          metaTitle: data.metaTitle || product.metaTitle,
-          metaDescription: data.metaDescription || product.metaDescription,
-          seoFaq: Array.isArray(data.faqItems) ? data.faqItems : product.seoFaq,
-        });
-        await sleep(1200);
-      }
-      const updated = await getProducts();
-      setProducts(updated);
-      toast.success('Bulk SEO completed');
-    } catch (error) {
-      toast.error('Bulk SEO failed');
-    } finally {
-      setIsBulkSeoRunning(false);
-    }
-  };
+ 
 
   return (
     <div className="space-y-8">
@@ -498,19 +404,6 @@ const AdminProducts = () => {
                 placeholder="SEO meta description"
               />
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button type="button" variant="outline" onClick={runAiSeo} disabled={isAiGenerating}>
-              {isAiGenerating ? 'Generating...' : 'Generate SEO (AI)'}
-            </Button>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={autoSeo}
-                onChange={(e) => setAutoSeo(e.target.checked)}
-              />
-              Auto refresh meta on changes
-            </label>
           </div>
           
           <div className="space-y-2">
@@ -714,19 +607,6 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bulk SEO Generation</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Generates SEO meta + FAQ for all products with a safe rate-limited queue.
-          </p>
-          <Button onClick={handleBulkSeo} disabled={isBulkSeoRunning || products.length === 0}>
-            {isBulkSeoRunning ? 'Generating...' : 'Generate SEO for All Products'}
-          </Button>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => {

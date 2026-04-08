@@ -1,6 +1,7 @@
 # Starlink Jewels - Premium Diamond & Gold Jewelry
 # https://www.starlinkjewels.com
 # robots.txt - Search Engine Crawler Directives
+# Last updated: 2026-04-08
 
 # Allow all major search engines
 User-agent: Googlebot
@@ -38,6 +39,19 @@ Crawl-delay: 1
 User-agent: Sogou
 Allow: /
 
+# Other global crawlers
+User-agent: Applebot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
 # Social Media Crawlers
 User-agent: Twitterbot
 Allow: /
@@ -68,6 +82,7 @@ Disallow: /admin
 Disallow: /admin/
 Disallow: /aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3
 Disallow: /api/
+Disallow: /server/
 Disallow: /*.json$
 Disallow: /private/
 Disallow: /tmp/
@@ -76,6 +91,7 @@ Disallow: /node_modules/
 # Allow important static resources
 Allow: /assets/
 Allow: /images/
+Allow: /icons/
 Allow: /*.css$
 Allow: /*.js$
 Allow: /*.png$
@@ -87,6 +103,7 @@ Allow: /*.svg$
 Allow: /*.ico$
 Allow: /*.woff$
 Allow: /*.woff2$
+Allow: /*.avif$
 
 # Sitemap location - Very Important for SEO
 Sitemap: https://www.starlinkjewels.com/sitemap.xml

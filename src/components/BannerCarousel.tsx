@@ -9,7 +9,7 @@ interface BannerCarouselProps {
 
 const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set([0]));
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
   useEffect(() => {
     if (banners.length === 0) return;
@@ -21,24 +21,12 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  // Preload next image when current changes
   useEffect(() => {
-    if (banners.length === 0) return;
-
-    const nextIndex = (currentIndex + 1) % banners.length;
-    const prevIndex = (currentIndex - 1 + banners.length) % banners.length;
-
-    [currentIndex, nextIndex, prevIndex].forEach((idx) => {
-      if (!imagesLoaded.has(idx)) {
-        const banner = banners[idx];
-        if (banner && banner.mediaType !== 'video') {
-          const img = new Image();
-          img.src = banner.image;
-          setImagesLoaded((prev) => new Set([...prev, idx]));
-        }
-      }
-    });
-  }, [currentIndex, banners, imagesLoaded]);
+    if (!banners[0] || banners[0].mediaType === 'video') return;
+    const img = new Image();
+    img.src = banners[0].image;
+    img.onload = () => setHeroLoaded(true);
+  }, [banners]);
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
@@ -79,6 +67,9 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             index === currentIndex ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-110 z-0'
           }`}
         >
+          {index === currentIndex && banner.mediaType !== 'video' && !heroLoaded && (
+            <div className="absolute inset-0 bg-muted animate-pulse" />
+          )}
           {banner.mediaType === 'video' ? (
             <video
               src={banner.image}
@@ -93,10 +84,12 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             <img
               src={banner.image}
               alt={banner.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-opacity duration-500"
               loading={index === currentIndex ? 'eager' : 'lazy'}
               decoding="async"
               fetchpriority={index === currentIndex ? 'high' : 'auto'}
+              sizes="100vw"
+              onLoad={() => index === 0 && setHeroLoaded(true)}
             />
           )}
           

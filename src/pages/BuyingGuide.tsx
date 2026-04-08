@@ -190,7 +190,16 @@ const BuyingGuidePage = () => {
           <article className="lg:col-span-3 order-1 lg:order-2">
             {selected ? (
               <div className="bg-card rounded-2xl shadow-sm border overflow-hidden">
-                {selected.image && <img src={selected.image} alt={selected.title} className="w-full h-96 md:h-[500px] object-cover" loading="lazy" />}
+                {selected.image && (
+                  <img
+                    src={selected.image}
+                    alt={selected.title}
+                    className="w-full h-96 md:h-[500px] object-cover"
+                    loading="eager"
+                    decoding="async"
+                    fetchpriority="high"
+                  />
+                )}
                 <div className="p-8 md:p-12">
                   <h2 className="text-4xl md:text-5xl font-bold mb-8">{selected.title}</h2>
                   <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: safeContent }} />

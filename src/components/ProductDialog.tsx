@@ -1,24 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { Product } from '@/lib/storage';
-import { formatPriceRounded } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import WhatsAppButton from './WhatsAppButton';
-import { X, ChevronLeft, ChevronRight, Truck, Shield, Zap, Play, Pause, Volume2, VolumeX, Share2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Truck, Shield, Zap, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 interface ProductDialogProps {
   product: Product | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  catId: string;
 }
 interface MediaItem {
   url: string;
   type: 'image' | 'video';
 }
-const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProps) => {
+const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [mainLoaded, setMainLoaded] = useState(false);
   const mainVideoRef = useRef<HTMLVideoElement>(null);
   const getMediaType = (url: string): 'image' | 'video' => {
     const videoExtensions = /\.(mp4|webm|ogg|mov|avi|mkv)/i;
@@ -45,6 +43,10 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
     });
     setIsPlaying(true);
   }, [open, selectedIndex]);
+
+  useEffect(() => {
+    setMainLoaded(false);
+  }, [selectedIndex, open]);
   // Reset when dialog opens
   useEffect(() => {
     if (!open) return;
@@ -74,28 +76,6 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
     if (mainVideoRef.current) {
       mainVideoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
-    }
-  };
-  const handleShare = async () => {
-    if (!product) return;
-    const shareUrl = `${window.location.origin}/category/${catId}?product=${product.id}`;
-    const shareData = {
-      title: product.name,
-      text: `Check out this ${product.name} from Starlink Jewels! Price: $${formatPriceRounded(product.price)} USD`,
-      url: shareUrl,
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.error('Share failed:', err);
-      }
-    } else {
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        alert('Product URL copied to clipboard!');
-      }).catch(err => {
-        console.error('Copy failed:', err);
-      });
     }
   };
   const renderMedia = (item: MediaItem | null, isThumbnail: boolean = false, index?: number) => {
@@ -128,6 +108,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
               playsInline
               preload="auto"
               autoPlay
+              onLoadedData={() => setMainLoaded(true)}
             >
               <source src={item.url} type="video/mp4" />
               Your browser does not support the video tag.
@@ -143,6 +124,10 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
         alt={isThumbnail ? `Thumbnail ${index}` : product.name}
         className={`${isThumbnail ? 'w-full h-full object-cover' : 'max-w-full max-h-full object-contain'}`}
         draggable={false}
+        loading={isThumbnail ? 'lazy' : 'eager'}
+        decoding="async"
+        fetchpriority={!isThumbnail ? 'high' : 'low'}
+        onLoad={() => !isThumbnail && setMainLoaded(true)}
       />
     );
   };
@@ -164,6 +149,9 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
         <div className="lg:hidden flex-1 overflow-y-auto">
           <div className="relative bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 aspect-square">
             <div className="w-full h-full flex items-center justify-center p-6">
+              {!mainLoaded && (
+                <div className="absolute inset-0 bg-muted animate-pulse" />
+              )}
               {renderMedia(currentMedia)}
             </div>
             {currentMedia?.type === 'video' && (
@@ -248,12 +236,6 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
             <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
               {product.name}
             </h1>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                ${formatPriceRounded(product.price)}
-              </span>
-              <span className="text-sm text-zinc-500 uppercase tracking-wide">USD</span>
-            </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800">
                 <Truck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -280,6 +262,9 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
         <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
           <div className="relative bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 w-[54%] flex flex-col shrink-0 border-r border-zinc-200 dark:border-zinc-800">
             <div className="flex-1 flex items-center justify-center p-6 min-h-0">
+              {!mainLoaded && (
+                <div className="absolute inset-0 bg-muted animate-pulse" />
+              )}
               {renderMedia(currentMedia)}
             </div>
             {/* {currentMedia.type === 'video' && (
@@ -365,12 +350,7 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
               <h1 className="text-xl xl:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                 {product.name}
               </h1>
-              <div className="flex items-baseline gap-2.5 pb-5 border-b border-zinc-200 dark:border-zinc-800">
-                <span className="text-3xl xl:text-3xl font-bold bg-gradient-to-br from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                  ${formatPriceRounded(product.price)}
-                </span>
-                <span className="text-base text-zinc-500 uppercase tracking-wide">USD</span>
-              </div>
+              <div className="pb-5 border-b border-zinc-200 dark:border-zinc-800" />
               <div className="grid grid-cols-3 gap-3">
                 <div className="flex items-center gap-2 p-2 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 hover:scale-105 transition-transform">
                   <Truck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -391,36 +371,20 @@ const ProductDialog = ({ product, open, onOpenChange, catId }: ProductDialogProp
                   dangerouslySetInnerHTML={{ __html: product.description }}
                 />
               )}
-              <div className="pt-4 flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  className="flex-1 h-12 text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
-                >
-                  <Share2 className="mr-2 h-4 w-4" /> Share
-                </Button>
+              <div className="pt-4">
                 <WhatsAppButton
                   product={product}
-                  className="flex-1 h-12 text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+                  className="w-full h-12 text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
                 />
               </div>
             </div>
           </div>
         </div>
         <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleShare}
-              className="flex-1 h-12 text-sm font-semibold rounded-xl shadow-lg"
-            >
-              <Share2 className="mr-2 h-4 w-4" /> Share
-            </Button>
-            <WhatsAppButton
-              product={product}
-              className="flex-1 h-12 text-sm font-semibold rounded-xl shadow-lg"
-            />
-          </div>
+          <WhatsAppButton
+            product={product}
+            className="w-full h-12 text-sm font-semibold rounded-xl shadow-lg"
+          />
         </div>
       </DialogContent>
     </Dialog>
