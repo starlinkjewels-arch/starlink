@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -21,6 +21,8 @@ const Blog = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [requestedRefresh, setRequestedRefresh] = useState(false);
+  const navigate = useNavigate();
+  const { id: routeBlogId } = useParams<{ id: string }>();
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -46,7 +48,7 @@ const Blog = () => {
 
   // Handle URL query param to open specific blog
   useEffect(() => {
-    const blogId = searchParams.get('id');
+    const blogId = routeBlogId || searchParams.get('id');
     if (blogId && blogs.length > 0) {
       const blog = blogs.find(b => b.id === blogId);
       if (blog) {
@@ -54,17 +56,18 @@ const Blog = () => {
         setIsDialogOpen(true);
       }
     }
-  }, [searchParams, blogs]);
+  }, [routeBlogId, searchParams, blogs]);
 
   const handleBlogClick = (blog: BlogPost) => {
     setSelectedBlog(blog);
     setIsDialogOpen(true);
-    setSearchParams({ id: blog.id });
+    navigate(`/blog/${blog.id}`);
   };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setSearchParams({});
+    navigate("/blog");
   };
 
   const baseStructuredData = {
@@ -85,13 +88,13 @@ const Blog = () => {
     },
     blogPost: sortedBlogs.slice(0, 10).map(blog => ({
       '@type': 'BlogPosting',
-      '@id': `https://www.starlinkjewels.com/blog?id=${blog.id}#blogpost`,
+      '@id': `https://www.starlinkjewels.com/blog/${blog.id}#blogpost`,
       headline: blog.title,
       datePublished: blog.date,
       dateModified: blog.date,
       image: blog.image,
       description: blog.content.substring(0, 160),
-      mainEntityOfPage: `https://www.starlinkjewels.com/blog?id=${blog.id}`,
+      mainEntityOfPage: `https://www.starlinkjewels.com/blog/${blog.id}`,
       author: {
         '@type': 'Organization',
         name: 'Starlink Jewels'
@@ -103,7 +106,7 @@ const Blog = () => {
     ? {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
-        '@id': `https://www.starlinkjewels.com/blog?id=${selectedBlog.id}#blogpost`,
+        '@id': `https://www.starlinkjewels.com/blog/${selectedBlog.id}#blogpost`,
         headline: selectedBlog.title,
         datePublished: selectedBlog.date,
         dateModified: selectedBlog.date,
@@ -113,7 +116,7 @@ const Blog = () => {
           '@type': 'Organization',
           name: 'Starlink Jewels',
         },
-        mainEntityOfPage: `https://www.starlinkjewels.com/blog?id=${selectedBlog.id}`,
+        mainEntityOfPage: `https://www.starlinkjewels.com/blog/${selectedBlog.id}`,
       }
     : undefined;
 
@@ -155,7 +158,7 @@ const Blog = () => {
         title={seoTitle}
         description={seoDescription}
         keywords="jewelry blog, diamond buying guide, engagement ring tips, jewelry trends 2024, gemstone guide, diamond education, luxury jewelry tips, how to buy diamonds, jewelry care tips, wedding ring guide, precious stones, gold jewelry guide, platinum jewelry, custom jewelry design, jewelry investment"
-        canonicalUrl={`https://www.starlinkjewels.com/blog${selectedBlog ? `?id=${selectedBlog.id}` : ''}`}
+        canonicalUrl={`https://www.starlinkjewels.com/blog${selectedBlog ? `/${selectedBlog.id}` : ''}`}
         structuredData={structuredData}
         breadcrumbs={[
           { name: "Home", url: "https://www.starlinkjewels.com" },

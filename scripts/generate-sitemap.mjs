@@ -88,7 +88,7 @@ const run = async () => {
   // Blog post pages
   blogs.forEach((blog) => {
     if (!blog?.id) return;
-    urls.push(buildUrlEntry(`${BASE_URL}/blog?id=${blog.id}`, "monthly", "0.65"));
+    urls.push(buildUrlEntry(`${BASE_URL}/blog/${blog.id}`, "monthly", "0.65"));
   });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

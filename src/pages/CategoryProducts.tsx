@@ -342,7 +342,7 @@ const CategoryProducts = () => {
         title={seoTitle}
         description={seoDescription}
         keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, gold ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
-        canonicalUrl={`https://www.starlinkjewels.com/category/${id}${activeProduct ? `?product=${activeProduct.id}` : ''}`}
+        canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
         structuredData={structuredData}
         breadcrumbs={[
           { name: "Home", url: "https://www.starlinkjewels.com" },
