@@ -21,9 +21,10 @@ import BuyingGuidePage from "./pages/BuyingGuide";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
-import { preloadAssets } from "@/lib/preload";
+import { preloadMedia } from "@/lib/preload";
 import { pingSitemapOncePerDay } from "@/lib/seo";
 import GlobalLoader from "@/components/GlobalLoader";
+import CountryLanding from "./pages/CountryLanding";
 
 const queryClient = new QueryClient();
 
@@ -34,14 +35,15 @@ const AppContent = () => {
   const hydrated = useAppSelector(selectContentHydrated);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isAdminRoute = location.pathname.startsWith('/aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3');
 
   useEffect(() => {
-    if (status === "idle" && !hydrated) {
+    if (!isAdminRoute && status === "idle" && !hydrated) {
       dispatch(loadGlobalData());
     }
-  }, [dispatch, hydrated, status]);
+  }, [dispatch, hydrated, isAdminRoute, status]);
 
-  const showLoader = status === "loading" && !hydrated;
+  const showLoader = !isAdminRoute && !isHomePage && status === "loading" && !hydrated;
 
 
   useEffect(() => {
@@ -54,16 +56,18 @@ const AppContent = () => {
   // Collect important images to preload (banners are most critical)
   const assetUrls = useMemo(() => {
     const take = (arr: string[], n: number) => arr.filter(Boolean).slice(0, n);
+    if (isAdminRoute) return [];
     return [
       ...take(data.banners.map((b) => b.image), 1),
     ];
   }, [
     data.banners,
+    isAdminRoute,
   ]);
 
   useEffect(() => {
     if (status === "succeeded" || hydrated) {
-      preloadAssets(assetUrls);
+      preloadMedia(assetUrls);
     }
   }, [assetUrls, hydrated, status]);
 
@@ -89,6 +93,10 @@ const AppContent = () => {
         <Route path="/aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3" element={<Admin />} />
         <Route path="/buying-guide" element={<BuyingGuidePage />} />
         <Route path="/buying-guide/:slug" element={<BuyingGuidePage />} />
+        <Route path="/usa" element={<CountryLanding />} />
+        <Route path="/canada" element={<CountryLanding />} />
+        <Route path="/australia" element={<CountryLanding />} />
+        <Route path="/germany" element={<CountryLanding />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

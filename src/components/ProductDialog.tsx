@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Product } from '@/lib/storage';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import WhatsAppButton from './WhatsAppButton';
@@ -14,10 +14,11 @@ interface MediaItem {
 }
 const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [mainLoaded, setMainLoaded] = useState(false);
   const mainVideoRef = useRef<HTMLVideoElement>(null);
+  const shouldAutoplay = open;
   const getMediaType = (url: string): 'image' | 'video' => {
     const videoExtensions = /\.(mp4|webm|ogg|mov|avi|mkv)/i;
     return videoExtensions.test(url) ||
@@ -25,6 +26,17 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
            url.toLowerCase().includes('.mp4') ||
            url.toLowerCase().includes('vid-') ||
            url.toLowerCase().includes('mov') ? 'video' : 'image';
+  };
+  const posterImage = useMemo(() => {
+    const images = (product?.images || []).filter((url) => getMediaType(url) === 'image');
+    return images[0] || product?.image || '';
+  }, [product]);
+  const getVideoMimeType = (url: string): string | undefined => {
+    const lower = url.toLowerCase();
+    if (lower.endsWith('.webm')) return 'video/webm';
+    if (lower.endsWith('.ogg') || lower.endsWith('.ogv')) return 'video/ogg';
+    if (lower.endsWith('.mp4') || lower.endsWith('.m4v') || lower.endsWith('.mov')) return 'video/mp4';
+    return undefined;
   };
   const allMediaUrls = product?.images?.length > 0 ? product.images : product?.image ? [product.image] : [];
   const media: MediaItem[] = allMediaUrls.map(url => ({
@@ -34,26 +46,65 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
   const hasMultiple = media.length > 1;
   const clampedIndex = media.length > 0 ? Math.min(selectedIndex, media.length - 1) : 0;
   const currentMedia = media.length > 0 ? media[clampedIndex] : null;
-  // Auto-play video when media changes
-  useEffect(() => {
-    if (!currentMedia || currentMedia.type !== 'video' || !mainVideoRef.current || !open) return;
-    mainVideoRef.current.load();
-    mainVideoRef.current.play().catch(err => {
-      console.log('Auto-play prevented:', err);
-    });
-    setIsPlaying(true);
-  }, [open, selectedIndex]);
-
   useEffect(() => {
     setMainLoaded(false);
+    setIsPlaying(false);
   }, [selectedIndex, open]);
   // Reset when dialog opens
   useEffect(() => {
     if (!open) return;
     setSelectedIndex(0);
-    setIsPlaying(true);
+    setIsPlaying(false);
     setIsMuted(true);
   }, [open]);
+  useEffect(() => {
+    if (!open && mainVideoRef.current) {
+      mainVideoRef.current.pause();
+      mainVideoRef.current.currentTime = 0;
+      setIsPlaying(false);
+    }
+  }, [open]);
+  useEffect(() => {
+    if (mainVideoRef.current) {
+      mainVideoRef.current.pause();
+      mainVideoRef.current.currentTime = 0;
+      setIsPlaying(false);
+    }
+  }, [selectedIndex]);
+  const handleVideoCanPlay = useCallback(() => {
+    setMainLoaded(true);
+    if (!shouldAutoplay || !mainVideoRef.current) return;
+    mainVideoRef.current
+      .play()
+      .then(() => setIsPlaying(true))
+      .catch(() => setIsPlaying(false));
+  }, [shouldAutoplay]);
+  useEffect(() => {
+    if (!open) return;
+    if (currentMedia?.type !== 'video') return;
+    const video = mainVideoRef.current;
+    if (!video) return;
+    // Kick autoplay on open or media change
+    const id = window.setTimeout(() => {
+      video
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [open, currentMedia?.type, currentMedia?.url]);
+  useEffect(() => {
+    if (!open) return;
+    if (currentMedia?.type !== 'video') return;
+    // Warm the cache for faster first frame
+    const preloader = document.createElement('video');
+    preloader.preload = 'auto';
+    preloader.muted = true;
+    preloader.src = currentMedia.url;
+    return () => {
+      preloader.src = '';
+    };
+  }, [open, currentMedia?.type, currentMedia?.url]);
   if (!product || media.length === 0) return null;
   const next = () => {
     setSelectedIndex((prev) => (prev + 1) % media.length);
@@ -83,39 +134,31 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
     if (item.type === 'video') {
       if (isThumbnail) {
         return (
-          <div className="relative w-full h-full">
-            <video
-              className="w-full h-full object-cover"
-              preload="metadata"
-              muted
-              playsInline
-            >
-              <source src={item.url} type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-              <Play className="h-4 w-4 text-white" fill="white" />
-            </div>
-          </div>
-        );
-      } else {
-        return (
-          <div className="relative w-full h-full">
-            <video
-              ref={mainVideoRef}
-              className="w-full h-full object-contain"
-              loop
-              muted={isMuted}
-              playsInline
-              preload="auto"
-              autoPlay
-              onLoadedData={() => setMainLoaded(true)}
-            >
-              <source src={item.url} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+          <div className="relative w-full h-full bg-black/40 flex items-center justify-center">
+            <Play className="h-4 w-4 text-white" fill="white" />
           </div>
         );
       }
+      return (
+        <div className="relative w-full h-full">
+          <video
+            ref={mainVideoRef}
+            className="w-full h-full object-contain"
+            loop
+            muted={isMuted}
+            playsInline
+            preload="auto"
+            autoPlay={shouldAutoplay}
+            src={item.url}
+            poster={posterImage || undefined}
+            onLoadedMetadata={() => setMainLoaded(true)}
+            onLoadedData={() => setMainLoaded(true)}
+            onCanPlay={handleVideoCanPlay}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      );
     }
    
     return (

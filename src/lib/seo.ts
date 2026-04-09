@@ -5,6 +5,7 @@ export const SITE = {
   phonePrimary: "+91 9967381180",
   phoneWhatsApp: "+91 9967381180",
   email: "info@starlinkjewels.com",
+  areaServed: ["US", "CA", "AU", "DE", "GB", "IN"],
   addressIndia: {
     country: "IN",
     region: "Gujarat",
@@ -39,6 +40,11 @@ export const SITE = {
     "wedding bands",
     "GIA certified",
     "IGI certified",
+    "worldwide shipping jewelry",
+    "diamond jewelry USA",
+    "diamond jewelry Canada",
+    "diamond jewelry Australia",
+    "diamond jewelry Germany",
   ],
 };
 
@@ -88,7 +94,7 @@ export const buildMetaTitleForCategory = (categoryName: string) => {
 
 export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
   if (desc && desc.trim().length > 40) return desc.trim();
-  return `Explore premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery. WhatsApp inquiry available.`;
+  return `Explore premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery to USA, Canada, Australia, and Germany.`;
 };
 
 export const buildMetaTitleForProduct = (productName: string) => {
@@ -97,7 +103,27 @@ export const buildMetaTitleForProduct = (productName: string) => {
 
 export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string) => {
   const categoryText = categoryName ? ` in ${categoryName}` : "";
-  return `Discover ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds, premium craftsmanship, worldwide delivery. WhatsApp inquiry available.`;
+  return `Discover ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery to USA, Canada, Australia, and Germany.`;
+};
+
+export const parsePrice = (price?: string): number | null => {
+  if (!price) return null;
+  const normalized = price
+    .toString()
+    .replace(/[, ]/g, "")
+    .replace(/[^\d.]/g, "");
+  const value = Number.parseFloat(normalized);
+  return Number.isFinite(value) && value > 0 ? value : null;
+};
+
+export const buildOffer = (url: string, price?: string) => {
+  const numericPrice = parsePrice(price);
+  return {
+    "@type": "Offer",
+    availability: "https://schema.org/InStock",
+    url,
+    ...(numericPrice ? { price: numericPrice, priceCurrency: "USD" } : {}),
+  };
 };
 
 export const buildMetaTitleForBlog = (title: string) => {

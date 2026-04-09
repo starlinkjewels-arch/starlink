@@ -1,21 +1,26 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import MiniHeader from "@/components/MiniHeader";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import { useAppSelector } from "@/store/hooks";
-import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
-import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct } from "@/lib/seo";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
+import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer } from "@/lib/seo";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { preloadMedia } from "@/lib/preload";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const { categories, promoHeader, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
   const hydrated = useAppSelector(selectContentHydrated);
+  const productsLoaded = useAppSelector(selectProductsLoaded);
+  const productsStatus = useAppSelector(selectProductsStatus);
   const isReady = status === "succeeded" || hydrated;
+  const productsReady = productsLoaded || productsStatus === "succeeded" || productsStatus === "failed";
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -37,28 +42,40 @@ const ProductDetail = () => {
     return videoExtensions.test(url) || url.includes("video") ? "video" : "image";
   };
 
+  useEffect(() => {
+    if (!productsLoaded && productsStatus === "idle") {
+      dispatch(loadProducts());
+    }
+  }, [dispatch, productsLoaded, productsStatus]);
+
+  useEffect(() => {
+    if (media.length === 0) return;
+    const urls = [media[0], media[1]].filter(Boolean) as string[];
+    preloadMedia(urls);
+  }, [media]);
+
   const structuredData = product
     ? {
         "@context": "https://schema.org",
         "@type": "Product",
+        "@id": `https://www.starlinkjewels.com/product/${product.id}#product`,
         name: product.name,
         image: media.length > 0 ? media : undefined,
         description: product.description || `${product.name} from Starlink Jewels`,
         sku: product.id,
         category: category?.name,
+        mainEntityOfPage: `https://www.starlinkjewels.com/product/${product.id}`,
         brand: {
           "@type": "Brand",
           name: "Starlink Jewels",
         },
         offers: {
-          "@type": "Offer",
-          availability: "https://schema.org/InStock",
-          url: `https://www.starlinkjewels.com/product/${product.id}`,
+          ...buildOffer(`https://www.starlinkjewels.com/product/${product.id}`, product.price),
         },
       }
     : undefined;
 
-  if (!product && !isReady) {
+  if (!product && (!isReady || !productsReady)) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <SEOHead

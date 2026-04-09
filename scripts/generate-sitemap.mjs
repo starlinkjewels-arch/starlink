@@ -44,10 +44,11 @@ const buildUrlEntry = (loc, changefreq = "weekly", priority = "0.7") => {
 };
 
 const run = async () => {
-  const [categories, products, buyingGuides] = await Promise.all([
+  const [categories, products, buyingGuides, blogs] = await Promise.all([
     readCollection("categories"),
     readCollection("products"),
     readCollection("buying-guides"),
+    readCollection("blogs"),
   ]);
 
   const urls = [];
@@ -60,6 +61,10 @@ const run = async () => {
   urls.push(buildUrlEntry(`${BASE_URL}/buying-guide`, "monthly", "0.7"));
   urls.push(buildUrlEntry(`${BASE_URL}/about`, "monthly", "0.6"));
   urls.push(buildUrlEntry(`${BASE_URL}/contact`, "monthly", "0.6"));
+  urls.push(buildUrlEntry(`${BASE_URL}/usa`, "monthly", "0.6"));
+  urls.push(buildUrlEntry(`${BASE_URL}/canada`, "monthly", "0.6"));
+  urls.push(buildUrlEntry(`${BASE_URL}/australia`, "monthly", "0.6"));
+  urls.push(buildUrlEntry(`${BASE_URL}/germany`, "monthly", "0.6"));
 
   // Category pages
   categories.forEach((cat) => {
@@ -78,6 +83,12 @@ const run = async () => {
   products.forEach((product) => {
     if (!product?.id) return;
     urls.push(buildUrlEntry(`${BASE_URL}/product/${product.id}`, "weekly", "0.75"));
+  });
+
+  // Blog post pages
+  blogs.forEach((blog) => {
+    if (!blog?.id) return;
+    urls.push(buildUrlEntry(`${BASE_URL}/blog?id=${blog.id}`, "monthly", "0.65"));
   });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

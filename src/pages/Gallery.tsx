@@ -58,11 +58,13 @@ const Gallery = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ImageGallery',
+    '@id': 'https://www.starlinkjewels.com/gallery#imagegallery',
     name: 'Starlink Jewels Gallery - Diamond & Gold Jewelry Collection',
     description: 'Browse our stunning collection of GIA certified diamond jewelry, engagement rings, gold necklaces, and luxury pieces.',
     url: 'https://www.starlinkjewels.com/gallery',
     image: galleryItems.slice(0, 10).map(item => item.image),
-    numberOfItems: galleryItems.length
+    numberOfItems: galleryItems.length,
+    mainEntityOfPage: 'https://www.starlinkjewels.com/gallery'
   };
 
   const faqItems = [

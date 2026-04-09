@@ -9,13 +9,14 @@ import SEOHead from '@/components/SEOHead';
 import {
   buildFaqForCategory,
   buildFaqForProduct,
+  buildOffer,
   buildMetaDescriptionForCategory,
   buildMetaDescriptionForProduct,
   buildMetaTitleForCategory,
   buildMetaTitleForProduct,
 } from '@/lib/seo';
-import { useAppSelector } from "@/store/hooks";
-import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
 import { Product } from "@/lib/storage";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
@@ -28,10 +29,14 @@ import {
 } from '@/components/ui/select';
 const CategoryProducts = () => {
   const { id } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const { categories, promoHeader, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
   const hydrated = useAppSelector(selectContentHydrated);
+  const productsLoaded = useAppSelector(selectProductsLoaded);
+  const productsStatus = useAppSelector(selectProductsStatus);
   const isReady = status === "succeeded" || hydrated;
+  const productsReady = productsLoaded || productsStatus === "succeeded" || productsStatus === "failed";
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -49,6 +54,12 @@ const CategoryProducts = () => {
     () => products.filter((p) => p.categoryId === id),
     [products, id]
   );
+
+  useEffect(() => {
+    if (!productsLoaded && productsStatus === "idle") {
+      dispatch(loadProducts());
+    }
+  }, [dispatch, productsLoaded, productsStatus]);
 
   const getProductTime = (item: Product): number => {
     if (!item) return 0;
@@ -138,17 +149,22 @@ const CategoryProducts = () => {
   const baseStructuredData = category ? {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
+    '@id': `https://www.starlinkjewels.com/category/${id}#collectionpage`,
     name: `${category.name} - Starlink Jewels`,
     description: category.description || `Shop our ${category.name} collection`,
     url: `https://www.starlinkjewels.com/category/${id}`,
+    mainEntityOfPage: `https://www.starlinkjewels.com/category/${id}`,
     mainEntity: {
       '@type': 'ItemList',
+      '@id': `https://www.starlinkjewels.com/category/${id}#itemlist`,
       numberOfItems: filteredProducts.length,
       itemListElement: filteredProducts.slice(0, 20).map((p, i) => ({
         '@type': 'ListItem',
+        '@id': `https://www.starlinkjewels.com/category/${id}#listitem-${i + 1}`,
         position: i + 1,
         item: {
           '@type': 'Product',
+          '@id': `https://www.starlinkjewels.com/product/${p.id}#product`,
           name: p.name,
           image: (p.images && p.images.length > 0) ? p.images : [p.image],
           description: p.description || `${p.name} from Starlink Jewels`,
@@ -159,9 +175,7 @@ const CategoryProducts = () => {
             name: 'Starlink Jewels',
           },
           offers: {
-            '@type': 'Offer',
-            availability: 'https://schema.org/InStock',
-            url: `https://www.starlinkjewels.com/category/${id}?product=${p.id}`,
+            ...buildOffer(`https://www.starlinkjewels.com/category/${id}?product=${p.id}`, p.price),
           },
         },
       })),
@@ -174,6 +188,7 @@ const CategoryProducts = () => {
       ? {
           '@context': 'https://schema.org',
           '@type': 'Product',
+          '@id': `https://www.starlinkjewels.com/product/${activeProduct.id}#product`,
           name: activeProduct.name,
           image:
             activeProduct.images && activeProduct.images.length > 0
@@ -182,14 +197,13 @@ const CategoryProducts = () => {
           description: activeProduct.description || `${activeProduct.name} from Starlink Jewels`,
           sku: activeProduct.id,
           category: category.name,
+          mainEntityOfPage: `https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
           brand: {
             '@type': 'Brand',
             name: 'Starlink Jewels',
           },
           offers: {
-            '@type': 'Offer',
-            availability: 'https://schema.org/InStock',
-            url: `https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
+            ...buildOffer(`https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`, activeProduct.price),
           },
         }
       : undefined;
@@ -251,6 +265,32 @@ const CategoryProducts = () => {
         <SEOHead
           title="Loading Category"
           description="Loading category details."
+          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+        />
+        <Header promoHeader={promoHeader} />
+        <MiniHeader categories={categories} promoHeight={promoHeight} />
+        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
+          <div className="mb-8">
+            <div className="h-10 w-64 bg-muted rounded-md animate-pulse mb-3" />
+            <div className="h-4 w-96 bg-muted/70 rounded-md animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (category && !productsReady) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <SEOHead
+          title={category ? `Loading ${category.name}` : "Loading Category"}
+          description="Loading products."
           canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
         />
         <Header promoHeader={promoHeader} />

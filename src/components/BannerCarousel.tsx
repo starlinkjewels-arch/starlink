@@ -1,7 +1,9 @@
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useCallback } from 'react';
 import { Banner } from '@/lib/storage';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { preloadMedia } from '@/lib/preload';
+import heroFallback from '@/assets/hero-banner-1.jpg';
 
 interface BannerCarouselProps {
   banners?: Banner[];
@@ -9,7 +11,43 @@ interface BannerCarouselProps {
 
 const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [loadedIndexes, setLoadedIndexes] = useState<Set<number>>(new Set());
+  const [fallbackImage, setFallbackImage] = useState<string | null>(heroFallback);
+
+  const markLoaded = useCallback((index: number) => {
+    setLoadedIndexes((prev) => {
+      if (prev.has(index)) return prev;
+      const next = new Set(prev);
+      next.add(index);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    setLoadedIndexes(new Set());
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const cached = window.localStorage.getItem('starlink_hero_fallback');
+      if (cached) setFallbackImage(cached);
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const first = banners[0];
+    if (!first || first.mediaType === 'video') return;
+    try {
+      window.localStorage.setItem('starlink_hero_fallback', first.image);
+      setFallbackImage(first.image);
+    } catch {
+      // ignore storage errors
+    }
+  }, [banners]);
 
   useEffect(() => {
     if (banners.length === 0) return;
@@ -25,8 +63,15 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     if (!banners[0] || banners[0].mediaType === 'video') return;
     const img = new Image();
     img.src = banners[0].image;
-    img.onload = () => setHeroLoaded(true);
-  }, [banners]);
+    img.onload = () => markLoaded(0);
+  }, [banners, markLoaded]);
+
+  useEffect(() => {
+    if (banners.length === 0) return;
+    const nextIndex = (currentIndex + 1) % banners.length;
+    const urls = [banners[currentIndex]?.image, banners[nextIndex]?.image].filter(Boolean) as string[];
+    preloadMedia(urls);
+  }, [banners, currentIndex]);
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
@@ -57,7 +102,22 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
   const visibleIndexes = new Set([currentIndex, nextIndex, prevIndex]);
 
   return (
-    <div className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] min-h-[400px] max-h-[800px] overflow-hidden w-full shadow-2xl rounded-lg border border-border/20">
+    <div className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] min-h-[400px] max-h-[800px] overflow-hidden w-full shadow-2xl rounded-lg border border-border/20 bg-muted">
+      {fallbackImage && (
+        <div
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            loadedIndexes.has(currentIndex) ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <img
+            src={fallbackImage}
+            alt="Hero background"
+            className="w-full h-full object-cover scale-105 blur-sm opacity-40"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+      )}
       {banners.map((banner, index) => {
         if (!visibleIndexes.has(index)) return null;
         return (
@@ -67,7 +127,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             index === currentIndex ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-110 z-0'
           }`}
         >
-          {index === currentIndex && banner.mediaType !== 'video' && !heroLoaded && (
+          {index === currentIndex && !loadedIndexes.has(index) && !fallbackImage && (
             <div className="absolute inset-0 bg-muted animate-pulse" />
           )}
           {banner.mediaType === 'video' ? (
@@ -79,6 +139,8 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
               loop
               playsInline
               preload="metadata"
+              poster={fallbackImage || undefined}
+              onLoadedData={() => markLoaded(index)}
             />
           ) : (
             <img
@@ -89,7 +151,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
               decoding="async"
               fetchpriority={index === currentIndex ? 'high' : 'auto'}
               sizes="100vw"
-              onLoad={() => index === 0 && setHeroLoaded(true)}
+              onLoad={() => markLoaded(index)}
             />
           )}
           

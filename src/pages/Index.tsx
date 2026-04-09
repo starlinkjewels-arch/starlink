@@ -9,8 +9,8 @@ import BannerCarousel from '@/components/BannerCarousel';
 import SEOHead from '@/components/SEOHead';
 import ServicesSection from '@/components/ServicesSection';
 import BlogDialog from '@/components/BlogDialog';
-import { useAppSelector } from "@/store/hooks";
-import { selectGlobalData } from "@/store/contentSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
 import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck } from 'lucide-react';
 import { BlogPost } from '@/lib/storage';
@@ -29,6 +29,9 @@ const Index = () => {
     promoHeader,
     contactInfo
   } = useAppSelector(selectGlobalData);
+  const dispatch = useAppDispatch();
+  const blogsLoaded = useAppSelector(selectBlogsLoaded);
+  const blogsStatus = useAppSelector(selectBlogsStatus);
 
   const animationRef = useRef<gsap.Context | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
@@ -38,6 +41,12 @@ const Index = () => {
     () => [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [blogs]
   );
+
+  useEffect(() => {
+    if (!blogsLoaded && blogsStatus === "idle") {
+      dispatch(loadBlogs());
+    }
+  }, [blogsLoaded, blogsStatus, dispatch]);
 
   const handleBlogClick = (blog: BlogPost) => {
     setSelectedBlog(blog);

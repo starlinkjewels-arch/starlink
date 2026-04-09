@@ -44,11 +44,14 @@ const About = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
+    '@id': 'https://www.starlinkjewels.com/about#aboutpage',
     name: 'About Starlink Jewels - Premium Diamond Jewelry Since 2011',
     description: 'Learn about Starlink Jewels - a premier luxury jewelry brand with over 29 years of excellence in diamond and gold jewelry craftsmanship.',
     url: 'https://www.starlinkjewels.com/about',
+    mainEntityOfPage: 'https://www.starlinkjewels.com/about',
     mainEntity: {
       '@type': 'Organization',
+      '@id': 'https://www.starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
       foundingDate: '2011',
       numberOfEmployees: '50+',

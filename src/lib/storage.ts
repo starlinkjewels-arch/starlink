@@ -175,7 +175,7 @@ export const getBanners = async (): Promise<Banner[]> => {
 
 export const saveBanner = async (banner: Banner) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.BANNERS, banner.id), banner);
+    await setDoc(doc(db, COLLECTIONS.BANNERS, banner.id), { ...banner, id: banner.id });
   } catch (error) {
     console.error('Error saving banner:', error);
   }
@@ -204,7 +204,7 @@ export const getCategories = async (): Promise<Category[]> => {
 
 export const saveCategory = async (category: Category) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.CATEGORIES, category.id), category);
+    await setDoc(doc(db, COLLECTIONS.CATEGORIES, category.id), { ...category, id: category.id });
   } catch (error) {
     console.error('Error saving category:', error);
   }
@@ -257,7 +257,7 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
 
 export const saveProduct = async (product: Product) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.PRODUCTS, product.id), product);
+    await setDoc(doc(db, COLLECTIONS.PRODUCTS, product.id), { ...product, id: product.id });
   } catch (error) {
     console.error('Error saving product:', error);
   }
@@ -284,7 +284,7 @@ export const getGallery = async (): Promise<GalleryItem[]> => {
 
 export const saveGalleryItem = async (item: GalleryItem) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.GALLERY, item.id), item);
+    await setDoc(doc(db, COLLECTIONS.GALLERY, item.id), { ...item, id: item.id });
   } catch (error) {
     console.error('Error saving gallery item:', error);
   }
@@ -311,7 +311,7 @@ export const getFeaturedCollection = async (): Promise<FeaturedCollection[]> => 
 
 export const saveFeaturedItem = async (item: FeaturedCollection) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.FEATURED, item.id), item);
+    await setDoc(doc(db, COLLECTIONS.FEATURED, item.id), { ...item, id: item.id });
   } catch (error) {
     console.error('Error saving featured item:', error);
   }
@@ -364,7 +364,7 @@ export const getOffices = async (): Promise<Office[]> => {
 
 export const saveOffice = async (office: Office) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.OFFICES, office.id), office);
+    await setDoc(doc(db, COLLECTIONS.OFFICES, office.id), { ...office, id: office.id });
   } catch (error) {
     console.error('Error saving office:', error);
   }
@@ -391,9 +391,10 @@ export const getBlogs = async (): Promise<BlogPost[]> => {
 
 export const saveBlog = async (blog: BlogPost) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.BLOGS, blog.id), blog);
+    await setDoc(doc(db, COLLECTIONS.BLOGS, blog.id), { ...blog, id: blog.id });
   } catch (error) {
     console.error('Error saving blog:', error);
+    throw error;
   }
 };
 
@@ -402,6 +403,7 @@ export const deleteBlog = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.BLOGS, id));
   } catch (error) {
     console.error('Error deleting blog:', error);
+    throw error;
   }
 };
 
@@ -418,7 +420,7 @@ export const getInstagramPosts = async (): Promise<InstagramPost[]> => {
 
 export const saveInstagramPost = async (post: InstagramPost) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.INSTAGRAM, post.id), post);
+    await setDoc(doc(db, COLLECTIONS.INSTAGRAM, post.id), { ...post, id: post.id });
   } catch (error) {
     console.error('Error saving Instagram post:', error);
   }
@@ -466,7 +468,7 @@ export const getTestimonials = async (): Promise<Testimonial[]> => {
 
 export const saveTestimonial = async (testimonial: Testimonial) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.TESTIMONIALS, testimonial.id), testimonial);
+    await setDoc(doc(db, COLLECTIONS.TESTIMONIALS, testimonial.id), { ...testimonial, id: testimonial.id });
   } catch (error) {
     console.error('Error saving testimonial:', error);
   }
@@ -486,8 +488,8 @@ import { storage } from './firebase';
 
 const getImageResizeConfig = (path: string) => {
   const lower = path.toLowerCase();
-  if (lower.includes('banners')) return { max: 2000, quality: 0.82 };
-  if (lower.includes('products')) return { max: 1600, quality: 0.82 };
+  if (lower.includes('banners')) return { max: 1600, quality: 0.8 };
+  if (lower.includes('products')) return { max: 1400, quality: 0.8 };
   if (lower.includes('categories')) return { max: 1400, quality: 0.82 };
   if (lower.includes('gallery')) return { max: 1400, quality: 0.82 };
   if (lower.includes('blogs')) return { max: 1600, quality: 0.82 };

@@ -59,10 +59,12 @@ const BuyingGuidePage = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
+    '@id': `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}#howto`,
     name: selected?.title || 'Jewelry Buying Guide',
     description: selected?.content
       ? buildMetaDescriptionFromHtml(selected.content, 160)
       : 'Expert advice to help you make the perfect jewelry choice.',
+    mainEntityOfPage: `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`,
   };
 
   const defaultFaqItems = [

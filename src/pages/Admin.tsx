@@ -1,5 +1,5 @@
 // src/pages/Admin.tsx
-import { useState } from 'react';
+import { Suspense, lazy, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,26 +9,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { LogOut, LayoutDashboard, Image, Tag, Package, Sparkles, Newspaper, Instagram, Phone, Building2, Users, Megaphone, MessageSquareQuote } from 'lucide-react';
 
-import AdminBanners from '@/components/admin/AdminBanners';
-import AdminCategories from '@/components/admin/AdminCategories';
-import AdminProducts from '@/components/admin/AdminProducts';
-import AdminGallery from '@/components/admin/AdminGallery';
-import AdminFeaturedCollection from '@/components/admin/AdminFeaturedCollection';
-import AdminContact from '@/components/admin/AdminContact';
-import AdminOffices from '@/components/admin/AdminOffices';
-import AdminBlogs from '@/components/admin/AdminBlogs';
-import AdminInstagram from '@/components/admin/AdminInstagram';
-import AdminVisitors from '@/components/admin/AdminVisitors';
-import AdminPromoHeader from '@/components/admin/AdminPromoHeader';
-import AdminTestimonials from '@/components/admin/AdminTestimonials';
+const AdminBanners = lazy(() => import('@/components/admin/AdminBanners'));
+const AdminCategories = lazy(() => import('@/components/admin/AdminCategories'));
+const AdminProducts = lazy(() => import('@/components/admin/AdminProducts'));
+const AdminGallery = lazy(() => import('@/components/admin/AdminGallery'));
+const AdminFeaturedCollection = lazy(() => import('@/components/admin/AdminFeaturedCollection'));
+const AdminContact = lazy(() => import('@/components/admin/AdminContact'));
+const AdminOffices = lazy(() => import('@/components/admin/AdminOffices'));
+const AdminBlogs = lazy(() => import('@/components/admin/AdminBlogs'));
+const AdminInstagram = lazy(() => import('@/components/admin/AdminInstagram'));
+const AdminVisitors = lazy(() => import('@/components/admin/AdminVisitors'));
+const AdminPromoHeader = lazy(() => import('@/components/admin/AdminPromoHeader'));
+const AdminTestimonials = lazy(() => import('@/components/admin/AdminTestimonials'));
 import { toast } from 'sonner';
-import AdminBuyingGuides from '@/components/admin/AdminBuyingGuides';
+const AdminBuyingGuides = lazy(() => import('@/components/admin/AdminBuyingGuides'));
 import { BookOpen } from 'lucide-react';
+
+const SectionFallback = () => (
+  <div className="flex items-center justify-center min-h-[360px] text-sm text-muted-foreground">
+    Loading section...
+  </div>
+);
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('banners');
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
@@ -101,6 +108,16 @@ const Admin = () => {
     );
   }
 
+  const renderTab = (key: string, content: ReactNode) => (
+    <TabsContent value={key}>
+      {activeTab === key && (
+        <Suspense fallback={<SectionFallback />}>
+          {content}
+        </Suspense>
+      )}
+    </TabsContent>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Professional Header */}
@@ -123,7 +140,7 @@ const Admin = () => {
       </header>
 
       <main className="max-w-full mx-auto px-6 py-8">
-        <Tabs defaultValue="banners" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Clean Professional Tab Bar */}
           <ScrollArea className="w-full whitespace-nowrap mb-10">
             <TabsList className="inline-flex h-14 rounded-xl bg-gray-100 p-2 gap-1">
@@ -172,21 +189,19 @@ const Admin = () => {
 
           {/* Clean Content Area */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 min-h-[600px]">
-            <TabsContent value="promo"><AdminPromoHeader /></TabsContent>
-            <TabsContent value="banners"><AdminBanners /></TabsContent>
-            <TabsContent value="categories"><AdminCategories /></TabsContent>
-            <TabsContent value="products"><AdminProducts /></TabsContent>
-            <TabsContent value="gallery"><AdminGallery /></TabsContent>
-            <TabsContent value="featured"><AdminFeaturedCollection /></TabsContent>
-            <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
-            <TabsContent value="blogs"><AdminBlogs /></TabsContent>
-            <TabsContent value="instagram"><AdminInstagram /></TabsContent>
-            <TabsContent value="contact"><AdminContact /></TabsContent>
-            <TabsContent value="offices"><AdminOffices /></TabsContent>
-            <TabsContent value="visitors"><AdminVisitors /></TabsContent>
-            <TabsContent value="buying-guides">
-  <AdminBuyingGuides />
-</TabsContent>
+            {renderTab("promo", <AdminPromoHeader />)}
+            {renderTab("banners", <AdminBanners />)}
+            {renderTab("categories", <AdminCategories />)}
+            {renderTab("products", <AdminProducts />)}
+            {renderTab("gallery", <AdminGallery />)}
+            {renderTab("featured", <AdminFeaturedCollection />)}
+            {renderTab("testimonials", <AdminTestimonials />)}
+            {renderTab("blogs", <AdminBlogs />)}
+            {renderTab("instagram", <AdminInstagram />)}
+            {renderTab("contact", <AdminContact />)}
+            {renderTab("offices", <AdminOffices />)}
+            {renderTab("visitors", <AdminVisitors />)}
+            {renderTab("buying-guides", <AdminBuyingGuides />)}
           </div>
         </Tabs>
       </main>

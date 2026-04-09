@@ -63,17 +63,18 @@ const SEOHead = ({
         "@type": "ContactPoint",
         telephone: SITE.phonePrimary,
         contactType: "sales",
-        areaServed: ["IN", "US", "GB"],
+        areaServed: SITE.areaServed,
         availableLanguage: ["English"],
       },
       {
         "@type": "ContactPoint",
         telephone: SITE.phoneWhatsApp,
         contactType: "customer support",
-        areaServed: ["IN", "US", "GB"],
+        areaServed: SITE.areaServed,
         availableLanguage: ["English"],
       },
     ],
+    areaServed: SITE.areaServed,
     sameAs: [...SITE.sameAs],
   };
 
@@ -116,6 +117,7 @@ const SEOHead = ({
       ? {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
+          "@id": `${pageUrl}#breadcrumb`,
           itemListElement: breadcrumbs.map((b, idx) => ({
             "@type": "ListItem",
             position: idx + 1,
@@ -130,6 +132,7 @@ const SEOHead = ({
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
+          "@id": `${pageUrl}#faq`,
           mainEntity: faqItems.map((f) => ({
             "@type": "Question",
             name: f.question,
@@ -168,6 +171,8 @@ const SEOHead = ({
         name="robots"
         content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
       />
+      <meta name="googlebot" content="index, follow" />
+      <meta name="bingbot" content="index, follow" />
       <meta name="language" content="English" />
       <meta name="author" content={siteName} />
       <meta name="publisher" content={siteName} />
@@ -200,6 +205,9 @@ const SEOHead = ({
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={title} />
       <meta property="og:locale" content="en_US" />
+      <meta property="og:locale:alternate" content="en_GB" />
+      <meta property="og:locale:alternate" content="en_CA" />
+      <meta property="og:locale:alternate" content="en_AU" />
       <meta property="og:url" content={pageUrl} />
 
       <meta name="twitter:card" content="summary_large_image" />

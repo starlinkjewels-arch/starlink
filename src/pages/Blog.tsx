@@ -5,17 +5,22 @@ import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import BlogDialog from '@/components/BlogDialog';
-import { useAppSelector } from "@/store/hooks";
-import { selectGlobalData } from "@/store/contentSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { loadBlogs, loadGlobalData, selectBlogsLoaded, selectBlogsStatus, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
 import { Card, CardContent } from '@/components/ui/card';
 import { BlogPost } from '@/lib/storage';
 import { buildMetaDescriptionForBlog, buildMetaTitleForBlog } from '@/lib/seo';
 
 const Blog = () => {
+  const dispatch = useAppDispatch();
   const { categories, blogs, promoHeader, contactInfo } = useAppSelector(selectGlobalData);
+  const status = useAppSelector(selectContentStatus);
+  const blogsLoaded = useAppSelector(selectBlogsLoaded);
+  const blogsStatus = useAppSelector(selectBlogsStatus);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [requestedRefresh, setRequestedRefresh] = useState(false);
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -25,6 +30,19 @@ const Blog = () => {
     () => [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [blogs]
   );
+
+  useEffect(() => {
+    if (!requestedRefresh && blogs.length === 0 && status !== "loading") {
+      dispatch(loadGlobalData({ force: true }));
+      setRequestedRefresh(true);
+    }
+  }, [blogs.length, dispatch, requestedRefresh, status]);
+
+  useEffect(() => {
+    if (!blogsLoaded && blogsStatus === "idle") {
+      dispatch(loadBlogs());
+    }
+  }, [blogsLoaded, blogsStatus, dispatch]);
 
   // Handle URL query param to open specific blog
   useEffect(() => {
@@ -52,9 +70,11 @@ const Blog = () => {
   const baseStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
+    '@id': 'https://www.starlinkjewels.com/blog#blog',
     name: 'Starlink Jewels Blog - Expert Jewelry Insights & Guides',
     description: 'Expert insights, trends, and comprehensive guides about luxury jewelry, diamonds, gemstones, and precious metals from Starlink Jewels.',
     url: 'https://www.starlinkjewels.com/blog',
+    mainEntityOfPage: 'https://www.starlinkjewels.com/blog',
     publisher: {
       '@type': 'Organization',
       name: 'Starlink Jewels',
@@ -65,11 +85,13 @@ const Blog = () => {
     },
     blogPost: sortedBlogs.slice(0, 10).map(blog => ({
       '@type': 'BlogPosting',
+      '@id': `https://www.starlinkjewels.com/blog?id=${blog.id}#blogpost`,
       headline: blog.title,
       datePublished: blog.date,
       dateModified: blog.date,
       image: blog.image,
       description: blog.content.substring(0, 160),
+      mainEntityOfPage: `https://www.starlinkjewels.com/blog?id=${blog.id}`,
       author: {
         '@type': 'Organization',
         name: 'Starlink Jewels'
@@ -81,6 +103,7 @@ const Blog = () => {
     ? {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
+        '@id': `https://www.starlinkjewels.com/blog?id=${selectedBlog.id}#blogpost`,
         headline: selectedBlog.title,
         datePublished: selectedBlog.date,
         dateModified: selectedBlog.date,

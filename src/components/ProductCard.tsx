@@ -3,6 +3,7 @@ import type { MouseEvent, TouchEvent } from 'react';
 import { Product } from '@/lib/storage';
 import WhatsAppButton from './WhatsAppButton';
 import { Images, Play } from 'lucide-react';
+import { preloadMedia } from '@/lib/preload';
 
 interface ProductCardProps {
   product: Product;
@@ -11,11 +12,11 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [autoPlay] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  const media = product.images && product.images.length > 0 ? product.images : [product.image];
+  const mediaRaw = product.images && product.images.length > 0 ? product.images : [product.image];
+  const media = mediaRaw.filter((item) => Boolean(item));
   const hasMultiple = media.length > 1;
   
   const isCoarsePointer = useMemo(() => {
@@ -23,7 +24,9 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
     return window.matchMedia('(pointer: coarse)').matches;
   }, []);
 
-  const displayMedia = media[currentIndex] || media[0];
+  const primaryMedia = media[0];
+  const secondaryMedia = media[1] || null;
+  const displayMedia = media[currentIndex] || primaryMedia;
 
   // Detect if media is video
   const getMediaType = (url: string): 'image' | 'video' => {
@@ -33,6 +36,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
   const currentMediaType = getMediaType(displayMedia);
   const hasVideo = media.some(url => getMediaType(url) === 'video');
+  const isSecondaryImage = secondaryMedia ? getMediaType(secondaryMedia) === 'image' : false;
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -50,7 +54,6 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
     const deltaX = endX - touchStartX.current;
     const threshold = 30;
     if (Math.abs(deltaX) >= threshold && hasMultiple) {
-      setAutoPlay(false);
       if (deltaX < 0) {
         setCurrentIndex((prev) => (prev + 1) % media.length);
       } else {
@@ -62,6 +65,10 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    if (primaryMedia) {
+      const urls = [primaryMedia, secondaryMedia].filter(Boolean) as string[];
+      preloadMedia(urls);
+    }
     if (hasMultiple) {
       setCurrentIndex(1);
     }
@@ -87,9 +94,8 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         {currentMediaType === 'video' ? (
           <div className="relative w-full h-full">
             <video
-              key={`${displayMedia}-${currentIndex}`}
               src={displayMedia}
-              className="w-full h-full object-cover transition-opacity duration-900 animate-fade-swap animate-kenburns-soft"
+              className="w-full h-full object-cover"
               autoPlay={isHovered}
               loop
               muted
@@ -103,15 +109,28 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
             </div>
           </div>
         ) : (
-          <img
-            key={`${displayMedia}-${currentIndex}`}
-            src={displayMedia}
-            alt={product.name}
-            className="w-full h-full object-cover transition-all duration-900 group-hover:scale-110 animate-fade-swap animate-kenburns-soft"
-            loading="lazy"
-            decoding="async"
-            fetchpriority="low"
-          />
+          <div className="relative w-full h-full">
+            <img
+              src={primaryMedia}
+              alt={product.name}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low"
+              style={{ opacity: isHovered && isSecondaryImage ? 0 : 1 }}
+            />
+            {secondaryMedia && isSecondaryImage && (
+              <img
+                src={secondaryMedia}
+                alt={product.name}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+                style={{ opacity: isHovered ? 1 : 0 }}
+              />
+            )}
+          </div>
         )}
         
         {/* Media Count Badge */}

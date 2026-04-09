@@ -50,11 +50,14 @@ const Contact = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
+    '@id': 'https://www.starlinkjewels.com/contact#contactpage',
     name: 'Contact Starlink Jewels - Diamond Jewelry Store',
     description: 'Contact Starlink Jewels for premium diamond jewelry, custom designs, engagement rings, and wholesale inquiries.',
     url: 'https://www.starlinkjewels.com/contact',
+    mainEntityOfPage: 'https://www.starlinkjewels.com/contact',
     mainEntity: {
       '@type': 'Organization',
+      '@id': 'https://www.starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
       telephone: contactInfo?.phone,
       email: contactInfo?.email,

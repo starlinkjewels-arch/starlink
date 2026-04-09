@@ -48,6 +48,10 @@ interface ContentState {
   error: string | null;
   hydrated: boolean;
   lastUpdated: number | null;
+  productsStatus: "idle" | "loading" | "succeeded" | "failed";
+  productsLoaded: boolean;
+  blogsStatus: "idle" | "loading" | "succeeded" | "failed";
+  blogsLoaded: boolean;
 }
 
 const SESSION_KEY = "starlink_global_data_v3";
@@ -88,6 +92,27 @@ const normalizeBuyingGuides = (guides: BuyingGuide[]): BuyingGuide[] => {
   });
 };
 
+const normalizeBlogDates = (blogs: BlogPost[]): BlogPost[] => {
+  return blogs.map((b) => {
+    const anyBlog = b as BlogPost & { date?: unknown };
+    const dateValue = anyBlog.date;
+    const asDate =
+      dateValue && typeof dateValue === "object" && "toDate" in (dateValue as object)
+        ? (dateValue as { toDate: () => Date }).toDate()
+        : dateValue instanceof Date
+        ? dateValue
+        : typeof dateValue === "number"
+        ? new Date(dateValue)
+        : typeof dateValue === "string"
+        ? new Date(dateValue)
+        : null;
+    return {
+      ...b,
+      date: asDate ? asDate.toISOString() : (b as BlogPost).date,
+    };
+  });
+};
+
 const safeParse = (value: string | null) => {
   if (!value) return null;
   try {
@@ -97,21 +122,31 @@ const safeParse = (value: string | null) => {
   }
 };
 
-const readSessionCache = (): { data: GlobalData; savedAt: number } | null => {
+const readSessionCache = (): { data: GlobalData; savedAt: number; productsLoaded?: boolean; blogsLoaded?: boolean } | null => {
   if (typeof window === "undefined") return null;
   const raw = safeParse(sessionStorage.getItem(SESSION_KEY));
   if (raw?.data) {
-    return { data: raw.data as GlobalData, savedAt: raw.savedAt || Date.now() };
+    return {
+      data: { ...(raw.data as GlobalData), blogs: [] },
+      savedAt: raw.savedAt || Date.now(),
+      productsLoaded: Boolean(raw.productsLoaded),
+      blogsLoaded: false,
+    };
   }
   return null;
 };
 
-const saveSessionCache = (data: GlobalData) => {
+const saveSessionCache = (data: GlobalData, productsLoaded: boolean, blogsLoaded: boolean) => {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(
       SESSION_KEY,
-      JSON.stringify({ savedAt: Date.now(), data })
+      JSON.stringify({
+        savedAt: Date.now(),
+        data: { ...data, blogs: [] },
+        productsLoaded,
+        blogsLoaded: false,
+      })
     );
   } catch {
     // ignore quota / privacy errors
@@ -126,6 +161,13 @@ const initialState: ContentState = {
   error: null,
   hydrated: Boolean(cached),
   lastUpdated: cached?.savedAt ?? null,
+  productsStatus: cached?.productsLoaded ? "succeeded" : "idle",
+  productsLoaded: Boolean(
+    cached?.productsLoaded ??
+      (cached?.data?.products ? true : false)
+  ),
+  blogsStatus: "idle",
+  blogsLoaded: false,
 };
 
 export const loadGlobalData = createAsyncThunk<
@@ -137,7 +179,10 @@ export const loadGlobalData = createAsyncThunk<
   async (args) => {
     if (!args?.force) {
       const session = readSessionCache();
-      if (session?.data) return session.data;
+      if (session?.data) {
+        const hasBlogs = Array.isArray(session.data.blogs) && session.data.blogs.length > 0;
+        if (hasBlogs) return session.data;
+      }
     }
 
     await initializeDefaultData();
@@ -145,10 +190,8 @@ export const loadGlobalData = createAsyncThunk<
     const [
       banners,
       categories,
-      products,
       galleryItems,
       featuredCollection,
-      blogs,
       instagramPosts,
       testimonials,
       promoHeader,
@@ -158,10 +201,8 @@ export const loadGlobalData = createAsyncThunk<
     ] = await Promise.all([
       getBanners(),
       getCategories(),
-      getProducts(),
       getGallery(),
       getFeaturedCollection(),
-      getBlogs(),
       getInstagramPosts(),
       getTestimonials(),
       getPromoHeader(),
@@ -173,10 +214,10 @@ export const loadGlobalData = createAsyncThunk<
     return {
       banners,
       categories,
-      products,
+      products: [],
       galleryItems,
       featuredCollection,
-      blogs,
+      blogs: [],
       instagramPosts,
       testimonials,
       promoHeader,
@@ -196,6 +237,54 @@ export const loadGlobalData = createAsyncThunk<
   }
 );
 
+export const loadProducts = createAsyncThunk<
+  Product[],
+  { force?: boolean } | undefined,
+  { state: RootState }
+>(
+  "content/loadProducts",
+  async (args) => {
+    if (!args?.force) {
+      const session = readSessionCache();
+      if (session?.productsLoaded && session.data?.products) {
+        return session.data.products;
+      }
+    }
+    const products = await getProducts();
+    return products;
+  },
+  {
+    condition: (args, { getState }) => {
+      const { content } = getState();
+      if (args?.force) return true;
+      if (content.productsStatus === "loading") return false;
+      if (content.productsLoaded) return false;
+      return true;
+    },
+  }
+);
+
+export const loadBlogs = createAsyncThunk<
+  BlogPost[],
+  { force?: boolean } | undefined,
+  { state: RootState }
+>(
+  "content/loadBlogs",
+  async (args) => {
+    const blogs = await getBlogs();
+    return normalizeBlogDates(blogs);
+  },
+  {
+    condition: (args, { getState }) => {
+      const { content } = getState();
+      if (args?.force) return true;
+      if (content.blogsStatus === "loading") return false;
+      if (content.blogsLoaded) return false;
+      return true;
+    },
+  }
+);
+
 const contentSlice = createSlice({
   name: "content",
   initialState,
@@ -206,7 +295,7 @@ const contentSlice = createSlice({
       state.error = null;
       state.hydrated = true;
       state.lastUpdated = Date.now();
-      saveSessionCache(action.payload);
+      saveSessionCache(action.payload, state.productsLoaded, state.blogsLoaded);
     },
   },
   extraReducers: (builder) => {
@@ -217,14 +306,44 @@ const contentSlice = createSlice({
       })
       .addCase(loadGlobalData.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.data = action.payload;
+        state.data = {
+          ...action.payload,
+          products: state.productsLoaded ? state.data.products : action.payload.products,
+          blogs: state.blogsLoaded ? state.data.blogs : action.payload.blogs,
+        };
         state.hydrated = true;
         state.lastUpdated = Date.now();
-        saveSessionCache(action.payload);
+        saveSessionCache(state.data, state.productsLoaded, state.blogsLoaded);
       })
       .addCase(loadGlobalData.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message ?? "Failed to load data";
+      })
+      .addCase(loadProducts.pending, (state) => {
+        state.productsStatus = "loading";
+      })
+      .addCase(loadProducts.fulfilled, (state, action) => {
+        state.productsStatus = "succeeded";
+        state.productsLoaded = true;
+        state.data.products = action.payload;
+        saveSessionCache(state.data, state.productsLoaded, state.blogsLoaded);
+      })
+      .addCase(loadProducts.rejected, (state, action) => {
+        state.productsStatus = "failed";
+        state.error = action.error.message ?? "Failed to load products";
+      })
+      .addCase(loadBlogs.pending, (state) => {
+        state.blogsStatus = "loading";
+      })
+      .addCase(loadBlogs.fulfilled, (state, action) => {
+        state.blogsStatus = "succeeded";
+        state.blogsLoaded = true;
+        state.data.blogs = action.payload;
+        saveSessionCache(state.data, state.productsLoaded, state.blogsLoaded);
+      })
+      .addCase(loadBlogs.rejected, (state, action) => {
+        state.blogsStatus = "failed";
+        state.error = action.error.message ?? "Failed to load blogs";
       });
   },
 });
@@ -235,5 +354,9 @@ export const selectGlobalData = (state: RootState) => state.content.data;
 export const selectContentStatus = (state: RootState) => state.content.status;
 export const selectContentHydrated = (state: RootState) => state.content.hydrated;
 export const selectContentError = (state: RootState) => state.content.error;
+export const selectProductsStatus = (state: RootState) => state.content.productsStatus;
+export const selectProductsLoaded = (state: RootState) => state.content.productsLoaded;
+export const selectBlogsStatus = (state: RootState) => state.content.blogsStatus;
+export const selectBlogsLoaded = (state: RootState) => state.content.blogsLoaded;
 
 export default contentSlice.reducer;

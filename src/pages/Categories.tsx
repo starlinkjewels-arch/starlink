@@ -17,16 +17,20 @@ const Categories = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
+    '@id': 'https://www.starlinkjewels.com/categories#collectionpage',
     name: 'Jewelry Collections - Premium Diamond & Gold Jewelry | Starlink Jewels',
     description: 'Explore our premium jewelry collections featuring GIA certified diamonds, gold, platinum rings, necklaces, earrings, and bracelets.',
     url: 'https://www.starlinkjewels.com/categories',
+    mainEntityOfPage: 'https://www.starlinkjewels.com/categories',
     mainEntity: {
       '@type': 'ItemList',
+      '@id': 'https://www.starlinkjewels.com/categories#itemlist',
       itemListElement: categories.map((cat, index) => ({
         '@type': 'ListItem',
         position: index + 1,
         item: {
           '@type': 'Product',
+          '@id': `https://www.starlinkjewels.com/category/${cat.id}#category`,
           name: cat.name,
           description: cat.description,
           image: cat.image,

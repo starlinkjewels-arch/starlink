@@ -9,7 +9,7 @@ import { Plus, Trash2, Pencil, Image } from 'lucide-react';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/store/hooks';
-import { loadGlobalData } from '@/store/contentSlice';
+import { loadBlogs, loadGlobalData } from '@/store/contentSlice';
 
 const AdminBlogs = () => {
   const dispatch = useAppDispatch();
@@ -159,6 +159,7 @@ const AdminBlogs = () => {
       const updated = await getBlogs();
       setBlogs(updated);
       dispatch(loadGlobalData({ force: true }));
+      dispatch(loadBlogs({ force: true }));
       setTitle('');
       setContent('');
       setImage('');
@@ -183,6 +184,7 @@ const AdminBlogs = () => {
       const updated = await getBlogs();
       setBlogs(updated);
       dispatch(loadGlobalData({ force: true }));
+      dispatch(loadBlogs({ force: true }));
       toast.success('Blog post deleted');
     } catch (error) {
       toast.error('Failed to delete blog post');
