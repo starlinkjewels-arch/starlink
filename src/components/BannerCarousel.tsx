@@ -85,14 +85,20 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     return (
       <div className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] min-h-[400px] max-h-[800px] bg-gradient-to-br from-primary/20 via-primary/10 to-background flex items-center justify-center overflow-hidden rounded-lg border border-border/20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary),0.1),transparent_50%)]" />
-        <div className="text-center px-4 sm:px-6 relative z-10">
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-4 md:mb-6 tracking-tight">
-            Welcome to Starlink Jewels
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-muted-foreground font-light">
-            Discover Premium Luxury Jewelry
-          </p>
-        </div>
+        {fallbackImage ? (
+          <img
+            src={fallbackImage}
+            alt="Hero background"
+            className="w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
+          />
+        ) : (
+          <div className="text-center px-4 sm:px-6 relative z-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg text-muted-foreground">Loading...</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -112,7 +118,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
           <img
             src={fallbackImage}
             alt="Hero background"
-            className="w-full h-full object-cover scale-105 blur-sm opacity-40"
+            className="w-full h-full object-cover"
             loading="eager"
             decoding="async"
           />
@@ -160,20 +166,20 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
           <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
           
           {/* Content */}
-          <div className="absolute inset-0 flex items-center">
+          <div className="absolute inset-0 flex items-start justify-center pt-8 sm:pt-12 md:pt-16 lg:pt-20">
             <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24">
               <div className="max-w-4xl">
                 <div className="mb-3 sm:mb-4 md:mb-6 overflow-hidden">
                   <h2 className={`text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight tracking-tight transition-all duration-1000 ${
                     index === currentIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'
-                  }`} style={{ transitionDelay: '200ms', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+                  }`} style={{ transitionDelay: '200ms' }}>
                     {banner.title}
                   </h2>
                 </div>
                 <div className="mb-4 sm:mb-6 md:mb-8 overflow-hidden">
                   <p className={`text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white/95 font-light max-w-2xl leading-relaxed transition-all duration-1000 ${
                     index === currentIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'
-                  }`} style={{ transitionDelay: '400ms', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                  }`} style={{ transitionDelay: '400ms' }}>
                     {banner.description}
                   </p>
                 </div>

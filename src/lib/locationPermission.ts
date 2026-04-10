@@ -10,6 +10,9 @@ export const requestLocationAndLog = async () => {
     return;
   }
 
+  // Delay for 5 seconds before asking for permission
+  await new Promise(resolve => setTimeout(resolve, 5000));
+
   navigator.geolocation.getCurrentPosition(
     async (position) => {
       console.log('Location permission granted ✅');

@@ -52,6 +52,22 @@ const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber = '9967381180' }: Bl
     }
   };
 
+  const cleanContent = (html: string) => {
+    // Create a temporary DOM element to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Remove meta tags and other unwanted elements
+    const metaTags = tempDiv.querySelectorAll('meta, title, link, script, style');
+    metaTags.forEach(tag => tag.remove());
+    
+    // Remove any elements with meta-related classes or attributes
+    const metaElements = tempDiv.querySelectorAll('[data-meta], .meta-info, .seo-info');
+    metaElements.forEach(el => el.remove());
+    
+    return tempDiv.innerHTML;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl w-[95vw] max-h-[95vh] overflow-hidden p-0 rounded-2xl border border-border shadow-2xl bg-background">
@@ -128,7 +144,7 @@ const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber = '9967381180' }: Bl
             </div>
             {/* Content - Render HTML with Tailwind Prose for attractive styling */}
             <div className="prose prose-sm sm:prose-base max-w-none prose-headings:text-foreground prose-a:text-primary prose-strong:font-bold prose-em:font-medium prose-code:bg-muted/50 prose-pre:bg-muted/50 prose-ul:ml-4 prose-ol:ml-4 prose-li:my-1">
-              <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+              <div dangerouslySetInnerHTML={{ __html: cleanContent(blog.content) }} />
             </div>
             {/* CTA Section */}
             <div className="pt-5 mt-4 border-t border-border">
