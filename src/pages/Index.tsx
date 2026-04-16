@@ -44,7 +44,11 @@ const Index = () => {
 
   useEffect(() => {
     if (!blogsLoaded && blogsStatus === "idle") {
-      dispatch(loadBlogs());
+      const timeoutId = window.setTimeout(() => {
+        dispatch(loadBlogs());
+      }, 1800);
+
+      return () => window.clearTimeout(timeoutId);
     }
   }, [blogsLoaded, blogsStatus, dispatch]);
 

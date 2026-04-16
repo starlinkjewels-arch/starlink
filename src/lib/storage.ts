@@ -140,6 +140,23 @@ const COLLECTIONS = {
   TESTIMONIALS: 'testimonials',
 };
 
+const sanitizeForFirestore = <T>(value: T): T => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizeForFirestore(item))
+      .filter((item) => item !== undefined) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, item]) => item !== undefined)
+      .map(([key, item]) => [key, sanitizeForFirestore(item)]);
+    return Object.fromEntries(entries) as T;
+  }
+
+  return value;
+};
+
 // Initialize default data
 export const initializeDefaultData = async () => {
   try {
@@ -257,7 +274,10 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
 
 export const saveProduct = async (product: Product) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.PRODUCTS, product.id), { ...product, id: product.id });
+    await setDoc(
+      doc(db, COLLECTIONS.PRODUCTS, product.id),
+      sanitizeForFirestore({ ...product, id: product.id })
+    );
   } catch (error) {
     console.error('Error saving product:', error);
   }

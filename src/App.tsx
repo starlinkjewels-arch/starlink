@@ -7,7 +7,15 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadGlobalData, selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
+import {
+  loadDeferredData,
+  loadGlobalData,
+  selectContentHydrated,
+  selectContentStatus,
+  selectDeferredLoaded,
+  selectDeferredStatus,
+  selectGlobalData,
+} from "@/store/contentSlice";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Categories from "./pages/Categories";
@@ -27,12 +35,15 @@ import GlobalLoader from "@/components/GlobalLoader";
 import CountryLanding from "./pages/CountryLanding";
 
 const queryClient = new QueryClient();
+const DEFERRED_LOAD_DELAY_MS = 1200;
 
 const AppContent = () => {
   const dispatch = useAppDispatch();
   const data = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
   const hydrated = useAppSelector(selectContentHydrated);
+  const deferredLoaded = useAppSelector(selectDeferredLoaded);
+  const deferredStatus = useAppSelector(selectDeferredStatus);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const isAdminRoute = location.pathname.startsWith('/aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3');
@@ -42,6 +53,39 @@ const AppContent = () => {
       dispatch(loadGlobalData());
     }
   }, [dispatch, hydrated, isAdminRoute, status]);
+
+  useEffect(() => {
+    if (isAdminRoute || !hydrated || status !== "succeeded" || deferredLoaded || deferredStatus !== "idle") {
+      return;
+    }
+
+    let timeoutId: number | null = null;
+    let idleId: number | null = null;
+
+    const startDeferredLoad = () => {
+      dispatch(loadDeferredData());
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(
+        () => {
+          timeoutId = window.setTimeout(startDeferredLoad, DEFERRED_LOAD_DELAY_MS);
+        },
+        { timeout: 2000 }
+      );
+    } else {
+      timeoutId = window.setTimeout(startDeferredLoad, DEFERRED_LOAD_DELAY_MS);
+    }
+
+    return () => {
+      if (idleId !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [deferredLoaded, deferredStatus, dispatch, hydrated, isAdminRoute, status]);
 
   const showLoader = !isAdminRoute && !isHomePage && status === "loading" && !hydrated;
 
