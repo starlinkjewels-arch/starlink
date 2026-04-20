@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Pencil, X, Play } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Play, GripVertical, Images } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPriceRounded } from '@/lib/utils';
+import { stripHtml } from '@/lib/seo';
 
 interface MediaItem {
   id: string;
@@ -46,6 +47,7 @@ const AdminProducts = () => {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
+  const mediaInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     getProducts().then(setProducts);
@@ -268,6 +270,12 @@ const AdminProducts = () => {
     return safe.toFixed(2);
   };
 
+  const getDescriptionPreview = (html: string) => {
+    const text = stripHtml(html || '');
+    if (!text) return '';
+    return text.length > 140 ? `${text.slice(0, 137).trimEnd()}...` : text;
+  };
+
   const handleOpenBulkPreview = () => {
     const delta = parsePriceNumber(bulkDelta);
     if (delta === 0) {
@@ -422,13 +430,29 @@ const AdminProducts = () => {
             <Label htmlFor="product-media">
               Product Images/Videos * ({allMediaCount} file{allMediaCount !== 1 ? 's' : ''} selected)
             </Label>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => mediaInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                <Images className="h-4 w-4 mr-2" />
+                Add Images / Videos
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {allMediaCount === 0 ? 'No files selected yet' : `${allMediaCount} file${allMediaCount !== 1 ? 's' : ''} ready`}
+              </span>
+            </div>
             <Input
+              ref={mediaInputRef}
               id="product-media"
               type="file"
               accept="image/*,video/*"
               multiple
               onChange={handleMediaUpload}
               disabled={isUploading}
+              className="cursor-pointer"
             />
             
             {mediaItems.length > 0 && (
@@ -441,8 +465,7 @@ const AdminProducts = () => {
                   <div
                     key={media.id}
                     data-media-id={media.id}
-                    className={`relative group cursor-move ${isDragging && draggedId === media.id ? 'ring-2 ring-primary' : ''}`}
-                    onPointerDown={(e) => handlePointerDown(e, media.id)}
+                    className={`relative group ${isDragging && draggedId === media.id ? 'ring-2 ring-primary' : ''}`}
                   >
                     <div className={`aspect-square rounded-lg border-2 ${media.source === 'new' ? 'border-primary' : 'border-border'} overflow-hidden bg-muted`}>
                       {media.type === 'video' ? (
@@ -472,12 +495,27 @@ const AdminProducts = () => {
 
                     <button
                       type="button"
-                      onClick={() => handleRemoveMedia(media.id)}
-                      className="absolute -top-2 -right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveMedia(media.id);
+                      }}
+                      className="absolute -top-2 -right-2 z-20 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                       disabled={isUploading}
                       title="Remove"
+                      aria-label={`Remove media ${index + 1}`}
                     >
                       <X className="h-3.5 w-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onPointerDown={(e) => handlePointerDown(e, media.id)}
+                      className="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-medium shadow-sm cursor-grab active:cursor-grabbing"
+                      title="Drag to reorder"
+                      aria-label={`Drag media ${index + 1} to reorder`}
+                    >
+                      <GripVertical className="h-3.5 w-3.5" />
+                      Move
                     </button>
 
                     <div className={`absolute bottom-2 left-2 ${media.source === 'new' ? 'bg-primary/90 text-primary-foreground' : 'bg-background/90'} backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium shadow-sm`}>
@@ -651,10 +689,9 @@ const AdminProducts = () => {
                 </p>
                 <h3 className="font-bold text-lg mb-2 line-clamp-1">{product.name}</h3>
                 {product.description && (
-                  <div 
-                    className="text-sm text-muted-foreground mb-3 line-clamp-2"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
-                  />
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {getDescriptionPreview(product.description)}
+                  </p>
                 )}
                 <p className="font-bold text-xl text-primary mb-4">
                   ${formatPriceRounded(product.price)}
@@ -662,6 +699,7 @@ const AdminProducts = () => {
                 
                 <div className="flex gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(product)}
@@ -672,6 +710,7 @@ const AdminProducts = () => {
                     Edit
                   </Button>
                   <Button
+                    type="button"
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(product.id)}

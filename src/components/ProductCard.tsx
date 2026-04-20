@@ -4,6 +4,7 @@ import { Product } from '@/lib/storage';
 import WhatsAppButton from './WhatsAppButton';
 import { Images, Play } from 'lucide-react';
 import { preloadMedia } from '@/lib/preload';
+import { stripHtml } from '@/lib/seo';
 
 interface ProductCardProps {
   product: Product;
@@ -27,6 +28,11 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const primaryMedia = media[0];
   const secondaryMedia = media[1] || null;
   const displayMedia = media[currentIndex] || primaryMedia;
+  const descriptionPreview = useMemo(() => {
+    const text = stripHtml(product.description || '');
+    if (!text) return '';
+    return text.length > 180 ? `${text.slice(0, 177).trimEnd()}...` : text;
+  }, [product.description]);
 
   // Detect if media is video
   const getMediaType = (url: string): 'image' | 'video' => {
@@ -158,13 +164,9 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         </h3>
         
         {/* Description */}
-        <div className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2 flex-1 prose prose-sm max-w-none dark:prose-invert">
-          {product.description ? (
-            <div 
-              dangerouslySetInnerHTML={{ __html: product.description }}
-            />
-          ) : null}
-        </div>
+        <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 flex-1 leading-6">
+          {descriptionPreview}
+        </p>
         
         {/* Button Container */}
         <div className="space-y-4 mt-auto">
