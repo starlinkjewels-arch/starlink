@@ -17,7 +17,7 @@ import {
 } from '@/lib/seo';
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
-import { Product } from "@/lib/storage";
+import { Product, productHasCategory } from "@/lib/storage";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import {
@@ -51,7 +51,7 @@ const CategoryProducts = () => {
   );
 
   const productsForCategory = useMemo(
-    () => products.filter((p) => p.categoryId === id),
+    () => products.filter((p) => productHasCategory(p, id || "")),
     [products, id]
   );
 

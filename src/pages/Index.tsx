@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
 import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck } from 'lucide-react';
-import { BlogPost } from '@/lib/storage';
+import { BlogPost, orderCategoriesWithCustomFirst } from '@/lib/storage';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -41,6 +41,7 @@ const Index = () => {
     () => [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [blogs]
   );
+  const orderedCategories = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
 
   useEffect(() => {
     if (!blogsLoaded && blogsStatus === "idle") {
@@ -146,7 +147,12 @@ const Index = () => {
       />
 
       <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
+      <MiniHeader
+        categories={categories}
+        promoHeight={promoHeight}
+        prioritizeCustomJewelry
+        blinkCustomJewelry
+      />
 
       <main className="flex-1" style={{ paddingTop: `${paddingTop}px` }}>
         {/* Hero Banner */}
@@ -176,7 +182,7 @@ const Index = () => {
               <p className="text-lg text-muted-foreground">Discover jewelry for every occasion</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              {categories.slice(0, 6).map((category) => (
+              {orderedCategories.slice(0, 6).map((category) => (
                 <Link key={category.id} to={`/category/${category.id}`} className="category-card group">
                   <div className="aspect-square rounded-2xl overflow-hidden mb-3 bg-muted">
                     <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" decoding="async" fetchpriority="low" />

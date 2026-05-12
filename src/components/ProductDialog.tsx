@@ -3,6 +3,7 @@ import { Product } from '@/lib/storage';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import WhatsAppButton from './WhatsAppButton';
 import { X, ChevronLeft, ChevronRight, Truck, Shield, Zap, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { cleanRichTextHtml } from '@/lib/seo';
 interface ProductDialogProps {
   product: Product | null;
   open: boolean;
@@ -43,6 +44,7 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
     url,
     type: getMediaType(url)
   }));
+  const descriptionHtml = useMemo(() => cleanRichTextHtml(product?.description || ""), [product?.description]);
   const hasMultiple = media.length > 1;
   const clampedIndex = media.length > 0 ? Math.min(selectedIndex, media.length - 1) : 0;
   const currentMedia = media.length > 0 ? media[clampedIndex] : null;
@@ -293,10 +295,10 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
                 <span className="text-[10px] font-semibold text-center text-zinc-700 dark:text-zinc-300 leading-tight">Fast<br/>Delivery</span>
               </div>
             </div>
-            {product.description && (
+            {descriptionHtml && (
               <div
                 className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             )}
           </div>
@@ -408,10 +410,10 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
                   <span className="text-[9px] font-semibold text-center text-zinc-700 dark:text-zinc-300">Fast Delivery</span>
                 </div>
               </div>
-              {product.description && (
+              {descriptionHtml && (
                 <div
                   className="leading-relaxed text-zinc-600 dark:text-zinc-400 prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
+                  dangerouslySetInnerHTML={{ __html: descriptionHtml }}
                 />
               )}
               <div className="pt-4">

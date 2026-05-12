@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getProducts, saveProduct, deleteProduct, getCategories, Product, Category, uploadImageToStorage } from '@/lib/storage';
+import { getProducts, saveProduct, deleteProduct, getCategories, Product, Category, uploadImageToStorage, getProductCategoryIds } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ const AdminProducts = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -170,7 +170,7 @@ const AdminProducts = () => {
     setName(product.name);
     setDescription(product.description || '');
     setPrice(product.price.replace(/[^0-9.]/g, ''));
-    setCategoryId(product.categoryId);
+    setSelectedCategoryIds(getProductCategoryIds(product));
     setMetaTitle(product.metaTitle || '');
     setMetaDescription(product.metaDescription || '');
     setSeoFaq(product.seoFaq || []);
@@ -193,7 +193,7 @@ const AdminProducts = () => {
     setName('');
     setDescription('');
     setPrice('');
-    setCategoryId('');
+    setSelectedCategoryIds([]);
     setMediaItems([]);
     setMetaTitle('');
     setMetaDescription('');
@@ -203,7 +203,7 @@ const AdminProducts = () => {
   const handleAddProduct = async () => {
     const totalMedia = mediaItems.length;
     
-    if (!name || !price || !categoryId || totalMedia === 0) {
+    if (!name || !price || selectedCategoryIds.length === 0 || totalMedia === 0) {
       toast.error('Please fill all required fields and add at least one image/video');
       return;
     }
@@ -228,7 +228,8 @@ const AdminProducts = () => {
         name,
         description,
         price,
-        categoryId,
+        categoryId: selectedCategoryIds[0],
+        categoryIds: selectedCategoryIds,
         image: allMediaUrls[0],
         images: allMediaUrls,
         createdAt: existing?.createdAt ?? Date.now(),
@@ -244,7 +245,7 @@ const AdminProducts = () => {
       setName('');
       setDescription('');
       setPrice('');
-      setCategoryId('');
+      setSelectedCategoryIds([]);
       setMediaItems([]);
       setMetaTitle('');
       setMetaDescription('');
@@ -345,6 +346,21 @@ const AdminProducts = () => {
   };
 
   const allMediaCount = mediaItems.length;
+  const toggleCategorySelection = (categoryId: string, checked: boolean) => {
+    setSelectedCategoryIds((prev) => {
+      if (checked) {
+        return prev.includes(categoryId) ? prev : [...prev, categoryId];
+      }
+      return prev.filter((id) => id !== categoryId);
+    });
+  };
+
+  const getCategoryNames = (product: Product) => {
+    const ids = getProductCategoryIds(product);
+    return categories
+      .filter((category) => ids.includes(category.id))
+      .map((category) => category.name);
+  };
 
   const allSelected = products.length > 0 && bulkSelectedIds.length === products.length;
   const someSelected = bulkSelectedIds.length > 0 && bulkSelectedIds.length < products.length;
@@ -359,19 +375,21 @@ const AdminProducts = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="product-category">Category *</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Categories *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-md border border-input bg-background p-4">
+              {categories.map((cat) => (
+                <label key={cat.id} className="flex items-center gap-3 text-sm">
+                  <Checkbox
+                    checked={selectedCategoryIds.includes(cat.id)}
+                    onCheckedChange={(checked) => toggleCategorySelection(cat.id, Boolean(checked))}
+                  />
+                  <span>{cat.name}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Select one or more categories. The first selected category will be used as the primary category for fallback links.
+            </p>
           </div>
           
           <div className="space-y-2">
@@ -685,7 +703,7 @@ const AdminProducts = () => {
               
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
-                  {categories.find(c => c.id === product.categoryId)?.name || 'Unknown'}
+                  {getCategoryNames(product).join(', ') || 'Unknown'}
                 </p>
                 <h3 className="font-bold text-lg mb-2 line-clamp-1">{product.name}</h3>
                 {product.description && (
@@ -750,7 +768,7 @@ const AdminProducts = () => {
                   <div className="min-w-0">
                     <div className="font-medium truncate">{p.name}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {categories.find((c) => c.id === p.categoryId)?.name || 'Unknown'}
+                      {getCategoryNames(p).join(', ') || 'Unknown'}
                     </div>
                   </div>
                   <div className="text-right text-sm">

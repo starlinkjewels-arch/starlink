@@ -72,6 +72,7 @@ export const seedInitialData = async () => {
         {
           id: '1',
           categoryId: '1',
+          categoryIds: ['1'],
           name: 'Diamond Solitaire Necklace',
           image: necklaceImage,
           description: 'A stunning solitaire diamond necklace perfect for any special occasion',
@@ -80,6 +81,7 @@ export const seedInitialData = async () => {
         {
           id: '2',
           categoryId: '2',
+          categoryIds: ['2'],
           name: 'Platinum Engagement Ring',
           image: ringImage,
           description: 'Elegant platinum ring with brilliant cut diamond',
@@ -88,6 +90,7 @@ export const seedInitialData = async () => {
         {
           id: '3',
           categoryId: '3',
+          categoryIds: ['3'],
           name: 'Pearl Drop Earrings',
           image: earringImage,
           description: 'Classic pearl earrings with diamond accents',
@@ -96,6 +99,7 @@ export const seedInitialData = async () => {
         {
           id: '4',
           categoryId: '4',
+          categoryIds: ['4'],
           name: 'Gold Tennis Bracelet',
           image: braceletImage,
           description: 'Timeless tennis bracelet in 18k gold',

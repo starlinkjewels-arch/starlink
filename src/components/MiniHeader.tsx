@@ -1,15 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Category } from '@/lib/storage';
+import { Category, isCustomJewelryCategory, orderCategoriesWithCustomFirst } from '@/lib/storage';
 import { Sparkles, ChevronRight } from 'lucide-react';
 
 interface MiniHeaderProps {
   categories?: Category[];
   promoHeight?: number;
+  prioritizeCustomJewelry?: boolean;
+  blinkCustomJewelry?: boolean;
 }
 
-const MiniHeader = ({ categories = [], promoHeight = 0 }: MiniHeaderProps) => {
+const MiniHeader = ({
+  categories = [],
+  promoHeight = 0,
+  prioritizeCustomJewelry = false,
+  blinkCustomJewelry = false,
+}: MiniHeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const orderedCategories = prioritizeCustomJewelry ? orderCategoriesWithCustomFirst(categories) : categories;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,27 +57,29 @@ const MiniHeader = ({ categories = [], promoHeight = 0 }: MiniHeaderProps) => {
 
           {/* Category Links */}
           <div className="flex items-center gap-2">
-            {categories.map((category) => (
+            {orderedCategories.map((category) => (
               <Link
                 key={category.id}
                 to={`/category/${category.id}`}
-                className="relative text-sm font-medium whitespace-nowrap px-4 py-2 rounded-full transition-all duration-300 bg-card hover:bg-primary hover:text-primary-foreground border border-border/50 hover:border-primary group shadow-sm hover:shadow-md"
+                className={`relative text-sm font-medium whitespace-nowrap px-4 py-2 rounded-full transition-all duration-300 bg-card hover:bg-primary hover:text-primary-foreground border border-border/50 hover:border-primary group shadow-sm hover:shadow-md ${
+                  blinkCustomJewelry && isCustomJewelryCategory(category) ? 'bg-primary/10 text-primary border-primary/30 shadow-[0_0_0_1px_rgba(59,130,246,0.12)] animate-[custom-jewelry-glow_2.8s_ease-in-out_infinite]' : ''
+                }`}
                 style={{ border: "1px solid #7d95c8" ,display:"flex",alignItems:"center",gap:"10px"}}
               >
-            <Sparkles className="h-4 w-4 animate-pulse" />
+            <Sparkles className={`h-4 w-4 ${blinkCustomJewelry && isCustomJewelryCategory(category) ? 'text-primary' : 'animate-pulse'}`} />
 
                 <span className="relative z-10 flex items-center gap-2">
                   {category.name}
                 </span>
               </Link>
             ))}
-            {categories.length === 0 && (
+            {orderedCategories.length === 0 && (
               <span className="text-sm text-muted-foreground px-4 py-2">Loading collections...</span>
             )}
           </div>
 
           {/* View All Link */}
-          {categories.length > 0 && (
+          {orderedCategories.length > 0 && (
             <Link
               to="/categories"
               className="ml-auto flex-shrink-0 text-sm font-medium text-primary hover:text-primary/80 transition-colors whitespace-nowrap flex items-center gap-1"
@@ -80,6 +90,20 @@ const MiniHeader = ({ categories = [], promoHeight = 0 }: MiniHeaderProps) => {
           )}
         </div>
       </div>
+      <style>
+        {`
+          @keyframes custom-jewelry-glow {
+            0%, 100% {
+              opacity: 0.9;
+              box-shadow: 0 0 0 1px rgba(59,130,246,0.12);
+            }
+            50% {
+              opacity: 1;
+              box-shadow: 0 0 0 1px rgba(59,130,246,0.18), 0 8px 24px rgba(59,130,246,0.12);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

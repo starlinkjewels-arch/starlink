@@ -7,7 +7,8 @@ import SEOHead from "@/components/SEOHead";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
-import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer } from "@/lib/seo";
+import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer, cleanRichTextHtml } from "@/lib/seo";
+import { getProductCategoryIds } from "@/lib/storage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { preloadMedia } from "@/lib/preload";
 
@@ -27,12 +28,14 @@ const ProductDetail = () => {
   const paddingTop = promoHeight + 80 + 52 + 24;
 
   const product = useMemo(() => products.find((p) => p.id === id) || null, [products, id]);
+  const productCategoryIds = useMemo(() => (product ? getProductCategoryIds(product) : []), [product]);
   const category = useMemo(
-    () => categories.find((c) => c.id === product?.categoryId) || null,
-    [categories, product?.categoryId]
+    () => categories.find((c) => productCategoryIds.includes(c.id)) || null,
+    [categories, productCategoryIds]
   );
 
   const media = product?.images && product.images.length > 0 ? product.images : product?.image ? [product.image] : [];
+  const descriptionHtml = useMemo(() => cleanRichTextHtml(product?.description || ""), [product?.description]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const currentMedia = media[selectedIndex] || null;
   const hasMultiple = media.length > 1;
@@ -211,10 +214,10 @@ const ProductDetail = () => {
                 Shop more {category.name} jewelry
               </Link>
             )}
-            {product.description && (
+            {descriptionHtml && (
               <div
                 className="prose prose-sm max-w-none mt-6"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             )}
             <div className="mt-8">

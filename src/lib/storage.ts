@@ -48,7 +48,8 @@ export interface Category {
 
 export interface Product {
   id: string;
-  categoryId: string;
+  categoryId?: string;
+  categoryIds?: string[];
   name: string;
   image: string;
   images?: string[]; // Multiple product images
@@ -157,6 +158,39 @@ const sanitizeForFirestore = <T>(value: T): T => {
   return value;
 };
 
+export const getProductCategoryIds = (product: Pick<Product, "categoryId" | "categoryIds">): string[] => {
+  const ids = Array.isArray(product.categoryIds) ? product.categoryIds : [];
+  const fallback = product.categoryId ? [product.categoryId] : [];
+  return Array.from(new Set([...ids, ...fallback].filter(Boolean)));
+};
+
+export const normalizeProduct = (product: Product): Product => {
+  const categoryIds = getProductCategoryIds(product);
+  return {
+    ...product,
+    categoryId: categoryIds[0] || product.categoryId || "",
+    categoryIds,
+  };
+};
+
+export const productHasCategory = (product: Pick<Product, "categoryId" | "categoryIds">, categoryId: string) => {
+  return getProductCategoryIds(product).includes(categoryId);
+};
+
+export const isCustomJewelryCategory = (category: Pick<Category, "name">) => {
+  return category.name.trim().toLowerCase() === "custom jewelry";
+};
+
+export const orderCategoriesWithCustomFirst = <T extends Category>(categories: T[]): T[] => {
+  return [...categories].sort((a, b) => {
+    const aIsCustom = isCustomJewelryCategory(a);
+    const bIsCustom = isCustomJewelryCategory(b);
+    if (aIsCustom && !bIsCustom) return -1;
+    if (!aIsCustom && bIsCustom) return 1;
+    return (a.priority || 99) - (b.priority || 99);
+  });
+};
+
 // Initialize default data
 export const initializeDefaultData = async () => {
   try {
@@ -251,7 +285,7 @@ export const deleteCategory = async (id: string) => {
 export const getProducts = async (): Promise<Product[]> => {
   try {
     const snapshot = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    return snapshot.docs.map(doc => normalizeProduct({ id: doc.id, ...doc.data() } as Product));
   } catch (error) {
     console.error('Error getting products:', error);
     return [];
@@ -260,12 +294,17 @@ export const getProducts = async (): Promise<Product[]> => {
 
 export const getProductsByCategory = async (categoryId: string): Promise<Product[]> => {
   try {
-    const q = query(
-      collection(db, COLLECTIONS.PRODUCTS),
-      where('categoryId', '==', categoryId)
-    );
+    const q = query(collection(db, COLLECTIONS.PRODUCTS), where('categoryId', '==', categoryId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    const directMatches = snapshot.docs.map(doc => normalizeProduct({ id: doc.id, ...doc.data() } as Product));
+    const allProducts = await getProducts();
+    const merged = [...directMatches];
+    allProducts.forEach((product) => {
+      if (productHasCategory(product, categoryId) && !merged.some((item) => item.id === product.id)) {
+        merged.push(product);
+      }
+    });
+    return merged;
   } catch (error) {
     console.error('Error getting products by category:', error);
     return [];
@@ -274,9 +313,10 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
 
 export const saveProduct = async (product: Product) => {
   try {
+    const normalizedProduct = normalizeProduct(product);
     await setDoc(
-      doc(db, COLLECTIONS.PRODUCTS, product.id),
-      sanitizeForFirestore({ ...product, id: product.id })
+      doc(db, COLLECTIONS.PRODUCTS, normalizedProduct.id),
+      sanitizeForFirestore({ ...normalizedProduct, id: normalizedProduct.id })
     );
   } catch (error) {
     console.error('Error saving product:', error);
