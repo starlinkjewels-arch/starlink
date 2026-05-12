@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { MapPin, MapPinOff, Globe, Calendar, Clock, Monitor, ExternalLink, Trash2, RefreshCw } from "lucide-react";
 
@@ -47,6 +49,10 @@ const AdminVisitors = () => {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [filterMode, setFilterMode] = useState<"single" | "range">("single");
+  const [singleDate, setSingleDate] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const { toast } = useToast();
 
   const currentHost = useMemo(() => window.location.hostname, []);
@@ -79,12 +85,37 @@ const AdminVisitors = () => {
     fetchVisitors();
   }, []);
 
-  const total = visitors.length;
-  const allowed = visitors.filter((v) => v.grantedLocation).length;
+  const getVisitorDateValue = (visitor: Visitor) => {
+    if (!visitor.timestamp?.toDate) return "";
+    return format(visitor.timestamp.toDate(), "yyyy-MM-dd");
+  };
+
+  const filteredVisitors = useMemo(() => {
+    return visitors.filter((visitor) => {
+      const visitorDate = getVisitorDateValue(visitor);
+      if (!visitorDate) return false;
+
+      if (filterMode === "single") {
+        if (!singleDate) return true;
+        return visitorDate === singleDate;
+      }
+
+      if (fromDate && visitorDate < fromDate) return false;
+      if (toDate && visitorDate > toDate) return false;
+      return true;
+    });
+  }, [visitors, filterMode, singleDate, fromDate, toDate]);
+
+  const total = filteredVisitors.length;
+  const allowed = filteredVisitors.filter((v) => v.grantedLocation).length;
+
+  useEffect(() => {
+    setSelectedIds((prev) => prev.filter((id) => filteredVisitors.some((visitor) => visitor.id === id)));
+  }, [filteredVisitors]);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(visitors.map(v => v.id));
+      setSelectedIds(filteredVisitors.map(v => v.id));
     } else {
       setSelectedIds([]);
     }
@@ -124,6 +155,13 @@ const AdminVisitors = () => {
       console.error(err);
       toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
     }
+  };
+
+  const handleClearFilters = () => {
+    setSingleDate("");
+    setFromDate("");
+    setToDate("");
+    setFilterMode("single");
   };
 
   if (loading) {
@@ -183,6 +221,73 @@ const AdminVisitors = () => {
         </Card>
       </div>
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Date Filter</CardTitle>
+          <CardDescription>View visitors for a single day or a custom date range</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant={filterMode === "single" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterMode("single")}
+            >
+              Single Date
+            </Button>
+            <Button
+              type="button"
+              variant={filterMode === "range" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterMode("range")}
+            >
+              Date Range
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={handleClearFilters}>
+              Clear Filter
+            </Button>
+          </div>
+
+          {filterMode === "single" ? (
+            <div className="max-w-xs space-y-2">
+              <Label htmlFor="visitor-single-date">Select Date</Label>
+              <Input
+                id="visitor-single-date"
+                type="date"
+                value={singleDate}
+                onChange={(e) => setSingleDate(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+              <div className="space-y-2">
+                <Label htmlFor="visitor-from-date">From Date</Label>
+                <Input
+                  id="visitor-from-date"
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="visitor-to-date">To Date</Label>
+                <Input
+                  id="visitor-to-date"
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredVisitors.length} of {visitors.length} visitors
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Actions Bar */}
       {selectedIds.length > 0 && (
         <div className="flex items-center gap-4 p-3 bg-muted rounded-lg">
@@ -215,7 +320,7 @@ const AdminVisitors = () => {
                 <TableRow className="bg-muted/50">
                   <TableHead className="w-12">
                     <Checkbox 
-                      checked={selectedIds.length === visitors.length && visitors.length > 0}
+                      checked={selectedIds.length === filteredVisitors.length && filteredVisitors.length > 0}
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
@@ -229,14 +334,14 @@ const AdminVisitors = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visitors.length === 0 ? (
+                {filteredVisitors.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
-                      No visitors recorded yet
+                      No visitors found for the selected date filter
                     </TableCell>
                   </TableRow>
                 ) : (
-                  visitors.map((v) => (
+                  filteredVisitors.map((v) => (
                     <TableRow key={v.id} className="hover:bg-muted/30">
                       <TableCell>
                         <Checkbox 
