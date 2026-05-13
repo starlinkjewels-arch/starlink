@@ -178,7 +178,7 @@ export const productHasCategory = (product: Pick<Product, "categoryId" | "catego
 };
 
 export const isCustomJewelryCategory = (category: Pick<Category, "name">) => {
-  return category.name.trim().toLowerCase() === "custom jewelry";
+  return category.name.trim().toLowerCase() === "ready to ship";
 };
 
 export const orderCategoriesWithCustomFirst = <T extends Category>(categories: T[]): T[] => {
@@ -198,11 +198,11 @@ export const initializeDefaultData = async () => {
     if (!contactDoc.exists()) {
       const defaultContact: ContactInfo = {
         address: '123 Diamond Street, Mumbai, India',
-        phone: '+91 9967381180',
+        phone: '+1 (201) 554-4824',
         email: 'info@starlinkjewels.com',
         instagram: 'https://instagram.com/starlinkjewels',
         facebook: 'https://facebook.com/starlinkjewels',
-        whatsapp: '9967381180',
+        whatsapp: '+1 (201) 554-4824',
       };
       await setDoc(doc(db, COLLECTIONS.CONTACT, 'main'), defaultContact);
     }
@@ -255,7 +255,10 @@ export const getCategories = async (): Promise<Category[]> => {
 
 export const saveCategory = async (category: Category) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.CATEGORIES, category.id), { ...category, id: category.id });
+    await setDoc(
+      doc(db, COLLECTIONS.CATEGORIES, category.id),
+      sanitizeForFirestore({ ...category, id: category.id })
+    );
   } catch (error) {
     console.error('Error saving category:', error);
   }
@@ -399,7 +402,7 @@ export const getContact = async (): Promise<ContactInfo> => {
     address: '',
     phone: '',
     email: '',
-    whatsapp: '9967381180',
+    whatsapp: '+1 (201) 554-4824',
   };
 };
 

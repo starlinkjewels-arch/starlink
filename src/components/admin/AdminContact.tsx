@@ -17,7 +17,7 @@ const AdminContact = () => {
     instagram: '',
     twitter: '',
     pinterest: '',
-    whatsapp: '9967381180',
+    whatsapp: '+1 (201) 554-4824',
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -79,7 +79,7 @@ const AdminContact = () => {
             id="contact-whatsapp"
             value={contact.whatsapp}
             onChange={(e) => setContact({ ...contact, whatsapp: e.target.value })}
-            placeholder="9967381180"
+            placeholder="+1 (201) 554-4824"
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

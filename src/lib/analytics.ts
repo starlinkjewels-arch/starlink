@@ -21,7 +21,9 @@ export const logVisitor = async (
 
   // Log at most once per browser per day per host
   if (localStorage.getItem(dailyKey) === 'true') {
-    console.log('Visitor already logged today - skipping duplicate');
+    if (import.meta.env.DEV) {
+      console.log('Visitor already logged today - skipping duplicate');
+    }
     return;
   }
 
@@ -29,22 +31,32 @@ export const logVisitor = async (
     const ipResponse = await fetch('https://ipapi.co/json/');
     const ipData = await ipResponse.json();
 
-    // Parse user agent for device and browser info
     const userAgent = navigator.userAgent;
     const browserInfo = {
-      browser: userAgent.includes('Edg') ? 'Edge' :
-              userAgent.includes('Chrome') ? 'Chrome' :
-              userAgent.includes('Firefox') ? 'Firefox' :
-              userAgent.includes('Safari') ? 'Safari' : 'Other',
+      browser: userAgent.includes('Edg')
+        ? 'Edge'
+        : userAgent.includes('Chrome')
+        ? 'Chrome'
+        : userAgent.includes('Firefox')
+        ? 'Firefox'
+        : userAgent.includes('Safari')
+        ? 'Safari'
+        : 'Other',
       device: /Mobile|Android|iPhone|iPad/.test(userAgent) ? 'Mobile' : 'Desktop',
-      os: userAgent.includes('Windows') ? 'Windows' :
-          userAgent.includes('Mac') ? 'MacOS' :
-          userAgent.includes('Android') ? 'Android' :
-          /iPhone|iPad|iPod/.test(userAgent) ? 'iOS' :
-          userAgent.includes('Linux') ? 'Linux' : 'Other'
+      os: userAgent.includes('Windows')
+        ? 'Windows'
+        : userAgent.includes('Mac')
+        ? 'MacOS'
+        : userAgent.includes('Android')
+        ? 'Android'
+        : /iPhone|iPad|iPod/.test(userAgent)
+        ? 'iOS'
+        : userAgent.includes('Linux')
+        ? 'Linux'
+        : 'Other',
     };
 
-    const logData: any = {
+    const logData: Record<string, unknown> = {
       hostname: window.location.hostname,
       origin: window.location.origin,
       referrer: document.referrer || null,
@@ -75,9 +87,12 @@ export const logVisitor = async (
     await addDoc(collection(db, 'visitors'), logData);
 
     localStorage.setItem(dailyKey, 'true');
-    console.log('New daily visitor logged ✅', logData);
+    if (import.meta.env.DEV) {
+      console.log('New daily visitor logged', logData);
+    }
   } catch (err) {
-    console.warn('Failed to log visitor', err);
+    if (import.meta.env.DEV) {
+      console.warn('Failed to log visitor', err);
+    }
   }
 };
-

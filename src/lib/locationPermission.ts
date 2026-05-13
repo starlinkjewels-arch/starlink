@@ -11,15 +11,19 @@ export const requestLocationAndLog = async () => {
   }
 
   // Delay for 5 seconds before asking for permission
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
-      console.log('Location permission granted ✅');
+      if (import.meta.env.DEV) {
+        console.log('Location permission granted');
+      }
       await logVisitor(true, position.coords);
     },
     async (error) => {
-      console.log('Location denied or error:', error.message);
+      if (import.meta.env.DEV) {
+        console.log('Location denied or error:', error.message);
+      }
       await logVisitor(false);
     },
     {
@@ -29,4 +33,3 @@ export const requestLocationAndLog = async () => {
     }
   );
 };
-

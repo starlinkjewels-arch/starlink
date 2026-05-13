@@ -25,7 +25,7 @@ const Gallery = () => {
   }, []);
 
   const whatsappNumber = useMemo(
-    () => contactInfo?.whatsapp || "919967381180",
+    () => contactInfo?.whatsapp || "91+1 (201) 554-4824",
     [contactInfo?.whatsapp]
   );
 

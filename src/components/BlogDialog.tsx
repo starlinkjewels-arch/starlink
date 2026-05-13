@@ -12,7 +12,7 @@ interface BlogDialogProps {
   whatsappNumber?: string;
 }
 
-const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber = '9967381180' }: BlogDialogProps) => {
+const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber = '+1 (201) 554-4824' }: BlogDialogProps) => {
   const [copied, setCopied] = useState(false);
   
   if (!blog) return null;

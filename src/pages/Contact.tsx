@@ -34,7 +34,7 @@ const Contact = () => {
     setIsSubmitting(true);
     try {
       const whatsappMessage = `*New Contact Form*\n\n*Name:* ${name.trim()}\n*Email:* ${email.trim()}\n*Subject:* ${subject.trim()}\n*Message:*\n${message.trim()}`;
-      window.open(`https://wa.me/${contactInfo?.whatsapp || '919967381180'}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+      window.open(`https://wa.me/${contactInfo?.whatsapp || '91+1 (201) 554-4824'}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
       setName(''); setEmail(''); setSubject(''); setMessage('');
       toast.success('Message sent!');
     } finally {

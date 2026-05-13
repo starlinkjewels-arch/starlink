@@ -2,8 +2,8 @@ export const SITE = {
   name: "Starlink Jewels",
   url: "https://www.starlinkjewels.com",
   ogImage: "https://www.starlinkjewels.com/icon.png",
-  phonePrimary: "+91 9967381180",
-  phoneWhatsApp: "+91 9967381180",
+  phonePrimary: "+1 (201) 554-4824",
+  phoneWhatsApp: "+1 (201) 554-4824",
   email: "info@starlinkjewels.com",
   areaServed: ["US", "CA", "AU", "DE", "GB", "IN"],
   addressIndia: {

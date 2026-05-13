@@ -12,7 +12,7 @@ import BlogDialog from '@/components/BlogDialog';
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
-import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck } from 'lucide-react';
+import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck, Instagram, ExternalLink } from 'lucide-react';
 import { BlogPost, orderCategoriesWithCustomFirst } from '@/lib/storage';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -408,26 +408,31 @@ const Index = () => {
               </div>
             </div>
             <div className="flex gap-3 sm:gap-4 animate-[scroll_10s_linear_infinite] sm:animate-[scroll_20s_linear_infinite] hover:pause pl-4">
-              {[...instagramPosts.slice(0, 10), ...instagramPosts.slice(0, 10)].map((post, index) => {
-                const getEmbedUrl = (url: string) => {
-                  const postMatch = url.match(/instagram\.com\/(p|reel)\/([^/?]+)/);
-                  return postMatch ? `https://www.instagram.com/${postMatch[1]}/${postMatch[2]}/embed/` : null;
-                };
-                const embedUrl = getEmbedUrl(post.url);
-                return (
-                  <div
-                    key={`${post.id}-${index}`}
-                    onClick={() => window.open(post.url, '_blank')}
-                    className="flex-shrink-0 w-[280px] sm:w-72 md:w-80 h-[320px] sm:h-[350px] rounded-xl sm:rounded-2xl overflow-hidden hover-lift bg-background border border-border shadow-lg cursor-pointer"
-                  >
-                    {embedUrl ? (
-                      <iframe src={embedUrl} className="w-full h-full" frameBorder="0" scrolling="no" title={`Instagram post ${post.id}`} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">Instagram Post</div>
-                    )}
+              {[...instagramPosts.slice(0, 10), ...instagramPosts.slice(0, 10)].map((post, index) => (
+                <a
+                  key={`${post.id}-${index}`}
+                  href={post.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 w-[280px] sm:w-72 md:w-80 h-[320px] sm:h-[350px] rounded-xl sm:rounded-2xl overflow-hidden hover-lift bg-gradient-to-br from-[#fff7f3] via-background to-[#f5f7ff] border border-border shadow-lg cursor-pointer p-6 flex flex-col justify-between"
+                >
+                  <div className="space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-[#E1306C]/10 text-[#E1306C] flex items-center justify-center">
+                      <Instagram className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Instagram Post</h3>
+                      <p className="text-sm text-muted-foreground leading-6">
+                        Open this post directly on Instagram to view the latest photo or reel without browser embed restrictions.
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
+                  <div className="flex items-center justify-between text-sm font-medium text-primary">
+                    <span className="truncate pr-3">View on Instagram</span>
+                    <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                  </div>
+                </a>
+              ))}
             </div>
           </section>
         )}
