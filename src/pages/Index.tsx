@@ -17,6 +17,35 @@ import { BlogPost, orderCategoriesWithCustomFirst } from '@/lib/storage';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const getInstagramEmbedUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+
+    if (!parsedUrl.hostname.includes('instagram.com')) {
+      return null;
+    }
+
+    const segments = parsedUrl.pathname.split('/').filter(Boolean);
+    const postType = segments[0];
+    const postId = segments[1];
+
+    if (!postType || !postId) {
+      return null;
+    }
+
+    const normalizedType = postType === 'reels' ? 'reel' : postType;
+    const supportedTypes = new Set(['p', 'reel', 'tv']);
+
+    if (!supportedTypes.has(normalizedType)) {
+      return null;
+    }
+
+    return `https://www.instagram.com/${normalizedType}/${postId}/embed/captioned/`;
+  } catch {
+    return null;
+  }
+};
+
 const Index = () => {
   const {
     banners,
@@ -42,6 +71,10 @@ const Index = () => {
     [blogs]
   );
   const orderedCategories = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
+  const instagramFeedItems = useMemo(() => {
+    const posts = instagramPosts.slice(0, 6);
+    return posts.length > 1 ? [...posts, ...posts] : posts;
+  }, [instagramPosts]);
 
   useEffect(() => {
     if (!blogsLoaded && blogsStatus === "idle") {
@@ -407,32 +440,53 @@ const Index = () => {
                 <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Connect with us on Instagram</p>
               </div>
             </div>
-            <div className="flex gap-3 sm:gap-4 animate-[scroll_10s_linear_infinite] sm:animate-[scroll_20s_linear_infinite] hover:pause pl-4">
-              {[...instagramPosts.slice(0, 10), ...instagramPosts.slice(0, 10)].map((post, index) => (
-                <a
-                  key={`${post.id}-${index}`}
-                  href={post.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 w-[280px] sm:w-72 md:w-80 h-[320px] sm:h-[350px] rounded-xl sm:rounded-2xl overflow-hidden hover-lift bg-gradient-to-br from-[#fff7f3] via-background to-[#f5f7ff] border border-border shadow-lg cursor-pointer p-6 flex flex-col justify-between"
-                >
-                  <div className="space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#E1306C]/10 text-[#E1306C] flex items-center justify-center">
-                      <Instagram className="h-7 w-7" />
+            <div className="flex gap-4 sm:gap-5 animate-[scroll_18s_linear_infinite] sm:animate-[scroll_30s_linear_infinite] hover:pause pl-4">
+              {instagramFeedItems.map((post, index) => {
+                const embedUrl = getInstagramEmbedUrl(post.url);
+
+                return (
+                  <article
+                    key={`${post.id}-${index}`}
+                    className="flex-shrink-0 w-[320px] sm:w-[340px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
+                  >
+                    <div className="bg-[#faf7f4]">
+                      {embedUrl ? (
+                        <iframe
+                          src={embedUrl}
+                          title={`Instagram post ${index + 1}`}
+                          loading="lazy"
+                          allowTransparency={true}
+                          scrolling="no"
+                          className="h-[440px] w-full border-0"
+                          style={{ overflow: 'hidden' }}
+                        />
+                      ) : (
+                        <div className="flex h-[440px] flex-col items-center justify-center gap-4 px-6 text-center">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E1306C]/10 text-[#E1306C]">
+                            <Instagram className="h-7 w-7" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-semibold">Instagram Post</h3>
+                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                              This Instagram URL could not be embedded here, but you can still open it directly.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Instagram Post</h3>
-                      <p className="text-sm text-muted-foreground leading-6">
-                        Open this post directly on Instagram to view the latest photo or reel without browser embed restrictions.
-                      </p>
+                    <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 text-sm font-medium">
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-w-0 items-center gap-2 text-primary hover:underline"
+                      >
+                        <span className="truncate">Open on Instagram</span>
+                        <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                      </a>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm font-medium text-primary">
-                    <span className="truncate pr-3">View on Instagram</span>
-                    <ExternalLink className="h-4 w-4 flex-shrink-0" />
-                  </div>
-                </a>
-              ))}
+                  </article>
+              )})}
             </div>
           </section>
         )}

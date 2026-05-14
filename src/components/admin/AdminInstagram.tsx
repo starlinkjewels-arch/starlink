@@ -30,12 +30,14 @@ const AdminInstagram = () => {
   };
 
   const handleAddPost = async () => {
-    if (!url) {
+    const trimmedUrl = url.trim();
+
+    if (!trimmedUrl) {
       toast.error('Please enter an Instagram post URL');
       return;
     }
 
-    if (!url.includes('instagram.com')) {
+    if (!trimmedUrl.includes('instagram.com')) {
       toast.error('Please enter a valid Instagram URL');
       return;
     }
@@ -44,7 +46,7 @@ const AdminInstagram = () => {
     try {
       const postData: InstagramPost = {
         id: editingId || Date.now().toString(),
-        url,
+        url: trimmedUrl,
       };
 
       await saveInstagramPost(postData);
@@ -87,7 +89,7 @@ const AdminInstagram = () => {
               id="instagram-url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://www.instagram.com/p/..."
+              placeholder="https://www.instagram.com/reel/... or /p/..."
             />
           </div>
           <div className="flex gap-2">
