@@ -7,6 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, ExternalLink, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
+const isInstagramUrl = (value: string) => {
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.hostname === 'instagram.com' || parsedUrl.hostname === 'www.instagram.com';
+  } catch {
+    return false;
+  }
+};
+
 const AdminInstagram = () => {
   const [posts, setPosts] = useState<InstagramPost[]>([]);
   const [url, setUrl] = useState('');
@@ -37,7 +46,7 @@ const AdminInstagram = () => {
       return;
     }
 
-    if (!trimmedUrl.includes('instagram.com')) {
+    if (!isInstagramUrl(trimmedUrl)) {
       toast.error('Please enter a valid Instagram URL');
       return;
     }

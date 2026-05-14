@@ -17,11 +17,14 @@ import { BlogPost, orderCategoriesWithCustomFirst } from '@/lib/storage';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const isInstagramHostname = (hostname: string) =>
+  hostname === 'instagram.com' || hostname === 'www.instagram.com';
+
 const getInstagramEmbedUrl = (url: string) => {
   try {
     const parsedUrl = new URL(url);
 
-    if (!parsedUrl.hostname.includes('instagram.com')) {
+    if (!isInstagramHostname(parsedUrl.hostname)) {
       return null;
     }
 
@@ -40,7 +43,7 @@ const getInstagramEmbedUrl = (url: string) => {
       return null;
     }
 
-    return `https://www.instagram.com/${normalizedType}/${postId}/embed/captioned/`;
+    return `https://www.instagram.com/${normalizedType}/${postId}/embed/`;
   } catch {
     return null;
   }
