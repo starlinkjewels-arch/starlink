@@ -107,7 +107,7 @@ const CountryLanding = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={`${config.name} Diamond Jewelry Shipping`}
+        title={`Buy Diamond Jewelry in ${config.name} — GIA Certified, Free Insured Worldwide Delivery`}
         description={config.description}
         keywords={config.keywords}
         canonicalUrl={`https://www.starlinkjewels.com/${config.slug}`}

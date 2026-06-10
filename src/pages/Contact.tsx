@@ -91,8 +91,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="Contact Us - Diamond Jewelry Inquiries & Custom Orders | Starlink Jewels"
-        description="Contact Starlink Jewels for inquiries about GIA certified diamonds, custom jewelry designs, engagement rings, wholesale orders. Global offices in Mumbai, New York, Dubai. 24/7 WhatsApp support."
+        title="Contact Us — Custom Diamond Jewelry Orders, Consultations & WhatsApp Support"
+        description="Get in touch with Starlink Jewels for GIA certified diamond jewelry, custom engagement rings, wholesale orders and expert consultations. Offices across India & USA. 24/7 WhatsApp support available."
         keywords="contact starlink jewels, jewelry store contact, diamond jewelry inquiries, custom jewelry design, wholesale diamond jewelry, engagement ring consultation, buy diamonds online, jewelry showroom Mumbai, diamond dealer contact"
         canonicalUrl="https://www.starlinkjewels.com/contact"
         structuredData={structuredData}

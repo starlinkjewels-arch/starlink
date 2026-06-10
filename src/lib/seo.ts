@@ -109,16 +109,16 @@ export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
 };
 
 export const buildMetaTitleForCategory = (categoryName: string) => {
-  return `${categoryName} Jewelry | Premium Diamond & Gold | ${SITE.name}`;
+  return `${categoryName} Jewelry — Certified Diamond & Gold Collection`;
 };
 
 export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
   if (desc && desc.trim().length > 40) return desc.trim();
-  return `Explore premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery to USA, Canada, Australia, and Germany.`;
+  return `Shop certified ${categoryName.toLowerCase()} jewelry at ${SITE.name}. GIA & IGI certified lab-grown and natural diamonds with free insured worldwide delivery to USA, Canada, Australia, and Germany.`;
 };
 
 export const buildMetaTitleForProduct = (productName: string) => {
-  return `${productName} | ${SITE.name}`;
+  return productName;
 };
 
 export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string) => {
@@ -147,7 +147,7 @@ export const buildOffer = (url: string, price?: string) => {
 };
 
 export const buildMetaTitleForBlog = (title: string) => {
-  return `${title} | ${SITE.name} Blog`;
+  return title;
 };
 
 export const buildMetaDescriptionForBlog = (html: string) => {

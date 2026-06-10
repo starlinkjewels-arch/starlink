@@ -91,8 +91,8 @@ const BuyingGuidePage = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <SEOHead
-          title="Jewelry Buying Guide"
-          description="Learn how to buy jewelry like a pro."
+          title="Diamond Jewelry Buying Guide — 4Cs, Certification & Best Value Tips"
+          description="Expert diamond jewelry buying guides from Starlink Jewels. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds and find the best value."
           keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
           canonicalUrl="https://www.starlinkjewels.com/buying-guide"
           breadcrumbs={[
@@ -126,8 +126,8 @@ const BuyingGuidePage = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <SEOHead
-          title="Jewelry Buying Guide"
-          description="Learn how to buy jewelry like a pro."
+          title="Diamond Jewelry Buying Guide — 4Cs, Certification & Best Value Tips"
+          description="Expert diamond jewelry buying guides from Starlink Jewels. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds and find the best value."
           keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
           canonicalUrl="https://www.starlinkjewels.com/buying-guide"
           breadcrumbs={[
@@ -152,10 +152,10 @@ const BuyingGuidePage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={selected ? (selected.metaTitle || `${selected.title} - Buying Guide`) : 'Jewelry Buying Guide'}
+        title={selected ? (selected.metaTitle || `${selected.title} — Expert Diamond Jewelry Guide`) : 'Diamond Jewelry Buying Guide — 4Cs, Certification & Best Value Tips'}
         description={selected
           ? (selected.metaDescription || buildMetaDescriptionFromHtml(selected.content, 160))
-          : 'Comprehensive jewelry buying guides.'}
+          : 'Expert diamond jewelry buying guides from Starlink Jewels. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds and find the best value.'}
         keywords="jewelry buying guide, diamond 4cs"
         canonicalUrl={`https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
         structuredData={structuredData}

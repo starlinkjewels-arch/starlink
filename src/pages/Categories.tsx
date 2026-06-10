@@ -62,8 +62,8 @@ const Categories = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="Jewelry Collections - Diamond Rings, Gold Necklaces, Earrings & Bracelets | Starlink Jewels"
-        description="Explore our curated jewelry collections. Shop premium GIA certified diamond rings, 18K gold necklaces, elegant earrings, platinum bracelets. Best prices, free shipping worldwide."
+        title="Shop Diamond Rings, Gold Necklaces, Earrings & Bracelets — All Collections"
+        description="Browse all certified diamond and gold jewelry collections at Starlink Jewels. GIA & IGI certified engagement rings, wedding bands, necklaces, earrings and bracelets — free insured worldwide shipping."
         keywords="jewelry collections, diamond rings collection, gold necklaces, diamond earrings, bracelets, engagement rings, wedding bands, solitaire rings, tennis bracelets, pearl necklaces, gemstone jewelry, ruby rings, emerald jewelry, sapphire earrings, custom jewelry"
         canonicalUrl="https://www.starlinkjewels.com/categories"
         structuredData={structuredData}

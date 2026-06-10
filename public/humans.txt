@@ -1,0 +1,11 @@
+/* TEAM */
+Company: Starlink Jewels
+Site: https://www.starlinkjewels.com
+Contact: info@starlinkjewels.com
+Location: Surat, Gujarat, India
+
+/* SITE */
+Last update: 2026-06-10
+Language: English
+Doctype: HTML5
+Technology: React, Vite, Firebase, Tailwind CSS

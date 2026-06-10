@@ -83,6 +83,9 @@ Disallow: /admin/
 Disallow: /aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3
 Disallow: /api/
 Disallow: /server/
+Allow: /manifest.json
+Allow: /ads.txt
+Allow: /humans.txt
 Disallow: /*.json$
 Disallow: /private/
 Disallow: /tmp/
@@ -105,7 +108,8 @@ Allow: /*.woff$
 Allow: /*.woff2$
 Allow: /*.avif$
 
-# Sitemap location - Very Important for SEO
+# Sitemap locations - Very Important for SEO
+Sitemap: https://www.starlinkjewels.com/sitemap-index.xml
 Sitemap: https://www.starlinkjewels.com/sitemap.xml
 
 # Host directive for search engines

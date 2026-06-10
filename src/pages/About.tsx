@@ -97,8 +97,8 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="About Us - 11+ Years of Diamond Jewelry Excellence | Starlink Jewels"
-        description="Discover Starlink Jewels - 11+ years of crafting exceptional GIA certified diamond and gold jewelry. Master craftsmanship, ethical sourcing, 50K+ happy clients worldwide. Learn our story."
+        title="GIA Certified Diamond Jewelers Since 2011 — Our Story, Craftsmanship & Values"
+        description="Starlink Jewels has handcrafted premium GIA & IGI certified diamond and gold jewelry since 2011. Ethical sourcing, master craftsmanship, 50,000+ happy clients across USA, Canada, Australia & India."
         keywords="about starlink jewels, jewelry brand story, luxury jewelry heritage, diamond jewelry craftsmanship, GIA certified jeweler, ethical diamond sourcing, custom jewelry makers, best jewelry store India, diamond manufacturer, wholesale jewelry supplier"
         canonicalUrl="https://www.starlinkjewels.com/about"
         structuredData={structuredData}

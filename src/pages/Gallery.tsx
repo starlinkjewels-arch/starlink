@@ -89,8 +89,8 @@ const Gallery = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <SEOHead
-        title="Jewelry Gallery - Diamond & Gold Collection Photos | Starlink Jewels"
-        description="Browse our gallery of exquisite GIA certified diamond jewelry. View stunning engagement rings, gold necklaces, earrings, bracelets. High-quality photos of luxury jewelry pieces."
+        title="Diamond & Gold Jewelry Gallery — Real Photos of Certified Pieces"
+        description="View our gallery of GIA & IGI certified diamond jewelry. Real photos of engagement rings, gold necklaces, diamond earrings and bracelets — each piece crafted to perfection with worldwide delivery."
         keywords="jewelry gallery, diamond jewelry photos, gold jewelry images, engagement ring photos, luxury jewelry collection, diamond necklace gallery, gold earrings photos, jewelry design gallery, real jewelry photos, diamond ring images"
         canonicalUrl="https://www.starlinkjewels.com/gallery"
         structuredData={structuredData}

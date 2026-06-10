@@ -128,7 +128,7 @@ const Blog = () => {
 
   const seoTitle = selectedBlog
     ? (selectedBlog.metaTitle || buildMetaTitleForBlog(selectedBlog.title))
-    : "Jewelry Blog - Diamond Tips, Engagement Ring Guides & Luxury Trends | Starlink Jewels";
+    : "Jewelry Blog — Diamond Buying Tips, Engagement Ring Guides & Luxury Trends";
 
   const seoDescription = selectedBlog
     ? (selectedBlog.metaDescription || buildMetaDescriptionForBlog(selectedBlog.content))
