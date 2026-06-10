@@ -2,8 +2,8 @@
 <browserconfig>
   <msapplication>
     <tile>
-      <square150x150logo src="https://www.starlinkjewels.com/icon.png"/>
-      <square310x310logo src="https://www.starlinkjewels.com/icon.png"/>
+      <square150x150logo src="https://starlinkjewels.com/icon.png"/>
+      <square310x310logo src="https://starlinkjewels.com/icon.png"/>
       <TileColor>#1a1a1a</TileColor>
     </tile>
   </msapplication>

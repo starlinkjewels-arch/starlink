@@ -60,12 +60,12 @@ const BuyingGuidePage = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
-    '@id': `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}#howto`,
+    '@id': `https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}#howto`,
     name: selected?.title || 'Jewelry Buying Guide',
     description: selected?.content
       ? buildMetaDescriptionFromHtml(selected.content, 160)
       : 'Expert advice to help you make the perfect jewelry choice.',
-    mainEntityOfPage: `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`,
+    mainEntityOfPage: `https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`,
   };
 
   const defaultFaqItems = [
@@ -94,10 +94,10 @@ const BuyingGuidePage = () => {
           title="Diamond Jewelry Buying Guide — 4Cs, Certification & Best Value Tips"
           description="Expert diamond jewelry buying guides from Starlink Jewels. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds and find the best value."
           keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
-          canonicalUrl="https://www.starlinkjewels.com/buying-guide"
+          canonicalUrl="https://starlinkjewels.com/buying-guide"
           breadcrumbs={[
-            { name: "Home", url: "https://www.starlinkjewels.com" },
-            { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
+            { name: "Home", url: "https://starlinkjewels.com" },
+            { name: "Buying Guide", url: "https://starlinkjewels.com/buying-guide" },
           ]}
           faqItems={faqItems}
         />
@@ -129,10 +129,10 @@ const BuyingGuidePage = () => {
           title="Diamond Jewelry Buying Guide — 4Cs, Certification & Best Value Tips"
           description="Expert diamond jewelry buying guides from Starlink Jewels. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds and find the best value."
           keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
-          canonicalUrl="https://www.starlinkjewels.com/buying-guide"
+          canonicalUrl="https://starlinkjewels.com/buying-guide"
           breadcrumbs={[
-            { name: "Home", url: "https://www.starlinkjewels.com" },
-            { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
+            { name: "Home", url: "https://starlinkjewels.com" },
+            { name: "Buying Guide", url: "https://starlinkjewels.com/buying-guide" },
           ]}
           faqItems={faqItems}
         />
@@ -157,12 +157,12 @@ const BuyingGuidePage = () => {
           ? (selected.metaDescription || buildMetaDescriptionFromHtml(selected.content, 160))
           : 'Expert diamond jewelry buying guides from Starlink Jewels. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds and find the best value.'}
         keywords="jewelry buying guide, diamond 4cs"
-        canonicalUrl={`https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
+        canonicalUrl={`https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
-          ...(selected ? [{ name: selected.title, url: `https://www.starlinkjewels.com/buying-guide/${selected.slug}` }] : []),
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "Buying Guide", url: "https://starlinkjewels.com/buying-guide" },
+          ...(selected ? [{ name: selected.title, url: `https://starlinkjewels.com/buying-guide/${selected.slug}` }] : []),
         ]}
         faqItems={faqItems}
       />

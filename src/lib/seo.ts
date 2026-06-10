@@ -1,7 +1,7 @@
 export const SITE = {
   name: "Starlink Jewels",
-  url: "https://www.starlinkjewels.com",
-  ogImage: "https://www.starlinkjewels.com/icon.png",
+  url: "https://starlinkjewels.com",
+  ogImage: "https://starlinkjewels.com/icon.png",
   phonePrimary: "+1 (201) 554-4824",
   phoneWhatsApp: "+1 (201) 554-4824",
   email: "info@starlinkjewels.com",

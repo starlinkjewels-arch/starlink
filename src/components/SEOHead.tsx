@@ -233,7 +233,7 @@ const SEOHead = ({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@starlinkjewels" />
       <meta name="twitter:creator" content="@starlinkjewels" />
-      <meta name="twitter:domain" content="www.starlinkjewels.com" />
+      <meta name="twitter:domain" content="starlinkjewels.com" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImageUrl} />

@@ -14,7 +14,7 @@ const firebaseConfig = {
   measurementId: "G-FFTQZDHDDM",
 };
 
-const BASE_URL = "https://www.starlinkjewels.com";
+const BASE_URL = "https://starlinkjewels.com";
 const today = new Date().toISOString().split("T")[0];
 
 const app = initializeApp(firebaseConfig);

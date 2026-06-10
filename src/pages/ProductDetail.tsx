@@ -62,19 +62,19 @@ const ProductDetail = () => {
     ? {
         "@context": "https://schema.org",
         "@type": "Product",
-        "@id": `https://www.starlinkjewels.com/product/${product.id}#product`,
+        "@id": `https://starlinkjewels.com/product/${product.id}#product`,
         name: product.name,
         image: media.length > 0 ? media : undefined,
         description: product.description || `${product.name} from Starlink Jewels`,
         sku: product.id,
         category: category?.name,
-        mainEntityOfPage: `https://www.starlinkjewels.com/product/${product.id}`,
+        mainEntityOfPage: `https://starlinkjewels.com/product/${product.id}`,
         brand: {
           "@type": "Brand",
           name: "Starlink Jewels",
         },
         offers: {
-          ...buildOffer(`https://www.starlinkjewels.com/product/${product.id}`, product.price),
+          ...buildOffer(`https://starlinkjewels.com/product/${product.id}`, product.price),
         },
       }
     : undefined;
@@ -85,7 +85,7 @@ const ProductDetail = () => {
         <SEOHead
           title="Loading Product"
           description="Loading product details."
-          canonicalUrl={`https://www.starlinkjewels.com/product/${id}`}
+          canonicalUrl={`https://starlinkjewels.com/product/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -111,7 +111,7 @@ const ProductDetail = () => {
         <SEOHead
           title="Product Not Found"
           description="The requested product could not be found."
-          canonicalUrl={`https://www.starlinkjewels.com/product/${id}`}
+          canonicalUrl={`https://starlinkjewels.com/product/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -130,13 +130,13 @@ const ProductDetail = () => {
       <SEOHead
         title={product.metaTitle || buildMetaTitleForProduct(product.name)}
         description={product.metaDescription || buildMetaDescriptionForProduct(product.name, category?.name)}
-        canonicalUrl={`https://www.starlinkjewels.com/product/${product.id}`}
+        canonicalUrl={`https://starlinkjewels.com/product/${product.id}`}
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Categories", url: "https://www.starlinkjewels.com/categories" },
-          ...(category ? [{ name: category.name, url: `https://www.starlinkjewels.com/category/${category.id}` }] : []),
-          { name: product.name, url: `https://www.starlinkjewels.com/product/${product.id}` },
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "Categories", url: "https://starlinkjewels.com/categories" },
+          ...(category ? [{ name: category.name, url: `https://starlinkjewels.com/category/${category.id}` }] : []),
+          { name: product.name, url: `https://starlinkjewels.com/product/${product.id}` },
         ]}
         faqItems={product.seoFaq && product.seoFaq.length > 0 ? product.seoFaq : buildFaqForProduct(product.name, category?.name)}
       />

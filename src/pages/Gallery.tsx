@@ -59,13 +59,13 @@ const Gallery = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ImageGallery',
-    '@id': 'https://www.starlinkjewels.com/gallery#imagegallery',
+    '@id': 'https://starlinkjewels.com/gallery#imagegallery',
     name: 'Starlink Jewels Gallery - Diamond & Gold Jewelry Collection',
     description: 'Browse our stunning collection of GIA certified diamond jewelry, engagement rings, gold necklaces, and luxury pieces.',
-    url: 'https://www.starlinkjewels.com/gallery',
+    url: 'https://starlinkjewels.com/gallery',
     image: galleryItems.slice(0, 10).map(item => item.image),
     numberOfItems: galleryItems.length,
-    mainEntityOfPage: 'https://www.starlinkjewels.com/gallery'
+    mainEntityOfPage: 'https://starlinkjewels.com/gallery'
   };
 
   const faqItems = [
@@ -92,11 +92,11 @@ const Gallery = () => {
         title="Diamond & Gold Jewelry Gallery — Real Photos of Certified Pieces"
         description="View our gallery of GIA & IGI certified diamond jewelry. Real photos of engagement rings, gold necklaces, diamond earrings and bracelets — each piece crafted to perfection with worldwide delivery."
         keywords="jewelry gallery, diamond jewelry photos, gold jewelry images, engagement ring photos, luxury jewelry collection, diamond necklace gallery, gold earrings photos, jewelry design gallery, real jewelry photos, diamond ring images"
-        canonicalUrl="https://www.starlinkjewels.com/gallery"
+        canonicalUrl="https://starlinkjewels.com/gallery"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Gallery", url: "https://www.starlinkjewels.com/gallery" },
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "Gallery", url: "https://starlinkjewels.com/gallery" },
         ]}
         faqItems={faqItems}
       />

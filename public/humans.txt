@@ -1,6 +1,6 @@
 /* TEAM */
 Company: Starlink Jewels
-Site: https://www.starlinkjewels.com
+Site: https://starlinkjewels.com
 Contact: info@starlinkjewels.com
 Location: Surat, Gujarat, India
 

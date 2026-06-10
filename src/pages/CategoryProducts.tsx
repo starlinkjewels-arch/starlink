@@ -150,22 +150,22 @@ const CategoryProducts = () => {
   const baseStructuredData = category ? {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': `https://www.starlinkjewels.com/category/${id}#collectionpage`,
+    '@id': `https://starlinkjewels.com/category/${id}#collectionpage`,
     name: `${category.name} - Starlink Jewels`,
     description: category.description || `Shop our ${category.name} collection`,
-    url: `https://www.starlinkjewels.com/category/${id}`,
-    mainEntityOfPage: `https://www.starlinkjewels.com/category/${id}`,
+    url: `https://starlinkjewels.com/category/${id}`,
+    mainEntityOfPage: `https://starlinkjewels.com/category/${id}`,
     mainEntity: {
       '@type': 'ItemList',
-      '@id': `https://www.starlinkjewels.com/category/${id}#itemlist`,
+      '@id': `https://starlinkjewels.com/category/${id}#itemlist`,
       numberOfItems: filteredProducts.length,
       itemListElement: filteredProducts.slice(0, 20).map((p, i) => ({
         '@type': 'ListItem',
-        '@id': `https://www.starlinkjewels.com/category/${id}#listitem-${i + 1}`,
+        '@id': `https://starlinkjewels.com/category/${id}#listitem-${i + 1}`,
         position: i + 1,
         item: {
           '@type': 'Product',
-          '@id': `https://www.starlinkjewels.com/product/${p.id}#product`,
+          '@id': `https://starlinkjewels.com/product/${p.id}#product`,
           name: p.name,
           image: (p.images && p.images.length > 0) ? p.images : [p.image],
           description: p.description || `${p.name} from Starlink Jewels`,
@@ -176,7 +176,7 @@ const CategoryProducts = () => {
             name: 'Starlink Jewels',
           },
           offers: {
-            ...buildOffer(`https://www.starlinkjewels.com/category/${id}?product=${p.id}`, p.price),
+            ...buildOffer(`https://starlinkjewels.com/category/${id}?product=${p.id}`, p.price),
           },
         },
       })),
@@ -189,7 +189,7 @@ const CategoryProducts = () => {
       ? {
           '@context': 'https://schema.org',
           '@type': 'Product',
-          '@id': `https://www.starlinkjewels.com/product/${activeProduct.id}#product`,
+          '@id': `https://starlinkjewels.com/product/${activeProduct.id}#product`,
           name: activeProduct.name,
           image:
             activeProduct.images && activeProduct.images.length > 0
@@ -198,13 +198,13 @@ const CategoryProducts = () => {
           description: activeProduct.description || `${activeProduct.name} from Starlink Jewels`,
           sku: activeProduct.id,
           category: category.name,
-          mainEntityOfPage: `https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
+          mainEntityOfPage: `https://starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
           brand: {
             '@type': 'Brand',
             name: 'Starlink Jewels',
           },
           offers: {
-            ...buildOffer(`https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`, activeProduct.price),
+            ...buildOffer(`https://starlinkjewels.com/category/${id}?product=${activeProduct.id}`, activeProduct.price),
           },
         }
       : undefined;
@@ -266,7 +266,7 @@ const CategoryProducts = () => {
         <SEOHead
           title="Loading Category"
           description="Loading category details."
-          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+          canonicalUrl={`https://starlinkjewels.com/category/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -292,7 +292,7 @@ const CategoryProducts = () => {
         <SEOHead
           title={category ? `Loading ${category.name}` : "Loading Category"}
           description="Loading products."
-          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+          canonicalUrl={`https://starlinkjewels.com/category/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -318,7 +318,7 @@ const CategoryProducts = () => {
         <SEOHead
           title="Category Not Found"
           description="The requested category could not be found."
-          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+          canonicalUrl={`https://starlinkjewels.com/category/${id}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -343,12 +343,12 @@ const CategoryProducts = () => {
         title={seoTitle}
         description={seoDescription}
         keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, gold ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
-        canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+        canonicalUrl={`https://starlinkjewels.com/category/${id}`}
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Categories", url: "https://www.starlinkjewels.com/categories" },
-          { name: category.name, url: `https://www.starlinkjewels.com/category/${id}` },
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "Categories", url: "https://starlinkjewels.com/categories" },
+          { name: category.name, url: `https://starlinkjewels.com/category/${id}` },
         ]}
         faqItems={seoFaqItems || faqItems}
       />

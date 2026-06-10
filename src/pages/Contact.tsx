@@ -51,14 +51,14 @@ const Contact = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    '@id': 'https://www.starlinkjewels.com/contact#contactpage',
+    '@id': 'https://starlinkjewels.com/contact#contactpage',
     name: 'Contact Starlink Jewels - Diamond Jewelry Store',
     description: 'Contact Starlink Jewels for premium diamond jewelry, custom designs, engagement rings, and wholesale inquiries.',
-    url: 'https://www.starlinkjewels.com/contact',
-    mainEntityOfPage: 'https://www.starlinkjewels.com/contact',
+    url: 'https://starlinkjewels.com/contact',
+    mainEntityOfPage: 'https://starlinkjewels.com/contact',
     mainEntity: {
       '@type': 'Organization',
-      '@id': 'https://www.starlinkjewels.com/#jewelry-store',
+      '@id': 'https://starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
       telephone: contactInfo?.phone,
       email: contactInfo?.email,
@@ -94,11 +94,11 @@ const Contact = () => {
         title="Contact Us — Custom Diamond Jewelry Orders, Consultations & WhatsApp Support"
         description="Get in touch with Starlink Jewels for GIA certified diamond jewelry, custom engagement rings, wholesale orders and expert consultations. Offices across India & USA. 24/7 WhatsApp support available."
         keywords="contact starlink jewels, jewelry store contact, diamond jewelry inquiries, custom jewelry design, wholesale diamond jewelry, engagement ring consultation, buy diamonds online, jewelry showroom Mumbai, diamond dealer contact"
-        canonicalUrl="https://www.starlinkjewels.com/contact"
+        canonicalUrl="https://starlinkjewels.com/contact"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Contact", url: "https://www.starlinkjewels.com/contact" },
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "Contact", url: "https://starlinkjewels.com/contact" },
         ]}
         faqItems={faqItems}
       />

@@ -179,7 +179,7 @@ const Index = () => {
         title="Buy Lab Grown & Natural Diamond Jewelry Online"
         description="Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore GIA & IGI certified engagement rings, wedding bands, necklaces, earrings & bracelets. Free worldwide shipping. Best prices guaranteed."
         keywords="lab grown diamond jewelry, natural diamond engagement rings, buy diamond jewelry online, GIA certified diamonds, IGI certified jewelry, gold rings, wedding bands, diamond necklaces, custom jewelry design, luxury jewelry store, worldwide shipping jewelry"
-        canonicalUrl="https://www.starlinkjewels.com"
+        canonicalUrl="https://starlinkjewels.com"
         faqItems={faqItems}
       />
 

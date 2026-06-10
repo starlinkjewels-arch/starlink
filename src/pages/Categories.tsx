@@ -18,24 +18,24 @@ const Categories = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': 'https://www.starlinkjewels.com/categories#collectionpage',
+    '@id': 'https://starlinkjewels.com/categories#collectionpage',
     name: 'Jewelry Collections - Premium Diamond & Gold Jewelry | Starlink Jewels',
     description: 'Explore our premium jewelry collections featuring GIA certified diamonds, gold, platinum rings, necklaces, earrings, and bracelets.',
-    url: 'https://www.starlinkjewels.com/categories',
-    mainEntityOfPage: 'https://www.starlinkjewels.com/categories',
+    url: 'https://starlinkjewels.com/categories',
+    mainEntityOfPage: 'https://starlinkjewels.com/categories',
     mainEntity: {
       '@type': 'ItemList',
-      '@id': 'https://www.starlinkjewels.com/categories#itemlist',
+      '@id': 'https://starlinkjewels.com/categories#itemlist',
       itemListElement: categories.map((cat, index) => ({
         '@type': 'ListItem',
         position: index + 1,
         item: {
           '@type': 'Product',
-          '@id': `https://www.starlinkjewels.com/category/${cat.id}#category`,
+          '@id': `https://starlinkjewels.com/category/${cat.id}#category`,
           name: cat.name,
           description: cat.description,
           image: cat.image,
-          url: `https://www.starlinkjewels.com/category/${cat.id}`
+          url: `https://starlinkjewels.com/category/${cat.id}`
         }
       }))
     }
@@ -65,11 +65,11 @@ const Categories = () => {
         title="Shop Diamond Rings, Gold Necklaces, Earrings & Bracelets — All Collections"
         description="Browse all certified diamond and gold jewelry collections at Starlink Jewels. GIA & IGI certified engagement rings, wedding bands, necklaces, earrings and bracelets — free insured worldwide shipping."
         keywords="jewelry collections, diamond rings collection, gold necklaces, diamond earrings, bracelets, engagement rings, wedding bands, solitaire rings, tennis bracelets, pearl necklaces, gemstone jewelry, ruby rings, emerald jewelry, sapphire earrings, custom jewelry"
-        canonicalUrl="https://www.starlinkjewels.com/categories"
+        canonicalUrl="https://starlinkjewels.com/categories"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Categories", url: "https://www.starlinkjewels.com/categories" },
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "Categories", url: "https://starlinkjewels.com/categories" },
         ]}
         faqItems={faqItems}
       />

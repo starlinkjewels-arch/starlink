@@ -87,7 +87,7 @@ const CountryLanding = () => {
         <SEOHead
           title="Country Page Not Found"
           description="The requested country page could not be found."
-          canonicalUrl={`https://www.starlinkjewels.com/${country || ""}`}
+          canonicalUrl={`https://starlinkjewels.com/${country || ""}`}
         />
         <Header promoHeader={promoHeader} />
         <MiniHeader categories={categories} promoHeight={promoHeight} />
@@ -110,7 +110,7 @@ const CountryLanding = () => {
         title={`Buy Diamond Jewelry in ${config.name} — GIA Certified, Free Insured Worldwide Delivery`}
         description={config.description}
         keywords={config.keywords}
-        canonicalUrl={`https://www.starlinkjewels.com/${config.slug}`}
+        canonicalUrl={`https://starlinkjewels.com/${config.slug}`}
       />
 
       <Header promoHeader={promoHeader} />

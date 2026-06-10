@@ -45,14 +45,14 @@ const About = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    '@id': 'https://www.starlinkjewels.com/about#aboutpage',
+    '@id': 'https://starlinkjewels.com/about#aboutpage',
     name: 'About Starlink Jewels - Premium Diamond Jewelry Since 2011',
     description: 'Learn about Starlink Jewels - a premier luxury jewelry brand with over 29 years of excellence in diamond and gold jewelry craftsmanship.',
-    url: 'https://www.starlinkjewels.com/about',
-    mainEntityOfPage: 'https://www.starlinkjewels.com/about',
+    url: 'https://starlinkjewels.com/about',
+    mainEntityOfPage: 'https://starlinkjewels.com/about',
     mainEntity: {
       '@type': 'Organization',
-      '@id': 'https://www.starlinkjewels.com/#jewelry-store',
+      '@id': 'https://starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
       foundingDate: '2011',
       numberOfEmployees: '50+',
@@ -100,11 +100,11 @@ const About = () => {
         title="GIA Certified Diamond Jewelers Since 2011 — Our Story, Craftsmanship & Values"
         description="Starlink Jewels has handcrafted premium GIA & IGI certified diamond and gold jewelry since 2011. Ethical sourcing, master craftsmanship, 50,000+ happy clients across USA, Canada, Australia & India."
         keywords="about starlink jewels, jewelry brand story, luxury jewelry heritage, diamond jewelry craftsmanship, GIA certified jeweler, ethical diamond sourcing, custom jewelry makers, best jewelry store India, diamond manufacturer, wholesale jewelry supplier"
-        canonicalUrl="https://www.starlinkjewels.com/about"
+        canonicalUrl="https://starlinkjewels.com/about"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "About", url: "https://www.starlinkjewels.com/about" },
+          { name: "Home", url: "https://starlinkjewels.com" },
+          { name: "About", url: "https://starlinkjewels.com/about" },
         ]}
         faqItems={faqItems}
       />
