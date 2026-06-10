@@ -176,9 +176,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="Premium Diamond & Gold Jewelry | Lab Grown & Natural Diamonds | Starlink Jewels"
-        description="Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore GIA certified engagement rings, wedding bands, necklaces, earrings & bracelets. Free worldwide shipping. Best prices guaranteed."
-        keywords="diamond jewelry, gold rings, engagement rings, wedding bands, lab grown diamonds, natural diamonds, certified jewelry, luxury jewelry store, GIA certified diamonds, platinum rings, solitaire rings, diamond necklaces, gold earrings, diamond bracelets, custom jewelry design, wholesale diamond jewelry, buy diamonds online, best diamond jewelry store, affordable diamond rings, diamond jewelry Mumbai India"
+        title="Buy Lab Grown & Natural Diamond Jewelry Online"
+        description="Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore GIA & IGI certified engagement rings, wedding bands, necklaces, earrings & bracelets. Free worldwide shipping. Best prices guaranteed."
+        keywords="lab grown diamond jewelry, natural diamond engagement rings, buy diamond jewelry online, GIA certified diamonds, IGI certified jewelry, gold rings, wedding bands, diamond necklaces, custom jewelry design, luxury jewelry store, worldwide shipping jewelry"
         canonicalUrl="https://www.starlinkjewels.com"
         faqItems={faqItems}
       />

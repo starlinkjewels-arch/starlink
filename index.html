@@ -9,9 +9,9 @@
   <title>Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online</title>
   <meta name="title" content="Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online">
   <meta name="description"
-    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop certified engagement rings, necklaces & custom designs with worldwide shipping.">
+    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.">
   <meta name="keywords"
-    content="diamond jewelry, gold rings, engagement rings, wedding bands, lab grown diamonds, natural diamonds, certified jewelry, luxury jewelry store, GIA certified, IGI certified, diamond necklaces, gold bracelets, platinum rings, solitaire rings, diamond earrings, custom jewelry, bridal jewelry">
+    content="lab grown diamond jewelry, natural diamond engagement rings, buy diamond jewelry online, GIA certified diamonds, IGI certified jewelry, gold rings, wedding bands, diamond necklaces, custom jewelry design, luxury jewelry store, worldwide shipping jewelry">
   <meta name="author" content="Starlink Jewels">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow">
@@ -28,9 +28,12 @@
   <meta name="geo.position" content="21.1702;72.8311">
   <meta name="ICBM" content="21.1702, 72.8311">
 
-  <!-- Canonical -->
+  <!-- Canonical & Sitemap -->
   <link rel="canonical" href="https://www.starlinkjewels.com/">
   <link rel="sitemap" type="application/xml" title="Sitemap" href="https://www.starlinkjewels.com/sitemap.xml">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/manifest.json">
 
   <!-- Preconnect for Performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,12 +51,13 @@
   <meta property="og:url" content="https://www.starlinkjewels.com/">
   <meta property="og:title" content="Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online">
   <meta property="og:description"
-    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop certified engagement rings, necklaces & custom designs with worldwide shipping.">
+    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.">
   <meta property="og:image" content="https://www.starlinkjewels.com/icon.png">
   <meta property="og:image:secure_url" content="https://www.starlinkjewels.com/icon.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Starlink Jewels - Premium Diamond Jewelry">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:site_name" content="Starlink Jewels">
   <meta property="og:locale" content="en_US">
 
@@ -64,7 +68,7 @@
   <meta name="twitter:url" content="https://www.starlinkjewels.com/">
   <meta name="twitter:title" content="Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online">
   <meta name="twitter:description"
-    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop certified engagement rings, necklaces & custom designs with worldwide shipping.">
+    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.">
   <meta name="twitter:image" content="https://www.starlinkjewels.com/icon.png">
   <meta name="twitter:image:alt" content="Starlink Jewels - Premium Diamond Jewelry">
 
@@ -88,95 +92,127 @@
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="./icon.png">
   <link rel="shortcut icon" href="./icon.png">
-  <!-- Google tag (gtag.js) -->
+
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2DR5L2HL09"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-
     gtag('config', 'G-2DR5L2HL09');
   </script>
-  <!-- Structured Data - Organization / LocalBusiness -->
+
+  <!-- Structured Data — single @graph block (recommended by Google) -->
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "JewelryStore",
-      "@id": "https://www.starlinkjewels.com/#jewelry-store",
-      "name": "Starlink Jewels",
-      "alternateName": "Starlink Jewels",
-      "url": "https://www.starlinkjewels.com",
-      "logo": "https://www.starlinkjewels.com/icon.png",
-      "image": "https://www.starlinkjewels.com/icon.png",
-      "description": "Premium diamond and gold jewelry store offering certified lab-grown and natural diamonds, engagement rings, wedding bands, and custom jewelry designs.",
-      "priceRange": "$$$",
-      "telephone": "+91+1 (201) 554-4824",
-      "email": "info@starlinkjewels.com",
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "IN",
-        "addressRegion": "Gujarat",
-        "addressLocality": "Surat"
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "JewelryStore",
+        "@id": "https://www.starlinkjewels.com/#jewelry-store",
+        "name": "Starlink Jewels",
+        "alternateName": "Starlink Jewels",
+        "url": "https://www.starlinkjewels.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.starlinkjewels.com/icon.png",
+          "width": 512,
+          "height": 512
+        },
+        "image": "https://www.starlinkjewels.com/icon.png",
+        "description": "Premium diamond and gold jewelry store offering certified lab-grown and natural diamonds, engagement rings, wedding bands, and custom jewelry designs.",
+        "email": "info@starlinkjewels.com",
+        "priceRange": "$$$",
+        "currenciesAccepted": "USD, INR, AUD, CAD, EUR, GBP",
+        "paymentAccepted": "Credit Card, Bank Transfer, Wire Transfer",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "IN",
+          "addressRegion": "Gujarat",
+          "addressLocality": "Surat"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": "21.1702",
+          "longitude": "72.8311"
+        },
+        "location": {
+          "@type": "Place",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "55 John St",
+            "addressLocality": "East Rutherford",
+            "addressRegion": "NJ",
+            "postalCode": "07073",
+            "addressCountry": "US"
+          }
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+            "opens": "09:00",
+            "closes": "19:00"
+          }
+        ],
+        "areaServed": ["US","CA","AU","DE","GB","IN"],
+        "sameAs": [
+          "https://instagram.com/starlinkjewels",
+          "https://facebook.com/starlinkjewels",
+          "https://pinterest.com/starlinkjewels"
+        ],
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "telephone": "+1 (201) 554-4824",
+            "email": "info@starlinkjewels.com",
+            "contactType": "sales",
+            "areaServed": ["US","CA","AU","DE","GB","IN"],
+            "availableLanguage": ["English"]
+          },
+          {
+            "@type": "ContactPoint",
+            "telephone": "+1 (201) 554-4824",
+            "contactType": "customer support",
+            "contactOption": "TollFree",
+            "areaServed": ["US","CA","AU","DE","GB","IN"],
+            "availableLanguage": ["English"]
+          }
+        ]
       },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": "21.1702",
-        "longitude": "72.8311"
-      },
-      "areaServed": ["US", "CA", "AU", "DE", "GB", "IN"],
-      "sameAs": [
-        "https://instagram.com/starlinkjewels",
-        "https://facebook.com/starlinkjewels",
-        "https://pinterest.com/starlinkjewels"
-      ],
-      "contactPoint": [
-        {
-          "@type": "ContactPoint",
-          "telephone": "+91+1 (201) 554-4824",
-          "contactType": "sales",
-          "areaServed": ["US", "CA", "AU", "DE", "GB", "IN"],
-          "availableLanguage": ["English"]
+      {
+        "@type": "WebSite",
+        "@id": "https://www.starlinkjewels.com/#website",
+        "name": "Starlink Jewels",
+        "url": "https://www.starlinkjewels.com",
+        "publisher": {
+          "@id": "https://www.starlinkjewels.com/#jewelry-store"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://www.starlinkjewels.com/categories?search={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
         }
-      ]
-    }
-    </script>
-
-  <!-- Structured Data - WebSite -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "@id": "https://www.starlinkjewels.com/#website",
-      "name": "Starlink Jewels",
-      "url": "https://www.starlinkjewels.com",
-      "publisher": {
-        "@id": "https://www.starlinkjewels.com/#jewelry-store"
       },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://www.starlinkjewels.com/categories?search={search_term_string}",
-        "query-input": "required name=search_term_string"
+      {
+        "@type": "WebPage",
+        "@id": "https://www.starlinkjewels.com/#webpage",
+        "name": "Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online",
+        "url": "https://www.starlinkjewels.com/",
+        "description": "Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.",
+        "isPartOf": {
+          "@id": "https://www.starlinkjewels.com/#website"
+        },
+        "publisher": {
+          "@id": "https://www.starlinkjewels.com/#jewelry-store"
+        },
+        "inLanguage": "en"
       }
-    }
-    </script>
-
-  <!-- Structured Data - WebPage -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      "@id": "https://www.starlinkjewels.com/#webpage",
-      "name": "Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online",
-      "url": "https://www.starlinkjewels.com/",
-      "description": "Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop certified engagement rings, necklaces & custom designs with worldwide shipping.",
-      "isPartOf": {
-        "@id": "https://www.starlinkjewels.com/#website"
-      },
-      "publisher": {
-        "@id": "https://www.starlinkjewels.com/#jewelry-store"
-      },
-      "inLanguage": "en"
-    }
+    ]
+  }
   </script>
 </head>
 

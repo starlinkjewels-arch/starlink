@@ -11,6 +11,7 @@ interface SEOHeadProps {
   structuredData?: object | object[];
   faqItems?: Array<{ question: string; answer: string }>;
   breadcrumbs?: Array<{ name: string; url: string }>;
+  noIndex?: boolean;
 }
 
 const SEOHead = ({
@@ -23,29 +24,41 @@ const SEOHead = ({
   structuredData,
   faqItems,
   breadcrumbs,
+  noIndex = false,
 }: SEOHeadProps) => {
   const siteName = SITE.name;
   const fullTitle = `${title} | ${siteName}`;
   const baseUrl = SITE.url;
   const pageUrl = canonicalUrl || baseUrl;
   const metaKeywords = keywords || buildKeywords();
+  const ogImageUrl = ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`;
 
-  const defaultStructuredData = {
-    "@context": "https://schema.org",
+  const jewelryStoreSchema = {
     "@type": "JewelryStore",
     "@id": `${baseUrl}/#jewelry-store`,
     name: siteName,
     description:
       "Premium diamond and gold jewelry store offering certified lab-grown and natural diamonds, engagement rings, wedding bands, and custom jewelry designs.",
     url: baseUrl,
-    logo: SITE.ogImage,
+    logo: {
+      "@type": "ImageObject",
+      url: SITE.ogImage,
+      width: 512,
+      height: 512,
+    },
     image: SITE.ogImage,
+    email: SITE.email,
     priceRange: "$$$",
     address: {
       "@type": "PostalAddress",
       addressCountry: SITE.addressIndia.country,
       addressRegion: SITE.addressIndia.region,
       addressLocality: SITE.addressIndia.locality,
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: "21.1702",
+      longitude: "72.8311",
     },
     location: {
       "@type": "Place",
@@ -58,10 +71,19 @@ const SEOHead = ({
         addressCountry: SITE.addressUsa.country,
       },
     },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        opens: "09:00",
+        closes: "19:00",
+      },
+    ],
     contactPoint: [
       {
         "@type": "ContactPoint",
         telephone: SITE.phonePrimary,
+        email: SITE.email,
         contactType: "sales",
         areaServed: SITE.areaServed,
         availableLanguage: ["English"],
@@ -70,16 +92,18 @@ const SEOHead = ({
         "@type": "ContactPoint",
         telephone: SITE.phoneWhatsApp,
         contactType: "customer support",
+        contactOption: "TollFree",
         areaServed: SITE.areaServed,
         availableLanguage: ["English"],
       },
     ],
     areaServed: SITE.areaServed,
+    currenciesAccepted: "USD, INR, AUD, CAD, EUR, GBP",
+    paymentAccepted: "Credit Card, Bank Transfer, Wire Transfer",
     sameAs: [...SITE.sameAs],
   };
 
-  const webSiteStructuredData = {
-    "@context": "https://schema.org",
+  const webSiteSchema = {
     "@type": "WebSite",
     "@id": `${baseUrl}/#website`,
     name: siteName,
@@ -89,13 +113,15 @@ const SEOHead = ({
     },
     potentialAction: {
       "@type": "SearchAction",
-      target: `${baseUrl}/categories?search={search_term_string}`,
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${baseUrl}/categories?search={search_term_string}`,
+      },
       "query-input": "required name=search_term_string",
     },
   };
 
-  const webPageStructuredData = {
-    "@context": "https://schema.org",
+  const webPageSchema = {
     "@type": "WebPage",
     "@id": `${pageUrl}#webpage`,
     name: fullTitle,
@@ -103,63 +129,58 @@ const SEOHead = ({
     url: pageUrl,
     inLanguage: "en",
     isPartOf: {
-      "@type": "WebSite",
-      name: siteName,
-      url: baseUrl,
+      "@id": `${baseUrl}/#website`,
     },
     publisher: {
       "@id": `${baseUrl}/#jewelry-store`,
     },
+    breadcrumb: breadcrumbs && breadcrumbs.length > 0
+      ? { "@id": `${pageUrl}#breadcrumb` }
+      : undefined,
   };
 
-  const breadcrumbStructuredData =
-    breadcrumbs && breadcrumbs.length > 0
-      ? {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          "@id": `${pageUrl}#breadcrumb`,
-          itemListElement: breadcrumbs.map((b, idx) => ({
-            "@type": "ListItem",
-            position: idx + 1,
-            name: b.name,
-            item: b.url,
-          })),
-        }
-      : null;
+  const graphItems: object[] = [jewelryStoreSchema, webSiteSchema, webPageSchema];
 
-  const faqStructuredData =
-    faqItems && faqItems.length > 0
-      ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "@id": `${pageUrl}#faq`,
-          mainEntity: faqItems.map((f) => ({
-            "@type": "Question",
-            name: f.question,
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: f.answer,
-            },
-          })),
-        }
-      : null;
+  if (breadcrumbs && breadcrumbs.length > 0) {
+    graphItems.push({
+      "@type": "BreadcrumbList",
+      "@id": `${pageUrl}#breadcrumb`,
+      itemListElement: breadcrumbs.map((b, idx) => ({
+        "@type": "ListItem",
+        position: idx + 1,
+        name: b.name,
+        item: b.url,
+      })),
+    });
+  }
 
-  const structuredList: object[] = [
-    defaultStructuredData,
-    webSiteStructuredData,
-    webPageStructuredData,
-  ];
-
-  if (breadcrumbStructuredData) structuredList.push(breadcrumbStructuredData);
-  if (faqStructuredData) structuredList.push(faqStructuredData);
+  if (faqItems && faqItems.length > 0) {
+    graphItems.push({
+      "@type": "FAQPage",
+      "@id": `${pageUrl}#faq`,
+      mainEntity: faqItems.map((f) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: f.answer,
+        },
+      })),
+    });
+  }
 
   if (structuredData) {
     if (Array.isArray(structuredData)) {
-      structuredList.push(...structuredData);
+      graphItems.push(...structuredData);
     } else {
-      structuredList.push(structuredData);
+      graphItems.push(structuredData);
     }
   }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": graphItems,
+  };
 
   return (
     <Helmet>
@@ -169,10 +190,14 @@ const SEOHead = ({
       <meta name="keywords" content={metaKeywords} />
       <meta
         name="robots"
-        content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        content={
+          noIndex
+            ? "noindex, nofollow"
+            : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        }
       />
-      <meta name="googlebot" content="index, follow" />
-      <meta name="bingbot" content="index, follow" />
+      <meta name="googlebot" content={noIndex ? "noindex, nofollow" : "index, follow"} />
+      <meta name="bingbot" content={noIndex ? "noindex, nofollow" : "index, follow"} />
       <meta name="language" content="English" />
       <meta name="author" content={siteName} />
       <meta name="publisher" content={siteName} />
@@ -193,17 +218,12 @@ const SEOHead = ({
       <meta property="og:site_name" content={siteName} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
-      <meta
-        property="og:image"
-        content={ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`}
-      />
-      <meta
-        property="og:image:secure_url"
-        content={ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`}
-      />
+      <meta property="og:image" content={ogImageUrl} />
+      <meta property="og:image:secure_url" content={ogImageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={title} />
+      <meta property="og:image:type" content="image/png" />
       <meta property="og:locale" content="en_US" />
       <meta property="og:locale:alternate" content="en_GB" />
       <meta property="og:locale:alternate" content="en_CA" />
@@ -216,10 +236,7 @@ const SEOHead = ({
       <meta name="twitter:domain" content="www.starlinkjewels.com" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
-      <meta
-        name="twitter:image"
-        content={ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`}
-      />
+      <meta name="twitter:image" content={ogImageUrl} />
       <meta name="twitter:image:alt" content={title} />
 
       <meta name="pinterest-rich-pin" content="true" />
@@ -232,11 +249,7 @@ const SEOHead = ({
       <meta name="msapplication-TileColor" content="#1a1a1a" />
       <meta name="theme-color" content="#1a1a1a" />
 
-      {structuredList.map((schema, idx) => (
-        <script key={idx} type="application/ld+json">
-          {JSON.stringify(schema)}
-        </script>
-      ))}
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     </Helmet>
   );
 };

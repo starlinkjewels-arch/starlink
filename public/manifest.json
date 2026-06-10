@@ -1,0 +1,21 @@
+{
+  "name": "Starlink Jewels",
+  "short_name": "Starlink Jewels",
+  "description": "Premium Diamond & Gold Jewelry — Lab Grown & Natural Diamonds with worldwide shipping.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
