@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -90,7 +91,7 @@ const Categories = () => {
               <Link key={category.id} to={`/category/${category.id}`} className="group">
                 <Card className="overflow-hidden hover-lift h-full">
                   <div className="aspect-[4/3] overflow-hidden bg-muted">
-                    <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" decoding="async" fetchpriority="low" />
+                    <OptimizedImage src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" wrapperClassName="w-full h-full" />
                   </div>
                   <CardContent className="p-6">
                     <h2 className="font-semibold text-2xl mb-2 group-hover:text-primary transition-colors">{category.name}</h2>

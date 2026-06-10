@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getFeaturedCollection, saveFeaturedItem, deleteFeaturedItem, FeaturedCollection, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,7 +135,7 @@ const AdminFeaturedCollection = () => {
               onChange={handleImageUpload}
             />
             {image && (
-              <img src={image} alt="Preview" className="h-32 w-auto rounded-lg mt-2" />
+              <OptimizedImage src={image} alt="Preview" className="h-32 w-auto object-cover" wrapperClassName="inline-block rounded-lg mt-2" />
             )}
           </div>
           <div className="flex gap-2">
@@ -154,7 +155,7 @@ const AdminFeaturedCollection = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {items.map((item) => (
           <Card key={item.id}>
-            <img src={item.image} alt={item.title} className="w-full h-48 object-cover" />
+            <OptimizedImage src={item.image} alt={item.title} className="w-full h-48 object-cover" wrapperClassName="w-full" />
             <CardContent className="p-4">
               <h3 className="font-semibold mb-2">{item.title}</h3>
               <p className="text-sm text-muted-foreground mb-4">{item.description}</p>

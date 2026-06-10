@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -135,13 +136,11 @@ const Gallery = () => {
                 <div className="relative overflow-hidden rounded-lg bg-white border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
                   {/* Image Container */}
                   <div className="aspect-square overflow-hidden bg-gray-50">
-                    <img 
-                      src={item.image} 
-                      alt={item.description || 'Luxury Jewelry'} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                      loading="lazy"
-                      decoding="async"
-                      fetchpriority="low"
+                    <OptimizedImage
+                      src={item.image}
+                      alt={item.description || 'Luxury Jewelry'}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      wrapperClassName="w-full h-full"
                     />
                   </div>
 
@@ -222,13 +221,11 @@ const Gallery = () => {
                 )}
 
                 {/* Image */}
-                <img 
-                  src={galleryItems[selectedIndex].image} 
-                  alt={galleryItems[selectedIndex].description || 'Gallery image'} 
+                <OptimizedImage
+                  src={galleryItems[selectedIndex].image}
+                  alt={galleryItems[selectedIndex].description || 'Gallery image'}
                   className="w-full h-auto max-h-[70vh] object-contain"
-                  loading="eager"
-                  decoding="async"
-                  fetchpriority="high"
+                  wrapperClassName="w-full"
                 />
               </div>
 

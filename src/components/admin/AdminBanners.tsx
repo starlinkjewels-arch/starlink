@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getBanners, saveBanner, deleteBanner, Banner, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -192,7 +193,7 @@ const AdminBanners = () => {
                 {mediaType === 'video' ? (
                   <video src={image} className="h-32 w-auto rounded-lg" controls />
                 ) : (
-                  <img src={image} alt="Preview" className="h-32 w-auto rounded-lg" />
+                  <OptimizedImage src={image} alt="Preview" className="h-32 w-auto rounded-lg object-cover" wrapperClassName="inline-block rounded-lg" />
                 )}
                 <p className="text-sm text-muted-foreground mt-1">Type: {mediaType}</p>
               </div>
@@ -221,7 +222,7 @@ const AdminBanners = () => {
             {banner.mediaType === 'video' ? (
               <video src={banner.image} className="w-full h-48 object-cover" controls />
             ) : (
-              <img src={banner.image} alt={banner.title} className="w-full h-48 object-cover" />
+              <OptimizedImage src={banner.image} alt={banner.title} className="w-full h-48 object-cover" wrapperClassName="w-full" />
             )}
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">

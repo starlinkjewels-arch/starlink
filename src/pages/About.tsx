@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -171,7 +172,7 @@ const About = () => {
                   logo4,
                 ].map((src, i) => (
                   <div key={i} className={`story-image aspect-square rounded-2xl overflow-hidden shadow-xl ${i % 2 === 1 ? 'mt-8' : ''}`}>
-                    <img src={src} alt="Jewelry craftsmanship" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" fetchpriority="low" />
+                    <OptimizedImage src={src} alt="Jewelry craftsmanship" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" wrapperClassName="w-full h-full" />
                   </div>
                 ))}
               </div>

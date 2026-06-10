@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getProducts, saveProduct, deleteProduct, getCategories, Product, Category, uploadImageToStorage, getProductCategoryIds } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -502,10 +503,11 @@ const AdminProducts = () => {
                           </div>
                         </div>
                       ) : (
-                        <img
+                        <OptimizedImage
                           src={media.url}
                           alt={`Media ${index + 1}`}
                           className="w-full h-full object-cover"
+                          wrapperClassName="w-full h-full"
                           draggable={false}
                         />
                       )}
@@ -687,10 +689,11 @@ const AdminProducts = () => {
                     </div>
                   </div>
                 ) : (
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    className="w-full h-full object-cover" 
+                  <OptimizedImage
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    wrapperClassName="w-full h-full"
                   />
                 )}
                 

@@ -5,6 +5,7 @@ import WhatsAppButton from './WhatsAppButton';
 import { Images, Play } from 'lucide-react';
 import { preloadMedia } from '@/lib/preload';
 import { stripHtml } from '@/lib/seo';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 interface ProductCardProps {
   product: Product;
@@ -116,25 +117,29 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
           </div>
         ) : (
           <div className="relative w-full h-full">
-            <img
-              src={primaryMedia}
-              alt={product.name}
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150"
-              loading="lazy"
-              decoding="async"
-              fetchpriority="low"
+            <div
+              className="absolute inset-0 transition-opacity duration-150"
               style={{ opacity: isHovered && isSecondaryImage ? 0 : 1 }}
-            />
-            {secondaryMedia && isSecondaryImage && (
-              <img
-                src={secondaryMedia}
+            >
+              <OptimizedImage
+                src={primaryMedia}
                 alt={product.name}
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150"
-                loading="lazy"
-                decoding="async"
-                fetchpriority="low"
-                style={{ opacity: isHovered ? 1 : 0 }}
+                className="w-full h-full object-cover"
+                wrapperClassName="w-full h-full"
               />
+            </div>
+            {secondaryMedia && isSecondaryImage && (
+              <div
+                className="absolute inset-0 transition-opacity duration-150"
+                style={{ opacity: isHovered ? 1 : 0 }}
+              >
+                <OptimizedImage
+                  src={secondaryMedia}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  wrapperClassName="w-full h-full"
+                />
+              </div>
             )}
           </div>
         )}

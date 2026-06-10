@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getBlogs, saveBlog, deleteBlog, BlogPost, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -275,7 +276,7 @@ const AdminBlogs = () => {
               />
               {thumbnail && (
                 <div className="relative">
-                  <img src={thumbnail} alt="Thumbnail Preview" className="h-32 w-32 object-cover rounded-lg mt-2" />
+                  <OptimizedImage src={thumbnail} alt="Thumbnail Preview" className="h-32 w-32 object-cover" wrapperClassName="inline-block rounded-lg mt-2" />
                   <span className="absolute top-4 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
                     Thumbnail
                   </span>
@@ -294,7 +295,7 @@ const AdminBlogs = () => {
               />
               {image && (
                 <div className="relative">
-                  <img src={image} alt="Featured Preview" className="h-32 w-auto rounded-lg mt-2" />
+                  <OptimizedImage src={image} alt="Featured Preview" className="h-32 w-auto object-cover" wrapperClassName="inline-block rounded-lg mt-2" />
                   <span className="absolute top-4 left-2 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">
                     Featured
                   </span>
@@ -321,7 +322,7 @@ const AdminBlogs = () => {
         {blogs.map((blog) => (
           <Card key={blog.id} className="overflow-hidden">
             <div className="relative">
-              <img src={blog.thumbnail || blog.image} alt={blog.title} className="w-full h-48 object-cover" />
+              <OptimizedImage src={blog.thumbnail || blog.image} alt={blog.title} className="w-full h-48 object-cover" wrapperClassName="w-full" />
               {blog.thumbnail && (
                 <span className="absolute top-2 right-2 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded flex items-center gap-1">
                   <Image className="h-3 w-3" />

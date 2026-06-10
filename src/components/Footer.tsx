@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 import logo from '@/assets/starlink-logo-full.png';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { useAppSelector } from "@/store/hooks";
 import { selectGlobalData } from "@/store/contentSlice";
 import Zelle from '@/assets/paylogo/Zelle_(payment_service)-Logo.wine.png';
@@ -55,14 +56,12 @@ const Footer = () => {
               {/* <span className="text-white-300 whitespace-nowrap font-semibold">Trusted By</span> */}
               <div className="flex items-center gap-3 flex-wrap justify-center lg:justify-end">
                 {trustedBadges.map((method) => (
-                  <img
+                  <OptimizedImage
                     key={method.name}
                     src={method.logo}
                     alt={method.name}
-                    className="h-20 w-20 rounded-full object-contain bg-white/20 p-0.5 shadow-sm"
-                    loading="lazy"
-                    decoding="async"
-                    fetchpriority="low"
+                    className="h-20 w-20 object-contain p-0.5"
+                    wrapperClassName="rounded-full bg-white/20 shadow-sm h-20 w-20"
                     title={method.name}
                   />
                 ))}
@@ -71,13 +70,11 @@ const Footer = () => {
 
             {/* Center: Brand Logo */}
             <div className="flex justify-center lg:justify-center">
-              <img
+              <OptimizedImage
                 src={logo}
                 alt="Starlink Jewels"
-                className="h-20 w-auto mx-auto p-1 object-contain"
-                loading="lazy"
-                decoding="async"
-                fetchpriority="low"
+                className="h-20 w-auto p-1 object-contain"
+                wrapperClassName="mx-auto"
               />
             </div>
 
@@ -86,14 +83,12 @@ const Footer = () => {
               {/* <span className="text-white-300 whitespace-nowrap font-semibold">Easy Payment</span> */}
               <div className="flex items-center gap-3 flex-wrap justify-center lg:justify-end">
                 {paymentMethods.map((method) => (
-                  <img
+                  <OptimizedImage
                     key={method.name}
                     src={method.logo}
                     alt={method.name}
-                    className="h-20 w-20 rounded-full object-contain bg-white/20 p-0.5 shadow-sm"
-                    loading="lazy"
-                    decoding="async"
-                    fetchpriority="low"
+                    className="h-20 w-20 object-contain p-0.5"
+                    wrapperClassName="rounded-full bg-white/20 shadow-sm h-20 w-20"
                     title={method.name}
                   />
                 ))}
@@ -106,7 +101,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <img src={logo} alt="Starlink Jewels" className="h-20 w-auto" loading="lazy" decoding="async" fetchpriority="low" />
+            <OptimizedImage src={logo} alt="Starlink Jewels" className="h-20 w-auto" />
             <p className="text-sm text-muted-foreground">
               Discover Exquisite Lab-Lrown and Natural Diamond Jewelry. Premium Luxury Collections
               for Every Occasion.

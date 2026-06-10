@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -120,7 +121,7 @@ const Contact = () => {
                     <CardContent className="p-6 space-y-4">
                       <div className="flex items-start gap-3">
                         {office.flagImage ? (
-                          <img src={office.flagImage} alt={`${office.country} flag`} className="w-12 h-8 object-cover rounded border flex-shrink-0" loading="lazy" decoding="async" fetchpriority="low" />
+                          <OptimizedImage src={office.flagImage} alt={`${office.country} flag`} className="w-12 h-8 object-cover" wrapperClassName="rounded border flex-shrink-0 w-12 h-8" />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Flag className="h-6 w-6 text-primary" /></div>
                         )}

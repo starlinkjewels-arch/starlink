@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getOffices, saveOffice, deleteOffice, Office, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -229,10 +230,11 @@ const AdminOffices = () => {
             </div>
             {flagImage && (
               <div className="mt-2 flex items-center gap-3">
-                <img
+                <OptimizedImage
                   src={flagImage}
                   alt="Country flag preview"
-                  className="h-8 w-12 object-cover rounded border"
+                  className="h-8 w-12 object-cover"
+                  wrapperClassName="rounded border h-8 w-12"
                 />
                 <Button
                   variant="ghost"
@@ -296,10 +298,11 @@ const AdminOffices = () => {
               <CardContent className="p-6 space-y-3">
                 <div className="flex items-start gap-2">
                   {office.flagImage ? (
-                    <img
+                    <OptimizedImage
                       src={office.flagImage}
                       alt={`${office.country} flag`}
-                      className="w-8 h-6 object-cover rounded border flex-shrink-0 mt-1"
+                      className="w-8 h-6 object-cover"
+                      wrapperClassName="rounded border flex-shrink-0 mt-1 w-8 h-6"
                     />
                   ) : (
                     <Flag className="h-5 w-5 text-primary mt-1 flex-shrink-0" />

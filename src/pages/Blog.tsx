@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -192,13 +193,11 @@ const Blog = () => {
                   onClick={() => handleBlogClick(blog)}
                 >
                   <div className="aspect-square overflow-hidden bg-muted">
-                    <img 
-                      src={blog.thumbnail || blog.image} 
-                      alt={blog.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      loading="lazy"
-                      decoding="async"
-                      fetchpriority="low"
+                    <OptimizedImage
+                      src={blog.thumbnail || blog.image}
+                      alt={blog.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      wrapperClassName="w-full h-full"
                     />
                   </div>
                   <CardContent className="p-4">
@@ -229,7 +228,7 @@ const Blog = () => {
                   className="rounded-xl border bg-card/50 p-3 text-center hover:bg-card transition-colors"
                 >
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
-                    <img src={category.image} alt={category.name} className="w-full h-full object-cover" loading="lazy" decoding="async" fetchpriority="low" />
+                    <OptimizedImage src={category.image} alt={category.name} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
                   </div>
                   <p className="text-sm font-semibold">Shop {category.name} Jewelry</p>
                 </Link>

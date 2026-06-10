@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getCategories, saveCategory, deleteCategory, Category, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -206,7 +207,7 @@ const AdminCategories = () => {
               onChange={handleImageUpload}
             />
             {image && (
-              <img src={image} alt="Preview" className="h-32 w-auto rounded-lg mt-2" />
+              <OptimizedImage src={image} alt="Preview" className="h-32 w-auto object-cover" wrapperClassName="inline-block rounded-lg mt-2" />
             )}
           </div>
           <div className="flex gap-2">
@@ -229,7 +230,7 @@ const AdminCategories = () => {
             <span className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
               #{category.priority || '-'}
             </span>
-            <img src={category.image} alt={category.name} className="w-full h-48 object-cover" />
+            <OptimizedImage src={category.image} alt={category.name} className="w-full h-48 object-cover" wrapperClassName="w-full" />
             <CardContent className="p-4">
               <h3 className="font-semibold mb-2">{category.name}</h3>
               <p className="text-sm text-muted-foreground mb-4">{category.description}</p>

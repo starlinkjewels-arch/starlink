@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import Header from "@/components/Header";
 import MiniHeader from "@/components/MiniHeader";
 import Footer from "@/components/Footer";
@@ -151,13 +152,11 @@ const ProductDetail = () => {
                 <video src={currentMedia} className="w-full h-full object-cover" controls />
               ) : (
                 currentMedia && (
-                  <img
+                  <OptimizedImage
                     src={currentMedia}
                     alt={product.name}
                     className="w-full h-full object-cover"
-                    loading="eager"
-                    decoding="async"
-                    fetchpriority="high"
+                    wrapperClassName="w-full h-full"
                   />
                 )
               )}
@@ -191,13 +190,11 @@ const ProductDetail = () => {
                     {getMediaType(item) === "video" ? (
                       <video src={item} className="w-full h-full object-cover" muted />
                     ) : (
-                      <img
+                      <OptimizedImage
                         src={item}
                         alt={`${product.name} ${i + 1}`}
                         className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                        fetchpriority="low"
+                        wrapperClassName="w-full h-full"
                       />
                     )}
                   </button>

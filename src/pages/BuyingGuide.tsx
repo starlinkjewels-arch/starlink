@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from 'react-router-dom';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { BuyingGuide } from "@/lib/buyingGuides";
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -193,13 +194,11 @@ const BuyingGuidePage = () => {
             {selected ? (
               <div className="bg-card rounded-2xl shadow-sm border overflow-hidden">
                 {selected.image && (
-                  <img
+                  <OptimizedImage
                     src={selected.image}
                     alt={selected.title}
                     className="w-full h-96 md:h-[500px] object-cover"
-                    loading="eager"
-                    decoding="async"
-                    fetchpriority="high"
+                    wrapperClassName="w-full"
                   />
                 )}
                 <div className="p-8 md:p-12">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
@@ -418,7 +419,7 @@ const CategoryProducts = () => {
                   className="group rounded-xl border bg-card/50 hover:bg-card transition-all p-3 text-center"
                 >
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
-                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" fetchpriority="low" />
+                    <OptimizedImage src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" wrapperClassName="w-full h-full" />
                   </div>
                   <span className="text-sm font-semibold block">Shop {c.name} Jewelry</span>
                 </Link>

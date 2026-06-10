@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { getGallery, saveGalleryItem, deleteGalleryItem, GalleryItem, uploadImageToStorage } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,7 +120,7 @@ const AdminGallery = () => {
               onChange={handleImageUpload}
             />
             {image && (
-              <img src={image} alt="Preview" className="h-32 w-auto rounded-lg mt-2" />
+              <OptimizedImage src={image} alt="Preview" className="h-32 w-auto object-cover" wrapperClassName="inline-block rounded-lg mt-2" />
             )}
           </div>
           <div className="flex gap-2">
@@ -139,7 +140,7 @@ const AdminGallery = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {gallery.map((item) => (
           <Card key={item.id}>
-            <img src={item.image} alt={item.description} className="w-full aspect-square object-cover" />
+            <OptimizedImage src={item.image} alt={item.description} className="w-full aspect-square object-cover" wrapperClassName="w-full" />
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground mb-3 truncate">{item.description || 'No description'}</p>
               <div className="flex gap-2">
