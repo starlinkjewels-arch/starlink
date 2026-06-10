@@ -5,11 +5,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Primary Meta Tags -->
-  <title>Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online</title>
-  <meta name="title" content="Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online">
+  <!-- Primary Meta Tags (generic shell — react-helmet-async overrides these per page) -->
+  <title>Starlink Jewels — Premium Diamond & Gold Jewelry Online</title>
+  <meta name="title" content="Starlink Jewels — Premium Diamond & Gold Jewelry Online">
   <meta name="description"
-    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.">
+    content="Shop GIA & IGI certified lab-grown and natural diamond jewelry at Starlink Jewels. Engagement rings, wedding bands, necklaces, earrings and custom designs with free worldwide shipping.">
   <meta name="keywords"
     content="lab grown diamond jewelry, natural diamond engagement rings, buy diamond jewelry online, GIA certified diamonds, IGI certified jewelry, gold rings, wedding bands, diamond necklaces, custom jewelry design, luxury jewelry store, worldwide shipping jewelry">
   <meta name="author" content="Starlink Jewels">
@@ -28,9 +28,8 @@
   <meta name="geo.position" content="21.1702;72.8311">
   <meta name="ICBM" content="21.1702, 72.8311">
 
-  <!-- Canonical & Sitemap -->
-  <link rel="canonical" href="https://www.starlinkjewels.com/">
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://www.starlinkjewels.com/sitemap.xml">
+  <!-- Sitemap (NO static canonical here — react-helmet-async sets the correct one per route) -->
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://www.starlinkjewels.com/sitemap-index.xml">
 
   <!-- Web App Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -46,12 +45,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
 
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph (no og:url here — react-helmet-async sets the correct URL per route) -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.starlinkjewels.com/">
-  <meta property="og:title" content="Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online">
+  <meta property="og:title" content="Starlink Jewels — Premium Diamond & Gold Jewelry Online">
   <meta property="og:description"
-    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.">
+    content="Shop GIA & IGI certified lab-grown and natural diamond jewelry at Starlink Jewels. Engagement rings, wedding bands, necklaces, earrings and custom designs with free worldwide shipping.">
   <meta property="og:image" content="https://www.starlinkjewels.com/icon.png">
   <meta property="og:image:secure_url" content="https://www.starlinkjewels.com/icon.png">
   <meta property="og:image:width" content="1200">
@@ -61,14 +59,13 @@
   <meta property="og:site_name" content="Starlink Jewels">
   <meta property="og:locale" content="en_US">
 
-  <!-- Twitter -->
+  <!-- Twitter (no twitter:url here — react-helmet-async sets the correct URL per route) -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@starlinkjewels">
   <meta name="twitter:creator" content="@starlinkjewels">
-  <meta name="twitter:url" content="https://www.starlinkjewels.com/">
-  <meta name="twitter:title" content="Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online">
+  <meta name="twitter:title" content="Starlink Jewels — Premium Diamond & Gold Jewelry Online">
   <meta name="twitter:description"
-    content="Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.">
+    content="Shop GIA & IGI certified lab-grown and natural diamond jewelry at Starlink Jewels. Engagement rings, wedding bands, necklaces, earrings and custom designs with free worldwide shipping.">
   <meta name="twitter:image" content="https://www.starlinkjewels.com/icon.png">
   <meta name="twitter:image:alt" content="Starlink Jewels - Premium Diamond Jewelry">
 
@@ -103,7 +100,7 @@
     gtag('config', 'G-2DR5L2HL09');
   </script>
 
-  <!-- Structured Data — single @graph block (recommended by Google) -->
+  <!-- Structured Data — JewelryStore + WebSite entity graph (site-wide, not page-specific) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -197,20 +194,6 @@
           },
           "query-input": "required name=search_term_string"
         }
-      },
-      {
-        "@type": "WebPage",
-        "@id": "https://www.starlinkjewels.com/#webpage",
-        "name": "Starlink Jewels: Buy Lab Grown & Natural Diamond Jewelry Online",
-        "url": "https://www.starlinkjewels.com/",
-        "description": "Discover premium Lab Grown & Natural Diamond jewelry at Starlink Jewels. Shop GIA & IGI certified engagement rings, necklaces & custom designs with worldwide shipping.",
-        "isPartOf": {
-          "@id": "https://www.starlinkjewels.com/#website"
-        },
-        "publisher": {
-          "@id": "https://www.starlinkjewels.com/#jewelry-store"
-        },
-        "inLanguage": "en"
       }
     ]
   }
@@ -219,6 +202,32 @@
 
 <body>
   <div id="root"></div>
+
+  <!-- noscript navigation: lets Google discover all pages in its first HTML-only pass
+       (shown only when JavaScript is disabled — invisible to normal users) -->
+  <noscript>
+    <div style="font-family:sans-serif;padding:24px;max-width:800px;margin:0 auto;">
+      <h1>Starlink Jewels — Premium Diamond &amp; Gold Jewelry</h1>
+      <p>GIA &amp; IGI certified lab-grown and natural diamond jewelry with free worldwide shipping.</p>
+      <nav aria-label="Site navigation">
+        <ul>
+          <li><a href="https://www.starlinkjewels.com/">Home — Premium Diamond Jewelry</a></li>
+          <li><a href="https://www.starlinkjewels.com/categories">Shop All Jewelry Collections — Diamond Rings, Necklaces, Earrings &amp; Bracelets</a></li>
+          <li><a href="https://www.starlinkjewels.com/gallery">Jewelry Gallery — Real Photos of Certified Pieces</a></li>
+          <li><a href="https://www.starlinkjewels.com/blog">Jewelry Blog — Diamond Tips, Engagement Ring Guides &amp; Trends</a></li>
+          <li><a href="https://www.starlinkjewels.com/buying-guide">Diamond Jewelry Buying Guide — 4Cs, Certification &amp; Value Tips</a></li>
+          <li><a href="https://www.starlinkjewels.com/about">About Starlink Jewels — GIA Certified Jewelers Since 2011</a></li>
+          <li><a href="https://www.starlinkjewels.com/contact">Contact Us — Custom Orders, Consultations &amp; WhatsApp Support</a></li>
+          <li><a href="https://www.starlinkjewels.com/usa">Diamond Jewelry — United States</a></li>
+          <li><a href="https://www.starlinkjewels.com/canada">Diamond Jewelry — Canada</a></li>
+          <li><a href="https://www.starlinkjewels.com/australia">Diamond Jewelry — Australia</a></li>
+          <li><a href="https://www.starlinkjewels.com/germany">Diamond Jewelry — Germany</a></li>
+        </ul>
+      </nav>
+      <p>Please enable JavaScript to view the full Starlink Jewels website.</p>
+    </div>
+  </noscript>
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
