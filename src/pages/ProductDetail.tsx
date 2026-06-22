@@ -176,7 +176,7 @@ const ProductDetail = () => {
           <div className="lg:sticky lg:top-28">
             <div className="relative w-full rounded-2xl bg-muted overflow-hidden" style={{ maxHeight: '420px', aspectRatio: '1/1' }}>
               {currentMedia && getMediaType(currentMedia) === "video" ? (
-                <video src={currentMedia} className="w-full h-full object-cover" controls />
+                <video src={currentMedia} className="w-full h-full object-cover" autoPlay loop muted playsInline />
               ) : (
                 currentMedia && (
                   <OptimizedImage
