@@ -23,21 +23,25 @@ const Categories = () => {
     description: 'Explore our premium jewelry collections featuring GIA certified diamonds, gold, platinum rings, necklaces, earrings, and bracelets.',
     url: 'https://starlinkjewels.com/categories',
     mainEntityOfPage: 'https://starlinkjewels.com/categories',
+    publisher: {
+      '@id': 'https://starlinkjewels.com/#organization',
+    },
     mainEntity: {
       '@type': 'ItemList',
       '@id': 'https://starlinkjewels.com/categories#itemlist',
+      numberOfItems: categories.length,
       itemListElement: categories.map((cat, index) => ({
         '@type': 'ListItem',
         position: index + 1,
         item: {
-          '@type': 'Product',
-          '@id': `https://starlinkjewels.com/category/${cat.id}#category`,
-          name: cat.name,
-          description: cat.description,
+          '@type': 'CollectionPage',
+          '@id': `https://starlinkjewels.com/category/${cat.id}#collectionpage`,
+          name: `${cat.name} Jewelry — Starlink Jewels`,
+          description: cat.description || `Shop ${cat.name} jewelry at Starlink Jewels`,
           image: cat.image,
-          url: `https://starlinkjewels.com/category/${cat.id}`
-        }
-      }))
+          url: `https://starlinkjewels.com/category/${cat.id}`,
+        },
+      })),
     }
   };
 

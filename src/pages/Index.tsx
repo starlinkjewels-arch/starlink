@@ -9,46 +9,15 @@ import Footer from '@/components/Footer';
 import BannerCarousel from '@/components/BannerCarousel';
 import SEOHead from '@/components/SEOHead';
 import ServicesSection from '@/components/ServicesSection';
-import BlogDialog from '@/components/BlogDialog';
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from "@/store/contentSlice";
 import { Button } from '@/components/ui/button';
-import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck, Instagram, ExternalLink } from 'lucide-react';
-import { BlogPost, orderCategoriesWithCustomFirst } from '@/lib/storage';
+import { Truck, Gift, ShieldCheck, Quote, Star, Award, Sparkles, BadgeCheck, Instagram } from 'lucide-react';
+import { orderCategoriesWithCustomFirst } from '@/lib/storage';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const isInstagramHostname = (hostname: string) =>
-  hostname === 'instagram.com' || hostname === 'www.instagram.com';
-
-const getInstagramEmbedUrl = (url: string) => {
-  try {
-    const parsedUrl = new URL(url);
-
-    if (!isInstagramHostname(parsedUrl.hostname)) {
-      return null;
-    }
-
-    const segments = parsedUrl.pathname.split('/').filter(Boolean);
-    const postType = segments[0];
-    const postId = segments[1];
-
-    if (!postType || !postId) {
-      return null;
-    }
-
-    const normalizedType = postType === 'reels' ? 'reel' : postType;
-    const supportedTypes = new Set(['p', 'reel', 'tv']);
-
-    if (!supportedTypes.has(normalizedType)) {
-      return null;
-    }
-
-    return `https://www.instagram.com/${normalizedType}/${postId}/embed/`;
-  } catch {
-    return null;
-  }
-};
+const INSTAGRAM_PROFILE = 'https://www.instagram.com/starlinkjewels';
 
 const Index = () => {
   const {
@@ -67,18 +36,29 @@ const Index = () => {
   const blogsStatus = useAppSelector(selectBlogsStatus);
 
   const animationRef = useRef<gsap.Context | null>(null);
-  const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
-  const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false);
 
   const sortedBlogs = useMemo(
     () => [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [blogs]
   );
   const orderedCategories = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
+  // Duplicate Instagram posts for seamless infinite scroll
   const instagramFeedItems = useMemo(() => {
-    const posts = instagramPosts.slice(0, 6);
+    const posts = instagramPosts.slice(0, 8);
     return posts.length > 1 ? [...posts, ...posts] : posts;
   }, [instagramPosts]);
+
+  const getInstagramEmbedUrl = (url: string): string | null => {
+    try {
+      const parsed = new URL(url);
+      if (parsed.hostname !== 'instagram.com' && parsed.hostname !== 'www.instagram.com') return null;
+      const segments = parsed.pathname.split('/').filter(Boolean);
+      const type = segments[0] === 'reels' ? 'reel' : segments[0];
+      const id = segments[1];
+      if (!id || !['p', 'reel', 'tv'].includes(type)) return null;
+      return `https://www.instagram.com/${type}/${id}/embed/`;
+    } catch { return null; }
+  };
 
   useEffect(() => {
     if (!blogsLoaded && blogsStatus === "idle") {
@@ -89,11 +69,6 @@ const Index = () => {
       return () => window.clearTimeout(timeoutId);
     }
   }, [blogsLoaded, blogsStatus, dispatch]);
-
-  const handleBlogClick = (blog: BlogPost) => {
-    setSelectedBlog(blog);
-    setIsBlogDialogOpen(true);
-  };
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -183,30 +158,38 @@ const Index = () => {
         faqItems={faqItems}
         structuredData={[
           {
-            "@type": "SiteLinksSearchBox",
-            "@id": "https://starlinkjewels.com/#sitelinks-searchbox",
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "@id": "https://starlinkjewels.com/#organization",
+            "name": "Starlink Jewels",
             "url": "https://starlinkjewels.com",
-            "potentialAction": {
-              "@type": "SearchAction",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": "https://starlinkjewels.com/categories?search={search_term_string}"
-              },
-              "query-input": "required name=search_term_string"
-            }
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://starlinkjewels.com/icon.png",
+              "width": 512,
+              "height": 512
+            },
+            "description": "Certified lab-grown and natural diamond jewelry store offering GIA & IGI certified engagement rings, wedding bands, necklaces, earrings, and custom jewelry with worldwide shipping.",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": `+${contactInfo?.whatsapp || '12015544824'}`,
+              "contactType": "customer service",
+              "availableLanguage": "English"
+            },
+            "sameAs": [
+              "https://www.instagram.com/starlinkjewels"
+            ]
           },
           {
-            "@type": "ItemList",
-            "@id": "https://starlinkjewels.com/#site-navigation",
-            "name": "Site Navigation",
-            "itemListElement": [
-              { "@type": "SiteNavigationElement", "position": 1, "name": "Shop All Jewelry", "url": "https://starlinkjewels.com/categories" },
-              { "@type": "SiteNavigationElement", "position": 2, "name": "Gallery", "url": "https://starlinkjewels.com/gallery" },
-              { "@type": "SiteNavigationElement", "position": 3, "name": "Blog", "url": "https://starlinkjewels.com/blog" },
-              { "@type": "SiteNavigationElement", "position": 4, "name": "Buying Guide", "url": "https://starlinkjewels.com/buying-guide" },
-              { "@type": "SiteNavigationElement", "position": 5, "name": "About Us", "url": "https://starlinkjewels.com/about" },
-              { "@type": "SiteNavigationElement", "position": 6, "name": "Contact", "url": "https://starlinkjewels.com/contact" }
-            ]
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": "https://starlinkjewels.com/#website",
+            "name": "Starlink Jewels",
+            "url": "https://starlinkjewels.com",
+            "description": "Buy certified lab-grown and natural diamond jewelry online. GIA & IGI certified with worldwide shipping.",
+            "publisher": {
+              "@id": "https://starlinkjewels.com/#organization"
+            }
           }
         ]}
       />
@@ -440,19 +423,17 @@ const Index = () => {
               {sortedBlogs.slice(0, 3).map((blog) => {
                 const plainText = blog.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
                 return (
-                  <article
-                    key={blog.id}
-                    className="group cursor-pointer hover-lift rounded-2xl overflow-hidden bg-card border border-border shadow-lg"
-                    onClick={() => handleBlogClick(blog)}
-                  >
-                    <div className="aspect-video overflow-hidden bg-muted">
-                      <OptimizedImage src={blog.thumbnail || blog.image} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" wrapperClassName="w-full h-full" />
-                    </div>
-                    <div className="p-6">
-                      <time className="text-sm text-muted-foreground mb-2 block">{new Date(blog.date).toLocaleDateString()}</time>
-                      <h3 className="font-semibold text-xl mb-3 group-hover:text-primary transition-colors">{blog.title}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-3">{plainText}</p>
-                    </div>
+                  <article key={blog.id}>
+                    <Link to={`/blog/${blog.id}`} className="block group hover-lift rounded-2xl overflow-hidden bg-card border border-border shadow-lg">
+                      <div className="aspect-video overflow-hidden bg-muted">
+                        <OptimizedImage src={blog.thumbnail || blog.image} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" wrapperClassName="w-full h-full" />
+                      </div>
+                      <div className="p-6">
+                        <time className="text-sm text-muted-foreground mb-2 block">{new Date(blog.date).toLocaleDateString()}</time>
+                        <h3 className="font-semibold text-xl mb-3 group-hover:text-primary transition-colors">{blog.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-3">{plainText}</p>
+                      </div>
+                    </Link>
                   </article>
                 );
               })}
@@ -463,62 +444,86 @@ const Index = () => {
           </section>
         )}
 
-        {/* Instagram Posts */}
+        {/* Instagram Posts — embedded feed */}
         {instagramPosts.length > 0 && (
           <section className="mb-16 md:mb-20 overflow-hidden">
-            <div className="px-4">
-              <div className="text-center mb-8 md:mb-12">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Follow Our Journey</h2>
-                <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Connect with us on Instagram</p>
-              </div>
+            {/* Header */}
+            <div className="px-4 text-center mb-8 md:mb-10">
+              <a
+                href={INSTAGRAM_PROFILE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-4 text-white hover:opacity-90 transition-opacity"
+                style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
+              >
+                <Instagram className="h-4 w-4" />
+                @starlinkjewels
+              </a>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Follow Our Journey</h2>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Our latest posts on Instagram</p>
             </div>
-            <div className="flex gap-4 sm:gap-5 animate-[scroll_18s_linear_infinite] sm:animate-[scroll_30s_linear_infinite] hover:pause pl-4">
+
+            {/* Scrolling feed */}
+            <div className="flex gap-4 sm:gap-5 animate-[scroll_22s_linear_infinite] sm:animate-[scroll_36s_linear_infinite] pl-4">
               {instagramFeedItems.map((post, index) => {
                 const embedUrl = getInstagramEmbedUrl(post.url);
-
                 return (
                   <article
                     key={`${post.id}-${index}`}
-                    className="flex-shrink-0 w-[320px] sm:w-[340px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
+                    className="flex-shrink-0 w-[300px] sm:w-[330px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
                   >
-                    <div className="bg-[#faf7f4]">
-                      {embedUrl ? (
-                        <iframe
-                          src={embedUrl}
-                          title={`Instagram post ${index + 1}`}
-                          loading="lazy"
-                          allowTransparency={true}
-                          scrolling="no"
-                          className="h-[440px] w-full border-0"
-                          style={{ overflow: 'hidden' }}
-                        />
-                      ) : (
-                        <div className="flex h-[440px] flex-col items-center justify-center gap-4 px-6 text-center">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E1306C]/10 text-[#E1306C]">
-                            <Instagram className="h-7 w-7" />
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-semibold">Instagram Post</h3>
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                              This Instagram URL could not be embedded here, but you can still open it directly.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 text-sm font-medium">
-                      <a
-                        href={post.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex min-w-0 items-center gap-2 text-primary hover:underline"
+                    {/* Instagram-style card header */}
+                    <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
                       >
-                        <span className="truncate">Open on Instagram</span>
-                        <ExternalLink className="h-4 w-4 flex-shrink-0" />
-                      </a>
+                        <Instagram className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold leading-none">starlinkjewels</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Starlink Jewels</p>
+                      </div>
                     </div>
+
+                    {/* Embed or branded placeholder */}
+                    {embedUrl ? (
+                      <iframe
+                        src={embedUrl}
+                        title={`Instagram post ${index + 1}`}
+                        loading="lazy"
+                        allowtransparency="true"
+                        scrolling="no"
+                        allow="encrypted-media"
+                        className="h-[380px] w-full border-0 bg-[#fafafa]"
+                        style={{ overflow: 'hidden' }}
+                      />
+                    ) : (
+                      <div className="flex h-[380px] flex-col items-center justify-center gap-4 px-6 text-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center text-white"
+                          style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
+                        >
+                          <Instagram className="h-7 w-7" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">View this post on Instagram</p>
+                      </div>
+                    )}
+
+                    {/* Card footer — open post link */}
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 border-t border-border px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                      style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
+                    >
+                      <Instagram className="h-4 w-4" />
+                      View on Instagram
+                    </a>
                   </article>
-              )})}
+                );
+              })}
             </div>
           </section>
         )}
@@ -556,12 +561,6 @@ const Index = () => {
 
       <Footer />
 
-      <BlogDialog
-        blog={selectedBlog}
-        isOpen={isBlogDialogOpen}
-        onClose={() => setIsBlogDialogOpen(false)}
-        whatsappNumber={contactInfo?.whatsapp}
-      />
     </div>
   );
 };

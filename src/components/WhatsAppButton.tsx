@@ -11,7 +11,7 @@ const WhatsAppButton = ({ product, className }: WhatsAppButtonProps) => {
   const handleWhatsAppClick = () => {
     const productUrl = `https://starlinkjewels.com/product/${product.id}`;
 
-    const message = `Hello Starlink Jewels! 👋\n\nI am interested in the following product and would like more details:\n\n🏷️ ${product.name}\n🆔 Product ID: ${product.id}\n\n🔗 View Product:\n${productUrl}\n\nCould you please share availability, customisation options, and delivery details?\n\nThank you!`;
+    const message = `Hello Starlink Jewels! 👋\n\nI am interested in the following product and would like more details:\n\n🏷️ ${product.name}\n\n🔗 View Product:\n${productUrl}\n\nCould you please share availability, customisation options, and delivery details?\n\nThank you!`;
 
     const whatsappNumber = '12015544824';
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;

@@ -10,9 +10,10 @@ import { OptimizedImage } from '@/components/OptimizedImage';
 interface ProductCardProps {
   product: Product;
   onClick?: () => void;
+  onMouseEnter?: () => void;
 }
 
-const ProductCard = ({ product, onClick }: ProductCardProps) => {
+const ProductCard = ({ product, onClick, onMouseEnter: onMouseEnterProp }: ProductCardProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -79,6 +80,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
     if (hasMultiple) {
       setCurrentIndex(1);
     }
+    onMouseEnterProp?.();
   };
 
   const handleMouseLeave = () => {

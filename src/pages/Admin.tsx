@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import {
   LogOut, LayoutDashboard, Image, Tag, Package, Sparkles, Newspaper,
   Instagram, Phone, Building2, Users, Megaphone, MessageSquareQuote,
-  BookOpen, Menu, X, ChevronRight, Diamond,
+  BookOpen, Menu, X, ChevronRight, Diamond, RectangleHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -25,6 +25,7 @@ const AdminVisitors        = lazy(() => import('@/components/admin/AdminVisitors
 const AdminPromoHeader     = lazy(() => import('@/components/admin/AdminPromoHeader'));
 const AdminTestimonials    = lazy(() => import('@/components/admin/AdminTestimonials'));
 const AdminBuyingGuides    = lazy(() => import('@/components/admin/AdminBuyingGuides'));
+const AdminAds             = lazy(() => import('@/components/admin/AdminAds'));
 
 const SectionFallback = () => (
   <div className="flex items-center justify-center min-h-[400px]">
@@ -44,6 +45,7 @@ const NAV: NavGroup[] = [
     items: [
       { key: 'promo',    label: 'Promo Banner',  icon: <Megaphone className="h-4 w-4" /> },
       { key: 'banners',  label: 'Banners',       icon: <Image className="h-4 w-4" /> },
+      { key: 'ads',      label: 'Popup Ad',      icon: <RectangleHorizontal className="h-4 w-4" /> },
     ],
   },
   {
@@ -77,6 +79,7 @@ const NAV: NavGroup[] = [
 const SECTION_MAP: Record<string, ReactNode> = {
   promo:          <AdminPromoHeader />,
   banners:        <AdminBanners />,
+  ads:            <AdminAds />,
   categories:     <AdminCategories />,
   products:       <AdminProducts />,
   gallery:        <AdminGallery />,

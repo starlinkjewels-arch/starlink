@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { cdnImg } from '@/lib/imageUrl';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
@@ -15,6 +16,7 @@ import {
   buildMetaDescriptionForProduct,
   buildMetaTitleForCategory,
   buildMetaTitleForProduct,
+  sanitizeMetaField,
 } from '@/lib/seo';
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
@@ -136,6 +138,15 @@ const CategoryProducts = () => {
       }
     }
   }, [productsForCategory, searchParams]);
+  const handleProductHover = useCallback((product: Product) => {
+    const urls = (product.images?.length ? product.images : product.image ? [product.image] : [])
+      .filter((u) => !/\.(mp4|webm|ogg|mov|avi|mkv)/i.test(u));
+    urls.forEach((url) => {
+      const img = new Image();
+      img.src = cdnImg(url, { width: 900, quality: 85 });
+    });
+  }, []);
+
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
@@ -216,14 +227,14 @@ const CategoryProducts = () => {
 
   const seoTitle = category
     ? activeProduct
-      ? (activeProduct.metaTitle || buildMetaTitleForProduct(activeProduct.name))
-      : (category.metaTitle || buildMetaTitleForCategory(category.name))
+      ? (sanitizeMetaField(activeProduct.metaTitle) || buildMetaTitleForProduct(activeProduct.name))
+      : (sanitizeMetaField(category.metaTitle) || buildMetaTitleForCategory(category.name))
     : 'Category';
 
   const seoDescription = category
     ? activeProduct
-      ? (activeProduct.metaDescription || buildMetaDescriptionForProduct(activeProduct.name, category.name))
-      : (category.metaDescription || buildMetaDescriptionForCategory(category.name, category.description))
+      ? (sanitizeMetaField(activeProduct.metaDescription, 30) || buildMetaDescriptionForProduct(activeProduct.name, category.name))
+      : (sanitizeMetaField(category.metaDescription, 30) || buildMetaDescriptionForCategory(category.name, category.description))
     : 'Category';
 
   const seoFaqItems = category
@@ -400,6 +411,7 @@ const CategoryProducts = () => {
                 key={product.id}
                 product={product}
                 onClick={() => handleProductClick(product)}
+                onMouseEnter={() => handleProductHover(product)}
               />
             ))}
           </div>

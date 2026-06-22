@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import WhatsAppButton from './WhatsAppButton';
 import { X, ChevronLeft, ChevronRight, Truck, Shield, Zap, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { cleanRichTextHtml } from '@/lib/seo';
+import { cdnImg } from '@/lib/imageUrl';
 interface ProductDialogProps {
   product: Product | null;
   open: boolean;
@@ -49,7 +50,8 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
   const clampedIndex = media.length > 0 ? Math.min(selectedIndex, media.length - 1) : 0;
   const currentMedia = media.length > 0 ? media[clampedIndex] : null;
   useEffect(() => {
-    setMainLoaded(false);
+    // Only reset loaded state for videos — images crossfade without skeleton
+    if (currentMedia?.type === 'video') setMainLoaded(false);
     setIsPlaying(false);
   }, [selectedIndex, open]);
   // Reset when dialog opens
@@ -59,6 +61,16 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
     setIsPlaying(false);
     setIsMuted(true);
   }, [open]);
+
+  // Preload ALL product images via CDN as soon as product is known (even before dialog opens)
+  useEffect(() => {
+    if (media.length === 0) return;
+    media.forEach((item) => {
+      if (item.type !== 'image') return;
+      const img = new Image();
+      img.src = cdnImg(item.url, { width: 900, quality: 85 });
+    });
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!open && mainVideoRef.current) {
       mainVideoRef.current.pause();
@@ -163,9 +175,14 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
       );
     }
    
+    // Use CDN-optimized URL: WebP + right size for context
+    const optimizedSrc = isThumbnail
+      ? cdnImg(item.url, { width: 150, height: 150, quality: 75 })
+      : cdnImg(item.url, { width: 900, quality: 85 });
+
     return (
       <img
-        src={item.url}
+        src={optimizedSrc}
         alt={isThumbnail ? `Thumbnail ${index}` : product.name}
         className={`${isThumbnail ? 'w-full h-full object-cover' : 'max-w-full max-h-full object-contain'}`}
         draggable={false}
@@ -277,7 +294,7 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
               </div>
             </div>
           )}
-          <div className="px-5 py-6 pb-32 space-y-6">
+          <div className="px-5 py-6 space-y-6">
             <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
               {product.name}
             </h1>
@@ -425,7 +442,7 @@ const ProductDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
             </div>
           </div>
         </div>
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl">
+        <div className="lg:hidden flex-shrink-0 p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl">
           <WhatsAppButton
             product={product}
             className="w-full h-12 text-sm font-semibold rounded-xl shadow-lg"

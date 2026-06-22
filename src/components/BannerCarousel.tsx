@@ -2,7 +2,8 @@ import { useEffect, useState, memo, useCallback } from 'react';
 import { Banner } from '@/lib/storage';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { preloadMedia } from '@/lib/preload';
+import { preloadImages } from '@/lib/preload';
+import { cdnImg } from '@/lib/imageUrl';
 import heroFallback from '@/assets/hero-banner-1.jpg';
 
 interface BannerCarouselProps {
@@ -31,7 +32,8 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     if (typeof window === 'undefined') return;
     try {
       const cached = window.localStorage.getItem('starlink_hero_fallback');
-      if (cached) setFallbackImage(cached);
+      // Only use cached URL if it's a CDN URL (wsrv.nl) — discard old raw Firebase URLs
+      if (cached && cached.includes('wsrv.nl')) setFallbackImage(cached);
     } catch {
       // ignore storage errors
     }
@@ -41,9 +43,10 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     if (typeof window === 'undefined') return;
     const first = banners[0];
     if (!first || first.mediaType === 'video') return;
+    const cdnUrl = cdnImg(first.image, { width: 1600, quality: 85 });
     try {
-      window.localStorage.setItem('starlink_hero_fallback', first.image);
-      setFallbackImage(first.image);
+      window.localStorage.setItem('starlink_hero_fallback', cdnUrl);
+      setFallbackImage(cdnUrl);
     } catch {
       // ignore storage errors
     }
@@ -54,23 +57,26 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 7000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [banners.length]);
 
   useEffect(() => {
     if (!banners[0] || banners[0].mediaType === 'video') return;
+    const cdnUrl = cdnImg(banners[0].image, { width: 1600, quality: 85 });
     const img = new Image();
-    img.src = banners[0].image;
+    img.src = cdnUrl;
     img.onload = () => markLoaded(0);
   }, [banners, markLoaded]);
 
   useEffect(() => {
     if (banners.length === 0) return;
     const nextIndex = (currentIndex + 1) % banners.length;
-    const urls = [banners[currentIndex]?.image, banners[nextIndex]?.image].filter(Boolean) as string[];
-    preloadMedia(urls);
+    const urls = [banners[currentIndex]?.image, banners[nextIndex]?.image]
+      .filter(Boolean)
+      .map((u) => cdnImg(u as string, { width: 1600, quality: 85 }));
+    preloadImages(urls, 1600);
   }, [banners, currentIndex]);
 
   const goToNext = () => {
@@ -150,11 +156,11 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             />
           ) : (
             <img
-              src={banner.image}
+              src={cdnImg(banner.image, { width: 1600, quality: 85 })}
               alt={banner.title}
               className="w-full h-full object-cover transition-opacity duration-500"
               loading={index === currentIndex ? 'eager' : 'lazy'}
-              decoding="async"
+              decoding={index === currentIndex ? 'sync' : 'async'}
               fetchpriority={index === currentIndex ? 'high' : 'auto'}
               sizes="100vw"
               onLoad={() => markLoaded(index)}

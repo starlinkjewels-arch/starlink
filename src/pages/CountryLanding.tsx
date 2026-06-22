@@ -104,13 +104,36 @@ const CountryLanding = () => {
     );
   }
 
+  const pageUrl = `https://starlinkjewels.com/${config.slug}`;
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${pageUrl}#webpage`,
+    name: `Buy Diamond Jewelry in ${config.name} — GIA Certified, Free Insured Worldwide Delivery`,
+    description: config.description,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    publisher: {
+      '@id': 'https://starlinkjewels.com/#organization',
+    },
+    about: {
+      '@type': 'Organization',
+      '@id': 'https://starlinkjewels.com/#organization',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title={`Buy Diamond Jewelry in ${config.name} — GIA Certified, Free Insured Worldwide Delivery`}
         description={config.description}
         keywords={config.keywords}
-        canonicalUrl={`https://starlinkjewels.com/${config.slug}`}
+        canonicalUrl={pageUrl}
+        structuredData={structuredData}
+        breadcrumbs={[
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: `Diamond Jewelry in ${config.name}`, url: pageUrl },
+        ]}
       />
 
       <Header promoHeader={promoHeader} />

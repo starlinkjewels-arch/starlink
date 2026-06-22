@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { preloadImages } from '@/lib/preload';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
@@ -48,6 +49,11 @@ const Contact = () => {
     [offices]
   );
 
+  useEffect(() => {
+    const flagUrls = offices.map((o) => o.flagImage).filter(Boolean) as string[];
+    if (flagUrls.length > 0) preloadImages(flagUrls, 120);
+  }, [offices]);
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
@@ -56,17 +62,21 @@ const Contact = () => {
     description: 'Contact Starlink Jewels for premium diamond jewelry, custom designs, engagement rings, and wholesale inquiries.',
     url: 'https://starlinkjewels.com/contact',
     mainEntityOfPage: 'https://starlinkjewels.com/contact',
+    publisher: {
+      '@id': 'https://starlinkjewels.com/#organization',
+    },
     mainEntity: {
       '@type': 'Organization',
-      '@id': 'https://starlinkjewels.com/#jewelry-store',
+      '@id': 'https://starlinkjewels.com/#organization',
       name: 'Starlink Jewels',
+      url: 'https://starlinkjewels.com',
       telephone: contactInfo?.phone,
       email: contactInfo?.email,
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'Mumbai',
-        addressCountry: 'India'
-      }
+        addressCountry: 'IN',
+      },
     }
   };
 
@@ -121,7 +131,7 @@ const Contact = () => {
                     <CardContent className="p-6 space-y-4">
                       <div className="flex items-start gap-3">
                         {office.flagImage ? (
-                          <OptimizedImage src={office.flagImage} alt={`${office.country} flag`} className="w-12 h-8 object-cover" wrapperClassName="rounded border flex-shrink-0 w-12 h-8" />
+                          <OptimizedImage src={office.flagImage} alt={`${office.country} flag`} className="w-12 h-8 object-cover" wrapperClassName="rounded border flex-shrink-0 w-12 h-8" imgWidth={120} priority />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Flag className="h-6 w-6 text-primary" /></div>
                         )}

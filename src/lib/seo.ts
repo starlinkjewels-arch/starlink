@@ -146,6 +146,13 @@ export const buildOffer = (url: string, price?: string) => {
   };
 };
 
+/** Returns value only if it's long enough to be a real meta title/description, otherwise '' */
+export const sanitizeMetaField = (value: string | undefined | null, minLength = 15): string => {
+  if (!value) return '';
+  const trimmed = value.trim();
+  return trimmed.length >= minLength ? trimmed : '';
+};
+
 export const buildMetaTitleForBlog = (title: string) => {
   return title;
 };

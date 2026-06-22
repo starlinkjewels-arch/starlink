@@ -63,9 +63,19 @@ const Gallery = () => {
     name: 'Starlink Jewels Gallery - Diamond & Gold Jewelry Collection',
     description: 'Browse our stunning collection of GIA certified diamond jewelry, engagement rings, gold necklaces, and luxury pieces.',
     url: 'https://starlinkjewels.com/gallery',
-    image: galleryItems.slice(0, 10).map(item => item.image),
+    mainEntityOfPage: 'https://starlinkjewels.com/gallery',
+    publisher: {
+      '@id': 'https://starlinkjewels.com/#organization',
+    },
+    image: galleryItems.slice(0, 12).map((item, i) => ({
+      '@type': 'ImageObject',
+      '@id': `https://starlinkjewels.com/gallery#image-${i + 1}`,
+      contentUrl: item.image,
+      url: item.image,
+      name: item.description || `Starlink Jewels Gallery Image ${i + 1}`,
+      description: item.description || 'Luxury diamond and gold jewelry by Starlink Jewels',
+    })),
     numberOfItems: galleryItems.length,
-    mainEntityOfPage: 'https://starlinkjewels.com/gallery'
   };
 
   const faqItems = [

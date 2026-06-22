@@ -57,16 +57,52 @@ const BuyingGuidePage = () => {
     }
   }, [publishedGuides, slug]);
 
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    '@id': `https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}#howto`,
-    name: selected?.title || 'Jewelry Buying Guide',
-    description: selected?.content
-      ? buildMetaDescriptionFromHtml(selected.content, 160)
-      : 'Expert advice to help you make the perfect jewelry choice.',
-    mainEntityOfPage: `https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`,
-  };
+  const guideUrl = `https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`;
+  const structuredData = selected
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          '@id': `${guideUrl}#article`,
+          headline: selected.title,
+          description: buildMetaDescriptionFromHtml(selected.content, 160),
+          image: selected.image || 'https://starlinkjewels.com/icon.png',
+          datePublished: selected.createdAt
+            ? new Date(selected.createdAt).toISOString()
+            : undefined,
+          author: {
+            '@type': 'Organization',
+            '@id': 'https://starlinkjewels.com/#organization',
+            name: 'Starlink Jewels',
+          },
+          publisher: {
+            '@type': 'Organization',
+            '@id': 'https://starlinkjewels.com/#organization',
+            name: 'Starlink Jewels',
+            logo: { '@type': 'ImageObject', url: 'https://starlinkjewels.com/icon.png' },
+          },
+          mainEntityOfPage: guideUrl,
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'HowTo',
+          '@id': `${guideUrl}#howto`,
+          name: selected.title,
+          description: buildMetaDescriptionFromHtml(selected.content, 160),
+          publisher: { '@id': 'https://starlinkjewels.com/#organization' },
+          mainEntityOfPage: guideUrl,
+        },
+      ]
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        '@id': 'https://starlinkjewels.com/buying-guide#collectionpage',
+        name: 'Diamond Jewelry Buying Guides — Starlink Jewels',
+        description: 'Expert diamond jewelry buying guides. Master the 4Cs, understand GIA & IGI certifications, compare lab-grown vs natural diamonds.',
+        url: 'https://starlinkjewels.com/buying-guide',
+        mainEntityOfPage: 'https://starlinkjewels.com/buying-guide',
+        publisher: { '@id': 'https://starlinkjewels.com/#organization' },
+      };
 
   const defaultFaqItems = [
     {
@@ -203,7 +239,7 @@ const BuyingGuidePage = () => {
                 )}
                 <div className="p-8 md:p-12">
                   <h2 className="text-4xl md:text-5xl font-bold mb-8">{selected.title}</h2>
-                  <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: safeContent }} />
+                  <div className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-foreground prose-p:text-foreground/80 prose-p:leading-relaxed prose-a:text-primary prose-strong:text-foreground prose-strong:font-semibold prose-ul:text-foreground/80 prose-ol:text-foreground/80 prose-li:my-1 prose-h2:mt-8 prose-h2:mb-3 prose-h3:mt-6 prose-h3:mb-2 prose-img:rounded-xl prose-blockquote:border-primary prose-blockquote:text-muted-foreground prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm dark:prose-invert" dangerouslySetInnerHTML={{ __html: safeContent }} />
                   <div className="mt-16 pt-10 border-t border-border">
                     <Button asChild variant="outline" size="lg"><Link to="/buying-guide"><ArrowLeft className="h-5 w-5 mr-2" />Back to All Guides</Link></Button>
                   </div>

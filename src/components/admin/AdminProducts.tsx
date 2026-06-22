@@ -371,8 +371,9 @@ const AdminProducts = () => {
     ? products.filter((p) => {
         const q = searchQuery.toLowerCase();
         const nameMatch = p.name.toLowerCase().includes(q);
+        const idMatch = p.id.toLowerCase().includes(q);
         const categoryMatch = getCategoryNames(p).some((n) => n.toLowerCase().includes(q));
-        return nameMatch || categoryMatch;
+        return nameMatch || idMatch || categoryMatch;
       })
     : products;
 
@@ -700,7 +701,7 @@ const AdminProducts = () => {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search products by name or category…"
+            placeholder="Search by name, ID or category…"
             className="pl-9"
           />
         </div>

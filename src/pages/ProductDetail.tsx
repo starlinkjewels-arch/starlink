@@ -9,10 +9,10 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
-import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer, cleanRichTextHtml } from "@/lib/seo";
+import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer, cleanRichTextHtml, sanitizeMetaField } from "@/lib/seo";
 import { getProductCategoryIds, productHasCategory } from "@/lib/storage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { preloadMedia } from "@/lib/preload";
+import { preloadCritical, preloadImages } from "@/lib/preload";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,8 +63,10 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (media.length === 0) return;
-    const urls = [media[0], media[1]].filter(Boolean) as string[];
-    preloadMedia(urls);
+    const imageUrls = media.filter((m) => getMediaType(m) === "image");
+    if (imageUrls.length === 0) return;
+    preloadCritical([imageUrls[0]], 900);
+    if (imageUrls.length > 1) preloadImages(imageUrls.slice(1, 4), 900);
   }, [media]);
 
   const structuredData = product
@@ -137,8 +139,8 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={product.metaTitle || buildMetaTitleForProduct(product.name)}
-        description={product.metaDescription || buildMetaDescriptionForProduct(product.name, category?.name)}
+        title={sanitizeMetaField(product.metaTitle) || buildMetaTitleForProduct(product.name)}
+        description={sanitizeMetaField(product.metaDescription, 30) || buildMetaDescriptionForProduct(product.name, category?.name)}
         canonicalUrl={`https://starlinkjewels.com/product/${product.id}`}
         structuredData={structuredData}
         breadcrumbs={[
@@ -182,6 +184,8 @@ const ProductDetail = () => {
                     alt={product.name}
                     className="w-full h-full object-cover"
                     wrapperClassName="w-full h-full"
+                    imgWidth={900}
+                    priority
                   />
                 )
               )}
@@ -230,6 +234,7 @@ const ProductDetail = () => {
                         alt={`${product.name} ${i + 1}`}
                         className="w-full h-full object-cover"
                         wrapperClassName="w-full h-full"
+                        imgWidth={80}
                       />
                     )}
                   </button>
@@ -252,13 +257,6 @@ const ProductDetail = () => {
 
             {/* Title */}
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">{product.name}</h1>
-
-            {/* Price */}
-            {product.price && (
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-primary">{product.price}</span>
-              </div>
-            )}
 
             <hr className="border-border" />
 

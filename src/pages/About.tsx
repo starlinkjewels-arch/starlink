@@ -50,15 +50,18 @@ const About = () => {
     description: 'Learn about Starlink Jewels - a premier luxury jewelry brand with over 29 years of excellence in diamond and gold jewelry craftsmanship.',
     url: 'https://starlinkjewels.com/about',
     mainEntityOfPage: 'https://starlinkjewels.com/about',
+    publisher: {
+      '@id': 'https://starlinkjewels.com/#organization',
+    },
     mainEntity: {
       '@type': 'Organization',
-      '@id': 'https://starlinkjewels.com/#jewelry-store',
+      '@id': 'https://starlinkjewels.com/#organization',
       name: 'Starlink Jewels',
+      url: 'https://starlinkjewels.com',
       foundingDate: '2011',
-      numberOfEmployees: '50+',
       areaServed: 'Worldwide',
       award: 'GIA Certified Partner',
-      knowsAbout: ['Diamond Jewelry', 'Gold Jewelry', 'Custom Jewelry Design', 'Lab Grown Diamonds']
+      knowsAbout: ['Diamond Jewelry', 'Gold Jewelry', 'Custom Jewelry Design', 'Lab Grown Diamonds'],
     }
   };
 

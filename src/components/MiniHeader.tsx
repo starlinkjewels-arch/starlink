@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Category, isCustomJewelryCategory, orderCategoriesWithCustomFirst } from '@/lib/storage';
-import { Sparkles, ChevronRight } from 'lucide-react';
+import { ChevronRight, Sparkles } from 'lucide-react';
 
 interface MiniHeaderProps {
   categories?: Category[];
@@ -66,8 +66,7 @@ const MiniHeader = ({
                 }`}
                 style={{ border: "1px solid #7d95c8" ,display:"flex",alignItems:"center",gap:"10px"}}
               >
-            <Sparkles className={`h-4 w-4 ${blinkCustomJewelry && isCustomJewelryCategory(category) ? 'text-primary' : 'animate-pulse'}`} />
-
+                <Sparkles className={`h-4 w-4 ${blinkCustomJewelry && isCustomJewelryCategory(category) ? 'text-primary' : 'animate-pulse'}`} />
                 <span className="relative z-10 flex items-center gap-2">
                   {category.name}
                 </span>

@@ -1,29 +1,22 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import Header from '@/components/Header';
 import MiniHeader from '@/components/MiniHeader';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import BlogDialog from '@/components/BlogDialog';
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadBlogs, loadGlobalData, selectBlogsLoaded, selectBlogsStatus, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
 import { Card, CardContent } from '@/components/ui/card';
-import { BlogPost } from '@/lib/storage';
-import { buildMetaDescriptionForBlog, buildMetaTitleForBlog } from '@/lib/seo';
 
 const Blog = () => {
   const dispatch = useAppDispatch();
-  const { categories, blogs, promoHeader, contactInfo } = useAppSelector(selectGlobalData);
+  const { categories, blogs, promoHeader } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
   const blogsLoaded = useAppSelector(selectBlogsLoaded);
   const blogsStatus = useAppSelector(selectBlogsStatus);
-  const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
   const [requestedRefresh, setRequestedRefresh] = useState(false);
   const navigate = useNavigate();
-  const { id: routeBlogId } = useParams<{ id: string }>();
 
   const hasPromo = promoHeader?.enabled && promoHeader?.text;
   const promoHeight = hasPromo ? 40 : 0;
@@ -35,59 +28,33 @@ const Blog = () => {
   );
 
   useEffect(() => {
-    if (!requestedRefresh && blogs.length === 0 && status !== "loading") {
+    if (!requestedRefresh && blogs.length === 0 && status !== 'loading') {
       dispatch(loadGlobalData({ force: true }));
       setRequestedRefresh(true);
     }
   }, [blogs.length, dispatch, requestedRefresh, status]);
 
   useEffect(() => {
-    if (!blogsLoaded && blogsStatus === "idle") {
+    if (!blogsLoaded && blogsStatus === 'idle') {
       dispatch(loadBlogs());
     }
   }, [blogsLoaded, blogsStatus, dispatch]);
-
-  // Handle URL query param to open specific blog
-  useEffect(() => {
-    const blogId = routeBlogId || searchParams.get('id');
-    if (blogId && blogs.length > 0) {
-      const blog = blogs.find(b => b.id === blogId);
-      if (blog) {
-        setSelectedBlog(blog);
-        setIsDialogOpen(true);
-      }
-    }
-  }, [routeBlogId, searchParams, blogs]);
-
-  const handleBlogClick = (blog: BlogPost) => {
-    setSelectedBlog(blog);
-    setIsDialogOpen(true);
-    navigate(`/blog/${blog.id}`);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setSearchParams({});
-    navigate("/blog");
-  };
 
   const baseStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     '@id': 'https://starlinkjewels.com/blog#blog',
     name: 'Starlink Jewels Blog - Expert Jewelry Insights & Guides',
-    description: 'Expert insights, trends, and comprehensive guides about luxury jewelry, diamonds, gemstones, and precious metals from Starlink Jewels.',
+    description:
+      'Expert insights, trends, and comprehensive guides about luxury jewelry, diamonds, gemstones, and precious metals from Starlink Jewels.',
     url: 'https://starlinkjewels.com/blog',
     mainEntityOfPage: 'https://starlinkjewels.com/blog',
     publisher: {
       '@type': 'Organization',
       name: 'Starlink Jewels',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://starlinkjewels.com/icon.png'
-      }
+      logo: { '@type': 'ImageObject', url: 'https://starlinkjewels.com/icon.png' },
     },
-    blogPost: sortedBlogs.slice(0, 10).map(blog => ({
+    blogPost: sortedBlogs.slice(0, 10).map((blog) => ({
       '@type': 'BlogPosting',
       '@id': `https://starlinkjewels.com/blog/${blog.id}#blogpost`,
       headline: blog.title,
@@ -96,76 +63,40 @@ const Blog = () => {
       image: blog.image,
       description: blog.content.substring(0, 160),
       mainEntityOfPage: `https://starlinkjewels.com/blog/${blog.id}`,
-      author: {
-        '@type': 'Organization',
-        name: 'Starlink Jewels'
-      }
+      author: { '@type': 'Organization', name: 'Starlink Jewels' },
     })),
   };
 
-  const blogStructuredData = selectedBlog
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        '@id': `https://starlinkjewels.com/blog/${selectedBlog.id}#blogpost`,
-        headline: selectedBlog.title,
-        datePublished: selectedBlog.date,
-        dateModified: selectedBlog.date,
-        image: selectedBlog.image,
-        description: buildMetaDescriptionForBlog(selectedBlog.content),
-        author: {
-          '@type': 'Organization',
-          name: 'Starlink Jewels',
-        },
-        mainEntityOfPage: `https://starlinkjewels.com/blog/${selectedBlog.id}`,
-      }
-    : undefined;
-
-  const structuredData = [
-    baseStructuredData,
-    ...(blogStructuredData ? [blogStructuredData] : []),
-  ];
-
-  const seoTitle = selectedBlog
-    ? (selectedBlog.metaTitle || buildMetaTitleForBlog(selectedBlog.title))
-    : "Jewelry Blog — Diamond Buying Tips, Engagement Ring Guides & Luxury Trends";
-
-  const seoDescription = selectedBlog
-    ? (selectedBlog.metaDescription || buildMetaDescriptionForBlog(selectedBlog.content))
-    : "Discover expert jewelry insights, diamond buying guides, engagement ring tips, gemstone education, and the latest luxury jewelry trends from Starlink Jewels experts.";
-
   const defaultFaqItems = [
     {
-      question: "What topics do you cover in the Starlink Jewels blog?",
+      question: 'What topics do you cover in the Starlink Jewels blog?',
       answer:
-        "We cover diamond buying guides, engagement ring tips, jewelry care, gemstone education, and luxury jewelry trends.",
+        'We cover diamond buying guides, engagement ring tips, jewelry care, gemstone education, and luxury jewelry trends.',
     },
     {
-      question: "Are your blog guides suitable for lab-grown and natural diamonds?",
+      question: 'Are your blog guides suitable for lab-grown and natural diamonds?',
       answer:
-        "Yes. Our guides explain both lab-grown and natural diamond options with practical buying advice.",
+        'Yes. Our guides explain both lab-grown and natural diamond options with practical buying advice.',
     },
     {
-      question: "Can I request a topic?",
-      answer:
-        "Yes. You can contact us to request specific jewelry or diamond topics.",
+      question: 'Can I request a topic?',
+      answer: 'Yes. You can contact us to request specific jewelry or diamond topics.',
     },
   ];
-  const faqItems = selectedBlog?.seoFaq && selectedBlog.seoFaq.length > 0 ? selectedBlog.seoFaq : defaultFaqItems;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={seoTitle}
-        description={seoDescription}
+        title="Jewelry Blog — Diamond Buying Tips, Engagement Ring Guides & Luxury Trends"
+        description="Discover expert jewelry insights, diamond buying guides, engagement ring tips, gemstone education, and the latest luxury jewelry trends from Starlink Jewels experts."
         keywords="jewelry blog, diamond buying guide, engagement ring tips, jewelry trends 2024, gemstone guide, diamond education, luxury jewelry tips, how to buy diamonds, jewelry care tips, wedding ring guide, precious stones, gold jewelry guide, platinum jewelry, custom jewelry design, jewelry investment"
-        canonicalUrl={`https://starlinkjewels.com/blog${routeBlogId ? `/${routeBlogId}` : ''}`}
-        structuredData={structuredData}
+        canonicalUrl="https://starlinkjewels.com/blog"
+        structuredData={[baseStructuredData]}
         breadcrumbs={[
-          { name: "Home", url: "https://starlinkjewels.com" },
-          { name: "Blog", url: "https://starlinkjewels.com/blog" },
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'Blog', url: 'https://starlinkjewels.com/blog' },
         ]}
-        faqItems={faqItems}
+        faqItems={defaultFaqItems}
       />
 
       <Header promoHeader={promoHeader} />
@@ -175,7 +106,7 @@ const Blog = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Jewelry Blog</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover expert insights, diamond buying guides, and the latest trends in luxury jewelry. 
+            Discover expert insights, diamond buying guides, and the latest trends in luxury jewelry.
             Your trusted source for jewelry education and inspiration.
           </p>
         </div>
@@ -188,27 +119,33 @@ const Blog = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedBlogs.map((blog) => (
               <article key={blog.id}>
-                <Card 
-                  className="overflow-hidden hover-lift group h-full cursor-pointer transition-all duration-300 hover:shadow-xl"
-                  onClick={() => handleBlogClick(blog)}
-                >
-                  <div className="aspect-square overflow-hidden bg-muted">
-                    <OptimizedImage
-                      src={blog.thumbnail || blog.image}
-                      alt={blog.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      wrapperClassName="w-full h-full"
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <time dateTime={blog.date} className="text-xs text-muted-foreground mb-2 block uppercase tracking-wider">
-                      {new Date(blog.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </time>
-                    <h2 className="font-semibold text-base md:text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                      {blog.title}
-                    </h2>
-                  </CardContent>
-                </Card>
+                <Link to={`/blog/${blog.id}`} className="block group">
+                  <Card className="overflow-hidden hover-lift h-full transition-all duration-300 hover:shadow-xl">
+                    <div className="aspect-square overflow-hidden bg-muted">
+                      <OptimizedImage
+                        src={blog.thumbnail || blog.image}
+                        alt={blog.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        wrapperClassName="w-full h-full"
+                      />
+                    </div>
+                    <CardContent className="p-4">
+                      <time
+                        dateTime={blog.date}
+                        className="text-xs text-muted-foreground mb-2 block uppercase tracking-wider"
+                      >
+                        {new Date(blog.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </time>
+                      <h2 className="font-semibold text-base md:text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                        {blog.title}
+                      </h2>
+                    </CardContent>
+                  </Card>
+                </Link>
               </article>
             ))}
           </div>
@@ -228,7 +165,12 @@ const Blog = () => {
                   className="rounded-xl border bg-card/50 p-3 text-center hover:bg-card transition-colors"
                 >
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
-                    <OptimizedImage src={category.image} alt={category.name} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
+                    <OptimizedImage
+                      src={category.image}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                      wrapperClassName="w-full h-full"
+                    />
                   </div>
                   <p className="text-sm font-semibold">Shop {category.name} Jewelry</p>
                 </Link>
@@ -239,13 +181,6 @@ const Blog = () => {
       </main>
 
       <Footer />
-
-      <BlogDialog
-        blog={selectedBlog}
-        isOpen={isDialogOpen}
-        onClose={handleCloseDialog}
-        whatsappNumber={contactInfo?.whatsapp}
-      />
     </div>
   );
 };
