@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import Header from "@/components/Header";
 import MiniHeader from "@/components/MiniHeader";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import ProductCard from "@/components/ProductCard";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
 import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer, cleanRichTextHtml } from "@/lib/seo";
-import { getProductCategoryIds } from "@/lib/storage";
+import { getProductCategoryIds, productHasCategory } from "@/lib/storage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { preloadMedia } from "@/lib/preload";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { categories, promoHeader, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
@@ -34,6 +36,13 @@ const ProductDetail = () => {
     () => categories.find((c) => productCategoryIds.includes(c.id)) || null,
     [categories, productCategoryIds]
   );
+
+  const relatedProducts = useMemo(() => {
+    if (!product || !category) return [];
+    return products
+      .filter((p) => p.id !== product.id && productHasCategory(p, category.id))
+      .slice(0, 8);
+  }, [products, product, category]);
 
   const media = product?.images && product.images.length > 0 ? product.images : product?.image ? [product.image] : [];
   const descriptionHtml = useMemo(() => cleanRichTextHtml(product?.description || ""), [product?.description]);
@@ -222,6 +231,28 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+
+        {relatedProducts.length > 0 && (
+          <div className="mt-16 pt-10 border-t border-border">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">More from {category?.name}</h2>
+              {category && (
+                <Link to={`/category/${category.id}`} className="text-sm text-primary underline">
+                  View all
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {relatedProducts.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onClick={() => navigate(`/product/${p.id}`)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />
