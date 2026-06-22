@@ -9,24 +9,12 @@ interface WhatsAppButtonProps {
 
 const WhatsAppButton = ({ product, className }: WhatsAppButtonProps) => {
   const handleWhatsAppClick = () => {
-    // Strip HTML tags and decode common HTML entities for cleaner text
-    let cleanDescription = product.description
-      .replace(/<\/?[^>]+(>|$)/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ')       // Replace &nbsp; with space
-      .replace(/&amp;/g, '&')        // Replace &amp; with &
-      .trim();
+    const productUrl = `https://starlinkjewels.com/product/${product.id}`;
 
-    // Optional: Replace multiple spaces or bullet-like characters with proper WhatsApp bullets
-    cleanDescription = cleanDescription.replace(/●/g, '•');
+    const message = `Hello Starlink Jewels! 👋\n\nI am interested in the following product and would like more details:\n\n🏷️ ${product.name}\n\n🔗 View Product:\n${productUrl}\n\nCould you please share availability, customisation options, and delivery details?\n\nThank you!`;
 
-    const message = `Hi! I'm interested in:\n\n*${
-      product.name
-    }*\n\n${cleanDescription}`;
-
-    const whatsappNumber = '12015544824'; // Fixed number
-
+    const whatsappNumber = '12015544824';
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
     window.open(url, '_blank');
   };
 
