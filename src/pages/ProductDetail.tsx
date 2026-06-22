@@ -169,10 +169,10 @@ const ProductDetail = () => {
           <span className="text-foreground line-clamp-1 max-w-[200px]">{product.name}</span>
         </nav>
 
-        <div className="grid lg:grid-cols-2 gap-10 items-start">
+        <div className="grid lg:grid-cols-[5fr_7fr] gap-10 items-start">
           {/* Left — Image Gallery */}
           <div className="lg:sticky lg:top-28">
-            <div className="relative w-full rounded-2xl bg-muted overflow-hidden" style={{ maxHeight: '560px', aspectRatio: '1/1' }}>
+            <div className="relative w-full rounded-2xl bg-muted overflow-hidden" style={{ maxHeight: '420px', aspectRatio: '1/1' }}>
               {currentMedia && getMediaType(currentMedia) === "video" ? (
                 <video src={currentMedia} className="w-full h-full object-cover" controls />
               ) : (
