@@ -66,7 +66,7 @@ const run = async () => {
 
   const urls = [];
 
-  urls.push(buildUrlEntry(`${BASE_URL}/`, "daily", "1.0"));
+  urls.push(buildUrlEntry(`${BASE_URL}`, "daily", "1.0"));
   urls.push(buildUrlEntry(`${BASE_URL}/categories`, "weekly", "0.9"));
   urls.push(buildUrlEntry(`${BASE_URL}/gallery`, "weekly", "0.8"));
   urls.push(buildUrlEntry(`${BASE_URL}/blog`, "weekly", "0.7"));

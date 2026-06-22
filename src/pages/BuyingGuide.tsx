@@ -51,9 +51,9 @@ const BuyingGuidePage = () => {
     setGuides(publishedGuides);
     if (slug) {
       const found = publishedGuides.find((g) => g.slug === slug);
-      setSelected(found || publishedGuides[0] || null);
-    } else if (publishedGuides.length > 0) {
-      setSelected(publishedGuides[0]);
+      setSelected(found || null);
+    } else {
+      setSelected(null);
     }
   }, [publishedGuides, slug]);
 

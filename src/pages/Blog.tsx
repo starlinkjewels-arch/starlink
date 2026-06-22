@@ -159,7 +159,7 @@ const Blog = () => {
         title={seoTitle}
         description={seoDescription}
         keywords="jewelry blog, diamond buying guide, engagement ring tips, jewelry trends 2024, gemstone guide, diamond education, luxury jewelry tips, how to buy diamonds, jewelry care tips, wedding ring guide, precious stones, gold jewelry guide, platinum jewelry, custom jewelry design, jewelry investment"
-        canonicalUrl={`https://starlinkjewels.com/blog${selectedBlog ? `/${selectedBlog.id}` : ''}`}
+        canonicalUrl={`https://starlinkjewels.com/blog${routeBlogId ? `/${routeBlogId}` : ''}`}
         structuredData={structuredData}
         breadcrumbs={[
           { name: "Home", url: "https://starlinkjewels.com" },
