@@ -181,6 +181,34 @@ const Index = () => {
         keywords="lab grown diamond jewelry, natural diamond engagement rings, buy diamond jewelry online, GIA certified diamonds, IGI certified jewelry, gold rings, wedding bands, diamond necklaces, custom jewelry design, luxury jewelry store, worldwide shipping jewelry"
         canonicalUrl="https://starlinkjewels.com"
         faqItems={faqItems}
+        structuredData={[
+          {
+            "@type": "SiteLinksSearchBox",
+            "@id": "https://starlinkjewels.com/#sitelinks-searchbox",
+            "url": "https://starlinkjewels.com",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://starlinkjewels.com/categories?search={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "ItemList",
+            "@id": "https://starlinkjewels.com/#site-navigation",
+            "name": "Site Navigation",
+            "itemListElement": [
+              { "@type": "SiteNavigationElement", "position": 1, "name": "Shop All Jewelry", "url": "https://starlinkjewels.com/categories" },
+              { "@type": "SiteNavigationElement", "position": 2, "name": "Gallery", "url": "https://starlinkjewels.com/gallery" },
+              { "@type": "SiteNavigationElement", "position": 3, "name": "Blog", "url": "https://starlinkjewels.com/blog" },
+              { "@type": "SiteNavigationElement", "position": 4, "name": "Buying Guide", "url": "https://starlinkjewels.com/buying-guide" },
+              { "@type": "SiteNavigationElement", "position": 5, "name": "About Us", "url": "https://starlinkjewels.com/about" },
+              { "@type": "SiteNavigationElement", "position": 6, "name": "Contact", "url": "https://starlinkjewels.com/contact" }
+            ]
+          }
+        ]}
       />
 
       <Header promoHeader={promoHeader} />
