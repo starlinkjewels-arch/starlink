@@ -161,7 +161,7 @@ const Admin = () => {
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
-    <aside className={`${mobile ? 'flex' : 'hidden lg:flex'} flex-col w-64 bg-gray-900 text-white min-h-screen`}>
+    <aside className={`${mobile ? 'flex' : 'hidden lg:flex'} flex-col w-64 bg-gray-900 text-white h-screen overflow-y-auto flex-shrink-0`}>
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-700/60">
         <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
@@ -221,7 +221,7 @@ const Admin = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Desktop Sidebar */}
       <Sidebar />
 
@@ -236,9 +236,9 @@ const Admin = () => {
       )}
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <header className="bg-white border-b border-gray-200 flex-shrink-0 z-40 shadow-sm">
           <div className="flex items-center gap-4 px-4 sm:px-6 h-16">
             {/* Hamburger (mobile) */}
             <button
@@ -271,7 +271,7 @@ const Admin = () => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 min-h-[600px]">
             <Suspense fallback={<SectionFallback />}>
               {SECTION_MAP[activeKey] ?? null}
