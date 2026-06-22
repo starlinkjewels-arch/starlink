@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Pencil, X, Play, GripVertical, Images } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Play, GripVertical, Images, Copy, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -45,6 +45,7 @@ const AdminProducts = () => {
   const [bulkPreview, setBulkPreview] = useState<Product[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
@@ -366,6 +367,15 @@ const AdminProducts = () => {
   const allSelected = products.length > 0 && bulkSelectedIds.length === products.length;
   const someSelected = bulkSelectedIds.length > 0 && bulkSelectedIds.length < products.length;
 
+  const filteredProducts = searchQuery.trim()
+    ? products.filter((p) => {
+        const q = searchQuery.toLowerCase();
+        const nameMatch = p.name.toLowerCase().includes(q);
+        const categoryMatch = getCategoryNames(p).some((n) => n.toLowerCase().includes(q));
+        return nameMatch || categoryMatch;
+      })
+    : products;
+
  
 
   return (
@@ -375,6 +385,24 @@ const AdminProducts = () => {
           <CardTitle>{editingId ? 'Edit Product' : 'Add New Product'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {editingId && (
+            <div className="space-y-2">
+              <Label>Product ID</Label>
+              <div className="flex items-center gap-2">
+                <Input value={editingId} readOnly className="font-mono text-sm bg-muted text-muted-foreground cursor-default" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => { navigator.clipboard.writeText(editingId); toast.success('Product ID copied'); }}
+                  title="Copy ID"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Categories *</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-md border border-input bg-background p-4">
@@ -666,8 +694,28 @@ const AdminProducts = () => {
       </Card>
 
 
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products by name or category…"
+            className="pl-9"
+          />
+        </div>
+        {searchQuery && (
+          <Button variant="ghost" size="icon" onClick={() => setSearchQuery('')} title="Clear search">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          {filteredProducts.length} / {products.length}
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => {
+        {filteredProducts.map((product) => {
           const productMedia = product.images || [product.image];
           const mainMediaType = getMediaTypeFromUrl(product.image);
           
@@ -748,10 +796,12 @@ const AdminProducts = () => {
         })}
       </div>
       
-      {products.length === 0 && (
+      {filteredProducts.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground">No products added yet. Add your first product above!</p>
+            <p className="text-muted-foreground">
+              {searchQuery ? `No products found matching "${searchQuery}".` : 'No products added yet. Add your first product above!'}
+            </p>
           </CardContent>
         </Card>
       )}
