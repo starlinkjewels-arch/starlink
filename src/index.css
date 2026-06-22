@@ -164,9 +164,48 @@ All colors MUST be HSL.
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Thin light scrollbar — for main content areas */
+  .scrollbar-thin-light {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+  .scrollbar-thin-light::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .scrollbar-thin-light::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin-light::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 999px;
+  }
+  .scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+  }
+
+  /* Thin dark scrollbar — for dark sidebars */
+  .scrollbar-thin-dark {
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 transparent;
+  }
+  .scrollbar-thin-dark::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-thin-dark::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin-dark::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 999px;
+  }
+  .scrollbar-thin-dark::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
   }
   
   @keyframes scroll {
