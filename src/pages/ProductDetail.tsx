@@ -154,9 +154,25 @@ const ProductDetail = () => {
       <MiniHeader categories={categories} promoHeight={promoHeight} />
 
       <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-        <div className="grid lg:grid-cols-2 gap-10">
-          <div>
-            <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden flex items-center justify-center">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6 flex-wrap">
+          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          <span>/</span>
+          <Link to="/categories" className="hover:text-primary transition-colors">Shop</Link>
+          {category && (
+            <>
+              <span>/</span>
+              <Link to={`/category/${category.id}`} className="hover:text-primary transition-colors">{category.name}</Link>
+            </>
+          )}
+          <span>/</span>
+          <span className="text-foreground line-clamp-1 max-w-[200px]">{product.name}</span>
+        </nav>
+
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
+          {/* Left — Image Gallery */}
+          <div className="lg:sticky lg:top-28">
+            <div className="relative w-full rounded-2xl bg-muted overflow-hidden" style={{ maxHeight: '560px', aspectRatio: '1/1' }}>
               {currentMedia && getMediaType(currentMedia) === "video" ? (
                 <video src={currentMedia} className="w-full h-full object-cover" controls />
               ) : (
@@ -173,28 +189,38 @@ const ProductDetail = () => {
                 <>
                   <button
                     onClick={() => setSelectedIndex((prev) => (prev - 1 + media.length) % media.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 shadow-lg"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-lg backdrop-blur-sm border border-border/40"
                     aria-label="Previous"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => setSelectedIndex((prev) => (prev + 1) % media.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 shadow-lg"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-lg backdrop-blur-sm border border-border/40"
                     aria-label="Next"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {media.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedIndex(i)}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === selectedIndex ? "w-5 bg-white" : "w-1.5 bg-white/60"}`}
+                        aria-label={`Image ${i + 1}`}
+                      />
+                    ))}
+                  </div>
                 </>
               )}
             </div>
             {hasMultiple && (
-              <div className="mt-4 flex gap-2 overflow-x-auto">
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {media.map((item, i) => (
                   <button
                     key={i}
                     onClick={() => setSelectedIndex(i)}
-                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${selectedIndex === i ? "border-primary" : "border-transparent"}`}
+                    className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 ${selectedIndex === i ? "border-primary shadow-md scale-105" : "border-transparent opacity-70 hover:opacity-100"}`}
                   >
                     {getMediaType(item) === "video" ? (
                       <video src={item} className="w-full h-full object-cover" muted />
@@ -212,23 +238,66 @@ const ProductDetail = () => {
             )}
           </div>
 
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{product.name}</h1>
-            <div className="mb-6" />
+          {/* Right — Product Info */}
+          <div className="flex flex-col gap-6">
+            {/* Category tag */}
             {category && (
-              <Link to={`/category/${category.id}`} className="text-sm text-primary underline">
-                Shop more {category.name} jewelry
+              <Link
+                to={`/category/${category.id}`}
+                className="inline-flex items-center w-fit gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wide hover:bg-primary/20 transition-colors"
+              >
+                {category.name}
               </Link>
             )}
+
+            {/* Title */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">{product.name}</h1>
+
+            {/* Price */}
+            {product.price && (
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-primary">{product.price}</span>
+              </div>
+            )}
+
+            <hr className="border-border" />
+
+            {/* Description */}
             {descriptionHtml && (
               <div
-                className="prose prose-sm max-w-none mt-6"
+                className="prose prose-sm max-w-none text-muted-foreground leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             )}
-            <div className="mt-8">
-              <WhatsAppButton product={product} className="w-full" />
+
+            {/* Trust Badges */}
+            <div className="grid grid-cols-3 gap-3 py-4 border-y border-border">
+              <div className="flex flex-col items-center text-center gap-1">
+                <span className="text-lg">💎</span>
+                <span className="text-xs text-muted-foreground font-medium">GIA / IGI Certified</span>
+              </div>
+              <div className="flex flex-col items-center text-center gap-1">
+                <span className="text-lg">🚚</span>
+                <span className="text-xs text-muted-foreground font-medium">Free Worldwide Shipping</span>
+              </div>
+              <div className="flex flex-col items-center text-center gap-1">
+                <span className="text-lg">✏️</span>
+                <span className="text-xs text-muted-foreground font-medium">Custom Design Available</span>
+              </div>
             </div>
+
+            {/* CTA Button */}
+            <WhatsAppButton product={product} className="w-full text-base py-6" />
+
+            {/* View full category link */}
+            {category && (
+              <p className="text-sm text-center text-muted-foreground">
+                Looking for more options?{" "}
+                <Link to={`/category/${category.id}`} className="text-primary underline underline-offset-2 hover:opacity-80">
+                  View all {category.name} jewelry
+                </Link>
+              </p>
+            )}
           </div>
         </div>
 
