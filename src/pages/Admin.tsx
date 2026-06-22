@@ -1,41 +1,105 @@
 // src/pages/Admin.tsx
 import { Suspense, lazy, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { LogOut, LayoutDashboard, Image, Tag, Package, Sparkles, Newspaper, Instagram, Phone, Building2, Users, Megaphone, MessageSquareQuote } from 'lucide-react';
-
-const AdminBanners = lazy(() => import('@/components/admin/AdminBanners'));
-const AdminCategories = lazy(() => import('@/components/admin/AdminCategories'));
-const AdminProducts = lazy(() => import('@/components/admin/AdminProducts'));
-const AdminGallery = lazy(() => import('@/components/admin/AdminGallery'));
-const AdminFeaturedCollection = lazy(() => import('@/components/admin/AdminFeaturedCollection'));
-const AdminContact = lazy(() => import('@/components/admin/AdminContact'));
-const AdminOffices = lazy(() => import('@/components/admin/AdminOffices'));
-const AdminBlogs = lazy(() => import('@/components/admin/AdminBlogs'));
-const AdminInstagram = lazy(() => import('@/components/admin/AdminInstagram'));
-const AdminVisitors = lazy(() => import('@/components/admin/AdminVisitors'));
-const AdminPromoHeader = lazy(() => import('@/components/admin/AdminPromoHeader'));
-const AdminTestimonials = lazy(() => import('@/components/admin/AdminTestimonials'));
+import {
+  LogOut, LayoutDashboard, Image, Tag, Package, Sparkles, Newspaper,
+  Instagram, Phone, Building2, Users, Megaphone, MessageSquareQuote,
+  BookOpen, Menu, X, ChevronRight, Diamond,
+} from 'lucide-react';
 import { toast } from 'sonner';
-const AdminBuyingGuides = lazy(() => import('@/components/admin/AdminBuyingGuides'));
-import { BookOpen } from 'lucide-react';
+
+const AdminBanners         = lazy(() => import('@/components/admin/AdminBanners'));
+const AdminCategories      = lazy(() => import('@/components/admin/AdminCategories'));
+const AdminProducts        = lazy(() => import('@/components/admin/AdminProducts'));
+const AdminGallery         = lazy(() => import('@/components/admin/AdminGallery'));
+const AdminFeaturedCollection = lazy(() => import('@/components/admin/AdminFeaturedCollection'));
+const AdminContact         = lazy(() => import('@/components/admin/AdminContact'));
+const AdminOffices         = lazy(() => import('@/components/admin/AdminOffices'));
+const AdminBlogs           = lazy(() => import('@/components/admin/AdminBlogs'));
+const AdminInstagram       = lazy(() => import('@/components/admin/AdminInstagram'));
+const AdminVisitors        = lazy(() => import('@/components/admin/AdminVisitors'));
+const AdminPromoHeader     = lazy(() => import('@/components/admin/AdminPromoHeader'));
+const AdminTestimonials    = lazy(() => import('@/components/admin/AdminTestimonials'));
+const AdminBuyingGuides    = lazy(() => import('@/components/admin/AdminBuyingGuides'));
 
 const SectionFallback = () => (
-  <div className="flex items-center justify-center min-h-[360px] text-sm text-muted-foreground">
-    Loading section...
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="flex flex-col items-center gap-3 text-muted-foreground">
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <span className="text-sm">Loading section…</span>
+    </div>
   </div>
+);
+
+type NavItem = { key: string; label: string; icon: ReactNode };
+type NavGroup = { group: string; items: NavItem[] };
+
+const NAV: NavGroup[] = [
+  {
+    group: 'Website',
+    items: [
+      { key: 'promo',    label: 'Promo Banner',  icon: <Megaphone className="h-4 w-4" /> },
+      { key: 'banners',  label: 'Banners',       icon: <Image className="h-4 w-4" /> },
+    ],
+  },
+  {
+    group: 'Catalog',
+    items: [
+      { key: 'categories', label: 'Categories', icon: <Tag className="h-4 w-4" /> },
+      { key: 'products',   label: 'Products',   icon: <Package className="h-4 w-4" /> },
+      { key: 'gallery',    label: 'Gallery',    icon: <Image className="h-4 w-4" /> },
+      { key: 'featured',   label: 'Featured',   icon: <Sparkles className="h-4 w-4" /> },
+    ],
+  },
+  {
+    group: 'Engage',
+    items: [
+      { key: 'testimonials',   label: 'Testimonials',   icon: <MessageSquareQuote className="h-4 w-4" /> },
+      { key: 'blogs',          label: 'Blogs',          icon: <Newspaper className="h-4 w-4" /> },
+      { key: 'instagram',      label: 'Instagram',      icon: <Instagram className="h-4 w-4" /> },
+      { key: 'buying-guides',  label: 'Buying Guides',  icon: <BookOpen className="h-4 w-4" /> },
+    ],
+  },
+  {
+    group: 'Business',
+    items: [
+      { key: 'contact',  label: 'Contact Info', icon: <Phone className="h-4 w-4" /> },
+      { key: 'offices',  label: 'Offices',      icon: <Building2 className="h-4 w-4" /> },
+      { key: 'visitors', label: 'Visitors',     icon: <Users className="h-4 w-4" /> },
+    ],
+  },
+];
+
+const SECTION_MAP: Record<string, ReactNode> = {
+  promo:          <AdminPromoHeader />,
+  banners:        <AdminBanners />,
+  categories:     <AdminCategories />,
+  products:       <AdminProducts />,
+  gallery:        <AdminGallery />,
+  featured:       <AdminFeaturedCollection />,
+  testimonials:   <AdminTestimonials />,
+  blogs:          <AdminBlogs />,
+  instagram:      <AdminInstagram />,
+  'buying-guides': <AdminBuyingGuides />,
+  contact:        <AdminContact />,
+  offices:        <AdminOffices />,
+  visitors:       <AdminVisitors />,
+};
+
+const LABELS: Record<string, string> = Object.fromEntries(
+  NAV.flatMap((g) => g.items.map((i) => [i.key, i.label]))
 );
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState('banners');
+  const [activeKey, setActiveKey] = useState('banners');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
@@ -56,155 +120,165 @@ const Admin = () => {
     toast('Logged out successfully');
   };
 
+  const handleNav = (key: string) => {
+    setActiveKey(key);
+    setSidebarOpen(false);
+  };
+
+  // ── Login Screen ──────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl">
-          <CardHeader className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-black rounded-full flex items-center justify-center">
-              <LayoutDashboard className="h-9 w-9 text-white" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0">
+          <CardHeader className="text-center space-y-4 pb-2">
+            <div className="mx-auto w-16 h-16 bg-black rounded-2xl flex items-center justify-center shadow-lg">
+              <Diamond className="h-8 w-8 text-white" />
             </div>
             <div>
-              <CardTitle className="text-3xl font-light tracking-wider">STARLINK JEWELS</CardTitle>
-              <CardDescription className="text-base mt-2">Admin Dashboard</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-wide">Starlink Jewels</CardTitle>
+              <CardDescription className="text-sm mt-1">Sign in to your admin panel</CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6 pt-6">
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-base">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
-                  className="h-12"
-                  required
-                />
+          <CardContent className="space-y-5 pt-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username" className="h-11" required />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="•••••"
-                  className="h-12"
-                  required
-                />
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="h-11" required />
               </div>
-              <Button type="submit" size="lg" className="w-full h-12 bg-black hover:bg-gray-800 text-white">
-                Access Admin Panel
+              <Button type="submit" size="lg" className="w-full h-11 bg-black hover:bg-gray-800 text-white mt-2">
+                Sign In
               </Button>
             </form>
-            {/* <p className="text-center text-sm text-muted-foreground">
-              Use: <span className="font-mono">admin</span> / <span className="font-mono">123</span>
-            </p> */}
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const renderTab = (key: string, content: ReactNode) => (
-    <TabsContent value={key}>
-      {activeTab === key && (
-        <Suspense fallback={<SectionFallback />}>
-          {content}
-        </Suspense>
-      )}
-    </TabsContent>
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
+    <aside className={`${mobile ? 'flex' : 'hidden lg:flex'} flex-col w-64 bg-gray-900 text-white min-h-screen`}>
+      {/* Brand */}
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-700/60">
+        <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
+          <Diamond className="h-5 w-5 text-gray-900" />
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-sm leading-tight truncate">Starlink Jewels</p>
+          <p className="text-xs text-gray-400 leading-tight">Admin Panel</p>
+        </div>
+        {mobile && (
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto text-gray-400 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+        {NAV.map(({ group, items }) => (
+          <div key={group}>
+            <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-500">{group}</p>
+            <div className="space-y-0.5">
+              {items.map(({ key, label, icon }) => {
+                const active = activeKey === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleNav(key)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                      active
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }`}
+                  >
+                    <span className={active ? 'text-gray-900' : 'text-gray-400'}>{icon}</span>
+                    {label}
+                    {active && <ChevronRight className="h-3.5 w-3.5 ml-auto text-gray-400" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Logout */}
+      <div className="p-3 border-t border-gray-700/60">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+        >
+          <LogOut className="h-4 w-4 text-gray-400" />
+          Logout
+        </button>
+      </div>
+    </aside>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Professional Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-black rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-light tracking-wider text-gray-900">STARLINK JEWELS</h1>
-              <p className="text-sm text-gray-500 -mt-0.5">Admin Control Panel</p>
-            </div>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Desktop Sidebar */}
+      <Sidebar />
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="relative z-10 flex">
+            <Sidebar mobile />
           </div>
-          <Button variant="ghost" onClick={handleLogout} className="text-gray-600 hover:text-gray-900">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
         </div>
-      </header>
+      )}
 
-      <main className="max-w-full mx-auto px-6 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Clean Professional Tab Bar */}
-          <ScrollArea className="w-full whitespace-nowrap mb-10">
-            <TabsList className="inline-flex h-14 rounded-xl bg-gray-100 p-2 gap-1">
-              <TabsTrigger value="promo" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Megaphone className="h-4 w-4 mr-2" /> Promo
-              </TabsTrigger>
-              <TabsTrigger value="banners" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Image className="h-4 w-4 mr-2" /> Banners
-              </TabsTrigger>
-              <TabsTrigger value="categories" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Tag className="h-4 w-4 mr-2" /> Categories
-              </TabsTrigger>
-              <TabsTrigger value="products" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Package className="h-4 w-4 mr-2" /> Products
-              </TabsTrigger>
-              <TabsTrigger value="gallery" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Image className="h-4 w-4 mr-2" /> Gallery
-              </TabsTrigger>
-              <TabsTrigger value="featured" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Sparkles className="h-4 w-4 mr-2" /> Featured
-              </TabsTrigger>
-              <TabsTrigger value="testimonials" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <MessageSquareQuote className="h-4 w-4 mr-2" /> Testimonials
-              </TabsTrigger>
-              <TabsTrigger value="blogs" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Newspaper className="h-4 w-4 mr-2" /> Blogs
-              </TabsTrigger>
-              <TabsTrigger value="instagram" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Instagram className="h-4 w-4 mr-2" /> Instagram
-              </TabsTrigger>
-              <TabsTrigger value="contact" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Phone className="h-4 w-4 mr-2" /> Contact
-              </TabsTrigger>
-              <TabsTrigger value="offices" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Building2 className="h-4 w-4 mr-2" /> Offices
-              </TabsTrigger>
-              <TabsTrigger value="visitors" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Users className="h-4 w-4 mr-2" /> Visitors
-              </TabsTrigger>
-              <TabsTrigger value="buying-guides" className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-  <BookOpen className="h-4 w-4 mr-2" /> Buying Guides
-</TabsTrigger>
-            </TabsList>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+          <div className="flex items-center gap-4 px-4 sm:px-6 h-16">
+            {/* Hamburger (mobile) */}
+            <button
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
 
-          {/* Clean Content Area */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 min-h-[600px]">
-            {renderTab("promo", <AdminPromoHeader />)}
-            {renderTab("banners", <AdminBanners />)}
-            {renderTab("categories", <AdminCategories />)}
-            {renderTab("products", <AdminProducts />)}
-            {renderTab("gallery", <AdminGallery />)}
-            {renderTab("featured", <AdminFeaturedCollection />)}
-            {renderTab("testimonials", <AdminTestimonials />)}
-            {renderTab("blogs", <AdminBlogs />)}
-            {renderTab("instagram", <AdminInstagram />)}
-            {renderTab("contact", <AdminContact />)}
-            {renderTab("offices", <AdminOffices />)}
-            {renderTab("visitors", <AdminVisitors />)}
-            {renderTab("buying-guides", <AdminBuyingGuides />)}
+            {/* Page title */}
+            <div className="flex items-center gap-2 min-w-0">
+              <LayoutDashboard className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <span className="text-sm text-gray-500 hidden sm:block">Admin</span>
+              <span className="text-gray-300 hidden sm:block">/</span>
+              <span className="font-semibold text-gray-900 truncate">{LABELS[activeKey] ?? activeKey}</span>
+            </div>
+
+            {/* Right */}
+            <div className="ml-auto flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs text-green-700 font-medium">Live</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex gap-2">
+                <LogOut className="h-3.5 w-3.5" />
+                Logout
+              </Button>
+            </div>
           </div>
-        </Tabs>
-      </main>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 min-h-[600px]">
+            <Suspense fallback={<SectionFallback />}>
+              {SECTION_MAP[activeKey] ?? null}
+            </Suspense>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
