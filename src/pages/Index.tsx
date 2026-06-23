@@ -48,30 +48,20 @@ const Index = () => {
     return posts.length > 1 ? [...posts, ...posts] : posts;
   }, [instagramPosts]);
 
-  // Load Instagram official embed.js and process blockquotes
-  useEffect(() => {
-    if (instagramPosts.length === 0) return;
-    type IGWindow = Window & { instgrm?: { Embeds: { process(): void } } };
-    const win = window as IGWindow;
-    const process = () => win.instgrm?.Embeds?.process();
+  // Extract clean embed URL — strips tracking params like igsh, utm_source
+  const getEmbedUrl = (url: string): string | null => {
+    try {
+      const parsed = new URL(url);
+      if (!['instagram.com', 'www.instagram.com'].includes(parsed.hostname)) return null;
+      const parts = parsed.pathname.split('/').filter(Boolean);
+      let type = parts[0];
+      if (type === 'reels') type = 'reel';
+      const id = parts[1];
+      if (!id || !['p', 'reel', 'tv'].includes(type)) return null;
+      return `https://www.instagram.com/${type}/${id}/embed/`;
+    } catch { return null; }
+  };
 
-    if (win.instgrm?.Embeds) {
-      process();
-      return;
-    }
-    const existing = document.getElementById('ig-embed-script');
-    if (existing) {
-      // Script still loading — fire process once it finishes
-      existing.addEventListener('load', process, { once: true });
-      return;
-    }
-    const s = document.createElement('script');
-    s.id = 'ig-embed-script';
-    s.src = 'https://www.instagram.com/embed.js';
-    s.async = true;
-    s.onload = process; // ← critical: call process() after script loads
-    document.body.appendChild(s);
-  }, [instagramPosts]);
 
   useEffect(() => {
     if (!blogsLoaded && blogsStatus === "idle") {
@@ -478,40 +468,54 @@ const Index = () => {
 
             {/* Scrolling feed */}
             <div className="flex gap-4 sm:gap-5 animate-[scroll_22s_linear_infinite] sm:animate-[scroll_36s_linear_infinite] pl-4">
-              {instagramFeedItems.map((post, index) => (
-                <article
-                  key={`${post.id}-${index}`}
-                  className="flex-shrink-0 w-[360px] sm:w-[400px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
-                >
-                  {/* Official Instagram embed — processed by embed.js into a real iframe */}
-                  <blockquote
-                    className="instagram-media"
-                    data-instgrm-permalink={`${post.url}?utm_source=ig_embed&utm_campaign=loading`}
-                    data-instgrm-version="14"
-                    style={{ background: '#fff', border: 0, borderRadius: 0, margin: 0, maxWidth: '100%', minWidth: 0, width: '100%' }}
+              {instagramFeedItems.map((post, index) => {
+                const embedUrl = getEmbedUrl(post.url);
+                return (
+                  <article
+                    key={`${post.id}-${index}`}
+                    className="flex-shrink-0 w-[320px] sm:w-[360px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
                   >
-                    {/* Fallback shown while embed.js loads */}
-                    <div className="flex h-[420px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}>
-                        <Instagram className="h-6 w-6" />
+                    {/* Instagram-style card header */}
+                    <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}>
+                        <Instagram className="h-4 w-4" />
                       </div>
-                      <p className="text-xs text-muted-foreground">Loading post…</p>
+                      <div>
+                        <p className="text-sm font-semibold leading-none">starlinkjewels</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Starlink Jewels</p>
+                      </div>
                     </div>
-                  </blockquote>
 
-                  {/* Footer link */}
-                  <a
-                    href={post.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 border-t border-border px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-                    style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
-                  >
-                    <Instagram className="h-4 w-4" />
-                    View on Instagram
-                  </a>
-                </article>
-              ))}
+                    {/* Iframe embed */}
+                    {embedUrl ? (
+                      <iframe
+                        src={embedUrl}
+                        title={`Instagram post ${index + 1}`}
+                        loading="lazy"
+                        allow="encrypted-media; autoplay"
+                        scrolling="no"
+                        className="w-full h-[420px] border-0 bg-[#fafafa]"
+                      />
+                    ) : (
+                      <div className="flex h-[420px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+                        <Instagram className="h-8 w-8 text-pink-400" />
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 border-t border-border px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                      style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
+                    >
+                      <Instagram className="h-4 w-4" />
+                      View on Instagram
+                    </a>
+                  </article>
+                );
+              })}
             </div>
           </section>
         )}
