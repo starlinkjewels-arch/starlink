@@ -8,17 +8,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Trash2, ExternalLink, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Load Instagram embed.js once for admin previews
+type IGWindow = Window & { instgrm?: { Embeds: { process(): void } } };
+
+// Load Instagram embed.js and call process() — must fire AFTER script loads
 const loadInstagramEmbed = () => {
-  if ((window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm) {
-    (window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm!.Embeds.process();
+  const win = window as IGWindow;
+  const process = () => win.instgrm?.Embeds?.process();
+
+  if (win.instgrm?.Embeds) {
+    process();
     return;
   }
-  if (document.getElementById('ig-embed-script')) return;
+  const existing = document.getElementById('ig-embed-script');
+  if (existing) {
+    existing.addEventListener('load', process, { once: true });
+    return;
+  }
   const s = document.createElement('script');
   s.id = 'ig-embed-script';
   s.src = 'https://www.instagram.com/embed.js';
   s.async = true;
+  s.onload = process; // ← fires process() as soon as embed.js is ready
   document.body.appendChild(s);
 };
 

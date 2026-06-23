@@ -48,18 +48,28 @@ const Index = () => {
     return posts.length > 1 ? [...posts, ...posts] : posts;
   }, [instagramPosts]);
 
-  // Load Instagram official embed.js so blockquotes render properly
+  // Load Instagram official embed.js and process blockquotes
   useEffect(() => {
     if (instagramPosts.length === 0) return;
-    if ((window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm) {
-      (window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm!.Embeds.process();
+    type IGWindow = Window & { instgrm?: { Embeds: { process(): void } } };
+    const win = window as IGWindow;
+    const process = () => win.instgrm?.Embeds?.process();
+
+    if (win.instgrm?.Embeds) {
+      process();
       return;
     }
-    if (document.getElementById('ig-embed-script')) return;
+    const existing = document.getElementById('ig-embed-script');
+    if (existing) {
+      // Script still loading — fire process once it finishes
+      existing.addEventListener('load', process, { once: true });
+      return;
+    }
     const s = document.createElement('script');
     s.id = 'ig-embed-script';
     s.src = 'https://www.instagram.com/embed.js';
     s.async = true;
+    s.onload = process; // ← critical: call process() after script loads
     document.body.appendChild(s);
   }, [instagramPosts]);
 
