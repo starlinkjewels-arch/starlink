@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Pencil, X, Play, GripVertical, Images, Copy, Search } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Play, GripVertical, Images, Copy, Search, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,6 +22,95 @@ interface MediaItem {
   file?: File;
   source: 'existing' | 'new';
 }
+
+// Reusable multi-select dropdown component
+const MultiSelectDropdown = ({
+  options,
+  selected,
+  onToggle,
+  placeholder,
+  searchable = false,
+}: {
+  options: { id: string; label: string }[];
+  selected: string[];
+  onToggle: (id: string, checked: boolean) => void;
+  placeholder: string;
+  searchable?: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filtered = searchable && search.trim()
+    ? options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()))
+    : options;
+
+  const label =
+    selected.length === 0
+      ? placeholder
+      : selected.length === 1
+      ? options.find(o => o.id === selected[0])?.label ?? placeholder
+      : `${selected.length} selected`;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          className="w-full justify-between font-normal"
+        >
+          <span className="truncate text-left">{label}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        {searchable && (
+          <div className="flex items-center border-b px-3">
+            <Search className="h-4 w-4 shrink-0 opacity-50 mr-2" />
+            <input
+              className="flex h-9 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        )}
+        {searchable && selected.length > 0 && (
+          <div className="flex items-center justify-between px-3 py-1.5 border-b text-xs text-muted-foreground">
+            <span>{selected.length} selected</span>
+            <button
+              className="text-destructive hover:underline"
+              onClick={() => selected.forEach(id => onToggle(id, false))}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+        <div className="max-h-60 overflow-y-auto p-1">
+          {filtered.length === 0 && (
+            <p className="py-4 text-center text-sm text-muted-foreground">No results found.</p>
+          )}
+          {filtered.map((opt) => {
+            const isChecked = selected.includes(opt.id);
+            return (
+              <label
+                key={opt.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-sm select-none"
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={(checked) => onToggle(opt.id, Boolean(checked))}
+                />
+                <span className="flex-1 truncate">{opt.label}</span>
+                {isChecked && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+              </label>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -283,17 +373,10 @@ const AdminProducts = () => {
     }
   };
 
-  const toggleCategorySelection = (categoryId: string, checked: boolean) => {
-    setSelectedCategoryIds((prev) => checked ? (prev.includes(categoryId) ? prev : [...prev, categoryId]) : prev.filter((id) => id !== categoryId));
-  };
-
   const getCategoryNames = (product: Product) => {
     const ids = getProductCategoryIds(product);
     return categories.filter((category) => ids.includes(category.id)).map((category) => category.name);
   };
-
-  const allSelected = products.length > 0 && bulkSelectedIds.length === products.length;
-  const someSelected = bulkSelectedIds.length > 0 && bulkSelectedIds.length < products.length;
 
   const filteredProducts = searchQuery.trim()
     ? products.filter((p) => {
@@ -302,9 +385,16 @@ const AdminProducts = () => {
       })
     : products;
 
+  const categoryOptions = categories.map(c => ({ id: c.id, label: c.name }));
+  const productOptions = products.map(p => ({ id: p.id, label: p.name }));
+
+  const bulkTargetLabel = bulkSelectedIds.length === 0
+    ? `All products (${products.length})`
+    : `${bulkSelectedIds.length} product${bulkSelectedIds.length !== 1 ? 's' : ''} selected`;
+
   return (
     <div className="space-y-8">
-      {/* Header with Add button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Products ({products.length})</h2>
         <Button onClick={handleOpenAdd}>
@@ -319,13 +409,13 @@ const AdminProducts = () => {
           <CardTitle>Bulk Price Update</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-            <div className="space-y-2 w-full sm:w-64">
-              <Label htmlFor="bulk-delta">Increase/Decrease Value</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div className="space-y-2">
+              <Label htmlFor="bulk-delta">Increase / Decrease Value</Label>
               <Input id="bulk-delta" value={bulkDelta} onChange={(e) => setBulkDelta(e.target.value)} placeholder="e.g., 10" type="number" step="0.01" />
-              <p className="text-xs text-muted-foreground">Use negative value to decrease prices.</p>
+              <p className="text-xs text-muted-foreground">Use negative value to decrease.</p>
             </div>
-            <div className="space-y-2 w-full sm:w-48">
+            <div className="space-y-2">
               <Label>Mode</Label>
               <Select value={bulkMode} onValueChange={(v) => setBulkMode(v as 'amount' | 'percent')}>
                 <SelectTrigger><SelectValue placeholder="Select mode" /></SelectTrigger>
@@ -335,27 +425,28 @@ const AdminProducts = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleOpenBulkPreview} disabled={isBulkUpdating}>Preview Changes</Button>
+            <Button onClick={handleOpenBulkPreview} disabled={isBulkUpdating} className="self-end">
+              Preview Changes
+            </Button>
           </div>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              checked={allSelected ? true : someSelected ? "indeterminate" : false}
-              onCheckedChange={(checked) => { if (checked) setBulkSelectedIds(products.map((p) => p.id)); else setBulkSelectedIds([]); }}
-              id="bulk-select-all"
+
+          {/* Product multi-select dropdown */}
+          <div className="space-y-2">
+            <Label>Apply To</Label>
+            <MultiSelectDropdown
+              options={productOptions}
+              selected={bulkSelectedIds}
+              onToggle={(id, checked) => {
+                if (checked) setBulkSelectedIds(prev => [...prev, id]);
+                else setBulkSelectedIds(prev => prev.filter(x => x !== id));
+              }}
+              placeholder={`All products (${products.length})`}
+              searchable
             />
-            <Label htmlFor="bulk-select-all">Select all products</Label>
-            <span className="text-xs text-muted-foreground">{bulkSelectedIds.length > 0 ? `${bulkSelectedIds.length} selected` : 'No selection = all products'}</span>
+            <p className="text-xs text-muted-foreground">
+              {bulkSelectedIds.length === 0 ? 'No selection = update all products' : bulkTargetLabel}
+            </p>
           </div>
-          {products.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-52 overflow-auto pr-2">
-              {products.map((p) => (
-                <label key={p.id} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={bulkSelectedIds.includes(p.id)} onCheckedChange={(checked) => { if (checked) setBulkSelectedIds((prev) => [...prev, p.id]); else setBulkSelectedIds((prev) => prev.filter((id) => id !== p.id)); }} />
-                  <span className="truncate">{p.name}</span>
-                </label>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -366,7 +457,7 @@ const AdminProducts = () => {
           <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by name, ID or category…" className="pl-9" />
         </div>
         {searchQuery && (
-          <Button variant="ghost" size="icon" onClick={() => setSearchQuery('')} title="Clear search"><X className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setSearchQuery('')}><X className="h-4 w-4" /></Button>
         )}
         <span className="text-sm text-muted-foreground whitespace-nowrap">{filteredProducts.length} / {products.length}</span>
       </div>
@@ -428,7 +519,7 @@ const AdminProducts = () => {
           <DialogHeader>
             <DialogTitle>
               {editingId ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span>Edit Product</span>
                   <div className="flex items-center gap-1.5 bg-muted rounded-md px-2 py-1">
                     <span className="font-mono text-xs text-muted-foreground">{editingId}</span>
@@ -441,17 +532,34 @@ const AdminProducts = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-2">
-            {/* Categories */}
+            {/* Categories multi-select dropdown */}
             <div className="space-y-2">
               <Label>Categories *</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-md border border-input bg-background p-4">
-                {categories.map((cat) => (
-                  <label key={cat.id} className="flex items-center gap-3 text-sm">
-                    <Checkbox checked={selectedCategoryIds.includes(cat.id)} onCheckedChange={(checked) => toggleCategorySelection(cat.id, Boolean(checked))} />
-                    <span>{cat.name}</span>
-                  </label>
-                ))}
-              </div>
+              <MultiSelectDropdown
+                options={categoryOptions}
+                selected={selectedCategoryIds}
+                onToggle={(id, checked) => {
+                  if (checked) setSelectedCategoryIds(prev => prev.includes(id) ? prev : [...prev, id]);
+                  else setSelectedCategoryIds(prev => prev.filter(x => x !== id));
+                }}
+                placeholder="Select categories..."
+              />
+              {selectedCategoryIds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {selectedCategoryIds.map(id => {
+                    const cat = categories.find(c => c.id === id);
+                    return cat ? (
+                      <span key={id} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                        {cat.name}
+                        <button onClick={() => setSelectedCategoryIds(prev => prev.filter(x => x !== id))}>
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Select one or more categories. First selected = primary category.</p>
             </div>
 
             {/* Name */}
