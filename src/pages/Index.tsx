@@ -48,19 +48,6 @@ const Index = () => {
     return posts.length > 1 ? [...posts, ...posts] : posts;
   }, [instagramPosts]);
 
-  // Extract clean embed URL — strips tracking params like igsh, utm_source
-  const getEmbedUrl = (url: string): string | null => {
-    try {
-      const parsed = new URL(url);
-      if (!['instagram.com', 'www.instagram.com'].includes(parsed.hostname)) return null;
-      const parts = parsed.pathname.split('/').filter(Boolean);
-      let type = parts[0];
-      if (type === 'reels') type = 'reel';
-      const id = parts[1];
-      if (!id || !['p', 'reel', 'tv'].includes(type)) return null;
-      return `https://www.instagram.com/${type}/${id}/embed/`;
-    } catch { return null; }
-  };
 
 
   useEffect(() => {
@@ -468,9 +455,7 @@ const Index = () => {
 
             {/* Scrolling feed */}
             <div className="flex gap-4 sm:gap-5 animate-[scroll_22s_linear_infinite] sm:animate-[scroll_36s_linear_infinite] pl-4">
-              {instagramFeedItems.map((post, index) => {
-                const embedUrl = getEmbedUrl(post.url);
-                return (
+              {instagramFeedItems.map((post, index) => (
                   <article
                     key={`${post.id}-${index}`}
                     className="flex-shrink-0 w-[320px] sm:w-[360px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
@@ -486,21 +471,15 @@ const Index = () => {
                       </div>
                     </div>
 
-                    {/* Iframe embed */}
-                    {embedUrl ? (
-                      <iframe
-                        src={embedUrl}
-                        title={`Instagram post ${index + 1}`}
-                        loading="lazy"
-                        allow="encrypted-media; autoplay"
-                        scrolling="no"
-                        className="w-full h-[420px] border-0 bg-[#fafafa]"
-                      />
-                    ) : (
-                      <div className="flex h-[420px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
-                        <Instagram className="h-8 w-8 text-pink-400" />
-                      </div>
-                    )}
+                    {/* Iframe — url entered directly by admin */}
+                    <iframe
+                      src={post.url}
+                      title={`Instagram post ${index + 1}`}
+                      loading="lazy"
+                      allow="encrypted-media; autoplay"
+                      scrolling="no"
+                      className="w-full h-[420px] border-0 bg-[#fafafa]"
+                    />
 
                     {/* Footer */}
                     <a
@@ -514,8 +493,7 @@ const Index = () => {
                       View on Instagram
                     </a>
                   </article>
-                );
-              })}
+              ))}
             </div>
           </section>
         )}

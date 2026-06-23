@@ -8,20 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Trash2, ExternalLink, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Extract clean embed URL from any Instagram post/reel URL
-const getEmbedUrl = (url: string): string | null => {
-  try {
-    const parsed = new URL(url);
-    if (!['instagram.com', 'www.instagram.com'].includes(parsed.hostname)) return null;
-    const parts = parsed.pathname.split('/').filter(Boolean);
-    let type = parts[0];
-    if (type === 'reels') type = 'reel';
-    const id = parts[1];
-    if (!id || !['p', 'reel', 'tv'].includes(type)) return null;
-    return `https://www.instagram.com/${type}/${id}/embed/`;
-  } catch { return null; }
-};
-
 const isInstagramUrl = (value: string) => {
   try {
     const parsed = new URL(value);
@@ -103,24 +89,16 @@ const AdminInstagram = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {posts.map((post) => {
-          const embedUrl = getEmbedUrl(post.url);
-          return (
+        {posts.map((post) => (
             <Card key={post.id} className="overflow-hidden">
-              {embedUrl ? (
-                <iframe
-                  src={embedUrl}
-                  title="Instagram post"
-                  className="w-full h-[480px] border-0 bg-[#fafafa]"
-                  loading="lazy"
-                  allow="encrypted-media; autoplay"
-                  scrolling="no"
-                />
-              ) : (
-                <div className="flex h-[200px] items-center justify-center text-muted-foreground text-sm bg-muted">
-                  Invalid Instagram URL
-                </div>
-              )}
+              <iframe
+                src={post.url}
+                title="Instagram post"
+                className="w-full h-[480px] border-0 bg-[#fafafa]"
+                loading="lazy"
+                allow="encrypted-media; autoplay"
+                scrolling="no"
+              />
               <CardContent className="p-3">
                 <p className="text-xs text-muted-foreground mb-2 truncate">{post.url}</p>
                 <div className="flex gap-1.5">
@@ -138,8 +116,7 @@ const AdminInstagram = () => {
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+        ))}
         {posts.length === 0 && (
           <p className="text-muted-foreground col-span-2 text-center py-8">No posts added yet.</p>
         )}
@@ -157,10 +134,10 @@ const AdminInstagram = () => {
                 id="instagram-url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://www.instagram.com/reel/... or /p/..."
+                placeholder="https://www.instagram.com/reel/ABC123/embed/"
               />
               <p className="text-xs text-muted-foreground">
-                Paste any Instagram reel or post URL — tracking params are stripped automatically.
+                Enter the embed URL: instagram.com/reel/ID/embed/ or /p/ID/embed/
               </p>
             </div>
           </div>
