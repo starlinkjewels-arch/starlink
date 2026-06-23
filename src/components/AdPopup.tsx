@@ -22,6 +22,9 @@ const AdPopup = () => {
     getAd().then((data) => {
       if (!data || !data.enabled || !data.image) return;
       setAd(data);
+      // Preload image immediately during the delay so it shows instantly when popup opens
+      const preload = new Image();
+      preload.src = data.image;
       const timer = setTimeout(() => setVisible(true), DELAY_MS);
       return () => clearTimeout(timer);
     });
