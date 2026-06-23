@@ -8,6 +8,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Trash2, ExternalLink, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Load Instagram embed.js once for admin previews
+const loadInstagramEmbed = () => {
+  if ((window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm) {
+    (window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm!.Embeds.process();
+    return;
+  }
+  if (document.getElementById('ig-embed-script')) return;
+  const s = document.createElement('script');
+  s.id = 'ig-embed-script';
+  s.src = 'https://www.instagram.com/embed.js';
+  s.async = true;
+  document.body.appendChild(s);
+};
+
 const isInstagramUrl = (value: string) => {
   try {
     const parsedUrl = new URL(value);
@@ -26,7 +40,10 @@ const AdminInstagram = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    getInstagramPosts().then(setPosts);
+    getInstagramPosts().then((data) => {
+      setPosts(data);
+      if (data.length > 0) loadInstagramEmbed();
+    });
   }, []);
 
   const handleOpenAdd = () => {
@@ -68,6 +85,7 @@ const AdminInstagram = () => {
       setPosts(updated);
       handleClose();
       toast.success(editingId ? 'Instagram post updated' : 'Instagram post added');
+      setTimeout(loadInstagramEmbed, 500);
     } catch {
       toast.error(editingId ? 'Failed to update post' : 'Failed to add post');
     } finally {
@@ -101,27 +119,31 @@ const AdminInstagram = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {posts.map((post) => (
-          <Card key={post.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <a
-                  href={post.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
-                >
-                  View Post <ExternalLink className="h-3 w-3" />
-                </a>
+          <Card key={post.id} className="overflow-hidden">
+            {/* Official Instagram embed preview */}
+            <blockquote
+              className="instagram-media"
+              data-instgrm-permalink={`${post.url}?utm_source=ig_embed&utm_campaign=loading`}
+              data-instgrm-version="14"
+              style={{ background: '#fff', border: 0, borderRadius: 0, margin: 0, maxWidth: '100%', minWidth: 0, width: '100%' }}
+            >
+              <div className="flex h-[300px] items-center justify-center text-muted-foreground text-sm">
+                Loading preview…
               </div>
-              <p className="text-xs text-muted-foreground mb-4 truncate">{post.url}</p>
+            </blockquote>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-3 truncate">{post.url}</p>
               <div className="flex gap-2">
+                <a href={post.url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <Button variant="ghost" size="sm" className="w-full">
+                    <ExternalLink className="h-4 w-4 mr-2" />Open
+                  </Button>
+                </a>
                 <Button variant="outline" size="sm" onClick={() => handleEdit(post)} disabled={isDeleting === post.id} className="flex-1">
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
+                  <Pencil className="h-4 w-4 mr-2" />Edit
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id)} disabled={isDeleting === post.id} className="flex-1">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {isDeleting === post.id ? 'Deleting...' : 'Delete'}
+                  <Trash2 className="h-4 w-4 mr-2" />{isDeleting === post.id ? 'Deleting...' : 'Delete'}
                 </Button>
               </div>
             </CardContent>

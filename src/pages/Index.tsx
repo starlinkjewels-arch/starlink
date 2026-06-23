@@ -48,17 +48,20 @@ const Index = () => {
     return posts.length > 1 ? [...posts, ...posts] : posts;
   }, [instagramPosts]);
 
-  const getInstagramEmbedUrl = (url: string): string | null => {
-    try {
-      const parsed = new URL(url);
-      if (parsed.hostname !== 'instagram.com' && parsed.hostname !== 'www.instagram.com') return null;
-      const segments = parsed.pathname.split('/').filter(Boolean);
-      const type = segments[0] === 'reels' ? 'reel' : segments[0];
-      const id = segments[1];
-      if (!id || !['p', 'reel', 'tv'].includes(type)) return null;
-      return `https://www.instagram.com/${type}/${id}/embed/`;
-    } catch { return null; }
-  };
+  // Load Instagram official embed.js so blockquotes render properly
+  useEffect(() => {
+    if (instagramPosts.length === 0) return;
+    if ((window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm) {
+      (window as Window & { instgrm?: { Embeds: { process(): void } } }).instgrm!.Embeds.process();
+      return;
+    }
+    if (document.getElementById('ig-embed-script')) return;
+    const s = document.createElement('script');
+    s.id = 'ig-embed-script';
+    s.src = 'https://www.instagram.com/embed.js';
+    s.async = true;
+    document.body.appendChild(s);
+  }, [instagramPosts]);
 
   useEffect(() => {
     if (!blogsLoaded && blogsStatus === "idle") {
@@ -465,65 +468,40 @@ const Index = () => {
 
             {/* Scrolling feed */}
             <div className="flex gap-4 sm:gap-5 animate-[scroll_22s_linear_infinite] sm:animate-[scroll_36s_linear_infinite] pl-4">
-              {instagramFeedItems.map((post, index) => {
-                const embedUrl = getInstagramEmbedUrl(post.url);
-                return (
-                  <article
-                    key={`${post.id}-${index}`}
-                    className="flex-shrink-0 w-[300px] sm:w-[330px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
+              {instagramFeedItems.map((post, index) => (
+                <article
+                  key={`${post.id}-${index}`}
+                  className="flex-shrink-0 w-[360px] sm:w-[400px] rounded-2xl overflow-hidden border border-border bg-card shadow-lg"
+                >
+                  {/* Official Instagram embed — processed by embed.js into a real iframe */}
+                  <blockquote
+                    className="instagram-media"
+                    data-instgrm-permalink={`${post.url}?utm_source=ig_embed&utm_campaign=loading`}
+                    data-instgrm-version="14"
+                    style={{ background: '#fff', border: 0, borderRadius: 0, margin: 0, maxWidth: '100%', minWidth: 0, width: '100%' }}
                   >
-                    {/* Instagram-style card header */}
-                    <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
-                      >
-                        <Instagram className="h-4 w-4" />
+                    {/* Fallback shown while embed.js loads */}
+                    <div className="flex h-[420px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}>
+                        <Instagram className="h-6 w-6" />
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold leading-none">starlinkjewels</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Starlink Jewels</p>
-                      </div>
+                      <p className="text-xs text-muted-foreground">Loading post…</p>
                     </div>
+                  </blockquote>
 
-                    {/* Embed or branded placeholder */}
-                    {embedUrl ? (
-                      <iframe
-                        src={embedUrl}
-                        title={`Instagram post ${index + 1}`}
-                        loading="lazy"
-                        allowtransparency="true"
-                        scrolling="no"
-                        allow="encrypted-media"
-                        className="h-[380px] w-full border-0 bg-[#fafafa]"
-                        style={{ overflow: 'hidden' }}
-                      />
-                    ) : (
-                      <div className="flex h-[380px] flex-col items-center justify-center gap-4 px-6 text-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
-                        <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center text-white"
-                          style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
-                        >
-                          <Instagram className="h-7 w-7" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">View this post on Instagram</p>
-                      </div>
-                    )}
-
-                    {/* Card footer — open post link */}
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 border-t border-border px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-                      style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
-                    >
-                      <Instagram className="h-4 w-4" />
-                      View on Instagram
-                    </a>
-                  </article>
-                );
-              })}
+                  {/* Footer link */}
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 border-t border-border px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                    style={{ background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)' }}
+                  >
+                    <Instagram className="h-4 w-4" />
+                    View on Instagram
+                  </a>
+                </article>
+              ))}
             </div>
           </section>
         )}
