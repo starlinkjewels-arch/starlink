@@ -231,8 +231,6 @@ export const loadGlobalData = createAsyncThunk<
       }
     }
 
-    await initializeDefaultData();
-
     const [
       banners,
       categories,
@@ -241,7 +239,8 @@ export const loadGlobalData = createAsyncThunk<
       getBanners(),
       getCategories(),
       getPromoHeader(),
-    ]);
+      initializeDefaultData(), // run in parallel — doesn't block category load
+    ]).then(([b, c, p]) => [b, c, p]);
 
     return {
       banners,
