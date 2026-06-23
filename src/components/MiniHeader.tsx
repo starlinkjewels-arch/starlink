@@ -31,8 +31,8 @@ const MiniHeader = ({
   // Calculate top position: promo (0 or 40) + header (80)
   const topPosition = promoHeight + 65;
 
-  // Hide on scroll
-  if (isScrolled) return null;
+  // Hide on scroll or while categories haven't loaded yet (avoids "Loading collections..." flash)
+  if (isScrolled || orderedCategories.length === 0) return null;
 
   return (
     <div
