@@ -3,7 +3,8 @@ import { getInstagramPosts, saveInstagramPost, deleteInstagramPost, InstagramPos
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Trash2, ExternalLink, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,50 +22,53 @@ const AdminInstagram = () => {
   const [url, setUrl] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     getInstagramPosts().then(setPosts);
   }, []);
 
+  const handleOpenAdd = () => {
+    setEditingId(null);
+    setUrl('');
+    setDialogOpen(true);
+  };
+
   const handleEdit = (post: InstagramPost) => {
     setEditingId(post.id);
     setUrl(post.url);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setDialogOpen(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleClose = () => {
+    setDialogOpen(false);
     setEditingId(null);
     setUrl('');
   };
 
-  const handleAddPost = async () => {
+  const handleSave = async () => {
     const trimmedUrl = url.trim();
-
     if (!trimmedUrl) {
       toast.error('Please enter an Instagram post URL');
       return;
     }
-
     if (!isInstagramUrl(trimmedUrl)) {
       toast.error('Please enter a valid Instagram URL');
       return;
     }
-
     setIsAdding(true);
     try {
       const postData: InstagramPost = {
         id: editingId || Date.now().toString(),
         url: trimmedUrl,
       };
-
       await saveInstagramPost(postData);
       const updated = await getInstagramPosts();
       setPosts(updated);
-      setUrl('');
-      setEditingId(null);
+      handleClose();
       toast.success(editingId ? 'Instagram post updated' : 'Instagram post added');
-    } catch (error) {
+    } catch {
       toast.error(editingId ? 'Failed to update post' : 'Failed to add post');
     } finally {
       setIsAdding(false);
@@ -78,7 +82,7 @@ const AdminInstagram = () => {
       const updated = await getInstagramPosts();
       setPosts(updated);
       toast.success('Post deleted');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete post');
     } finally {
       setIsDeleting(null);
@@ -86,66 +90,36 @@ const AdminInstagram = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>{editingId ? 'Edit Instagram Post' : 'Add Instagram Post'}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="instagram-url">Instagram Post URL *</Label>
-            <Input
-              id="instagram-url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://www.instagram.com/reel/... or /p/..."
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleAddPost} className="flex-1" disabled={isAdding}>
-              <Plus className="h-4 w-4 mr-2" />
-              {isAdding ? (editingId ? 'Updating...' : 'Adding...') : (editingId ? 'Update Post' : 'Add Post')}
-            </Button>
-            {editingId && (
-              <Button onClick={handleCancelEdit} variant="outline" disabled={isAdding}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Instagram Posts ({posts.length})</h2>
+        <Button onClick={handleOpenAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Post
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {posts.map((post) => (
           <Card key={post.id}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <a
                   href={post.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline flex items-center gap-2"
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
                 >
                   View Post <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
               <p className="text-xs text-muted-foreground mb-4 truncate">{post.url}</p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(post)}
-                  disabled={isDeleting === post.id}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleEdit(post)} disabled={isDeleting === post.id} className="flex-1">
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(post.id)}
-                  disabled={isDeleting === post.id}
-                >
+                <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id)} disabled={isDeleting === post.id} className="flex-1">
                   <Trash2 className="h-4 w-4 mr-2" />
                   {isDeleting === post.id ? 'Deleting...' : 'Delete'}
                 </Button>
@@ -153,7 +127,35 @@ const AdminInstagram = () => {
             </CardContent>
           </Card>
         ))}
+        {posts.length === 0 && (
+          <p className="text-muted-foreground col-span-2 text-center py-8">No posts added yet.</p>
+        )}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingId ? 'Edit Instagram Post' : 'Add Instagram Post'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="instagram-url">Instagram Post URL *</Label>
+              <Input
+                id="instagram-url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://www.instagram.com/reel/... or /p/..."
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={handleClose} disabled={isAdding}>Cancel</Button>
+            <Button onClick={handleSave} disabled={isAdding}>
+              {isAdding ? (editingId ? 'Updating...' : 'Adding...') : (editingId ? 'Update Post' : 'Add Post')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

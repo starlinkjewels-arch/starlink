@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Trash2, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -17,6 +18,7 @@ const AdminFeaturedCollection = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,11 +30,18 @@ const AdminFeaturedCollection = () => {
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
+      reader.onloadend = () => setImage(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleOpenAdd = () => {
+    setEditingId(null);
+    setTitle('');
+    setDescription('');
+    setImage('');
+    setImageFile(null);
+    setDialogOpen(true);
   };
 
   const handleEdit = (item: FeaturedCollection) => {
@@ -40,10 +49,12 @@ const AdminFeaturedCollection = () => {
     setTitle(item.title);
     setDescription(item.description || '');
     setImage(item.image);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setImageFile(null);
+    setDialogOpen(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleClose = () => {
+    setDialogOpen(false);
     setEditingId(null);
     setTitle('');
     setDescription('');
@@ -51,36 +62,29 @@ const AdminFeaturedCollection = () => {
     setImageFile(null);
   };
 
-  const handleAdd = async () => {
+  const handleSave = async () => {
     if (!title || (!imageFile && !editingId)) {
       toast.error('Please provide title and image');
       return;
     }
-
     setIsUploading(true);
     try {
       let imageUrl = image;
       if (imageFile) {
         imageUrl = await uploadImageToStorage(imageFile, 'featured-collection');
       }
-      
       const itemData: FeaturedCollection = {
         id: editingId || Date.now().toString(),
         title,
         description,
         image: imageUrl,
       };
-
       await saveFeaturedItem(itemData);
       const updated = await getFeaturedCollection();
       setItems(updated);
-      setTitle('');
-      setDescription('');
-      setImage('');
-      setImageFile(null);
-      setEditingId(null);
-      toast.success(editingId ? 'Featured item updated successfully' : 'Featured item added successfully');
-    } catch (error) {
+      handleClose();
+      toast.success(editingId ? 'Featured item updated' : 'Featured item added');
+    } catch {
       toast.error(editingId ? 'Failed to update featured item' : 'Failed to add featured item');
     } finally {
       setIsUploading(false);
@@ -94,7 +98,7 @@ const AdminFeaturedCollection = () => {
       const updated = await getFeaturedCollection();
       setItems(updated);
       toast.success('Featured item deleted');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete featured item');
     } finally {
       setIsDeleting(null);
@@ -102,79 +106,28 @@ const AdminFeaturedCollection = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>{editingId ? 'Edit Featured Collection Item' : 'Add Featured Collection Item'}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="featured-title">Title *</Label>
-            <Input
-              id="featured-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Diamond Necklace Collection"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="featured-description">Description</Label>
-            <Textarea
-              id="featured-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter item description"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="featured-image">Image *</Label>
-            <Input
-              id="featured-image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-            {image && (
-              <OptimizedImage src={image} alt="Preview" className="h-32 w-auto object-cover" wrapperClassName="inline-block rounded-lg mt-2" />
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleAdd} className="flex-1" disabled={isUploading}>
-              <Plus className="h-4 w-4 mr-2" />
-              {isUploading ? (editingId ? 'Updating...' : 'Uploading...') : (editingId ? 'Update Featured Item' : 'Add to Featured Collection')}
-            </Button>
-            {editingId && (
-              <Button onClick={handleCancelEdit} variant="outline" disabled={isUploading}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Featured Collection ({items.length})</h2>
+        <Button onClick={handleOpenAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Item
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {items.map((item) => (
-          <Card key={item.id}>
+          <Card key={item.id} className="overflow-hidden">
             <OptimizedImage src={item.image} alt={item.title} className="w-full h-48 object-cover" wrapperClassName="w-full" />
             <CardContent className="p-4">
-              <h3 className="font-semibold mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
+              <h3 className="font-semibold mb-1">{item.title}</h3>
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{item.description}</p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(item)}
-                  disabled={isDeleting === item.id}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleEdit(item)} disabled={isDeleting === item.id} className="flex-1">
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(item.id)}
-                  disabled={isDeleting === item.id}
-                >
+                <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id} className="flex-1">
                   <Trash2 className="h-4 w-4 mr-2" />
                   {isDeleting === item.id ? 'Deleting...' : 'Delete'}
                 </Button>
@@ -182,7 +135,52 @@ const AdminFeaturedCollection = () => {
             </CardContent>
           </Card>
         ))}
+        {items.length === 0 && (
+          <p className="text-muted-foreground col-span-3 text-center py-8">No featured items yet.</p>
+        )}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingId ? 'Edit Featured Item' : 'Add Featured Collection Item'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="featured-title">Title *</Label>
+              <Input
+                id="featured-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Diamond Necklace Collection"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="featured-description">Description</Label>
+              <Textarea
+                id="featured-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter item description"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="featured-image">Image {!editingId && '*'}</Label>
+              <Input id="featured-image" type="file" accept="image/*" onChange={handleImageUpload} />
+              {image && (
+                <OptimizedImage src={image} alt="Preview" className="h-40 w-full object-cover rounded-lg mt-2" wrapperClassName="w-full rounded-lg mt-2" />
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={handleClose} disabled={isUploading}>Cancel</Button>
+            <Button onClick={handleSave} disabled={isUploading}>
+              {isUploading ? (editingId ? 'Updating...' : 'Uploading...') : (editingId ? 'Update Item' : 'Add Item')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
