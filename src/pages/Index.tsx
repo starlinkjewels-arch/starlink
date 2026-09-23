@@ -91,7 +91,7 @@ const Index = () => {
         title="Premium Diamond & Gold Jewelry | Lab Grown & Natural Diamonds"
         description="Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore IGI & GIA certified engagement rings, wedding bands, necklaces, earrings & bracelets, handcrafted in Surat with insured worldwide shipping."
         keywords="diamond jewelry, lab grown diamonds, natural diamonds, engagement rings, wedding bands, certified jewelry, IGI certified, GIA certified, diamond necklaces, diamond earrings, tennis bracelets, custom jewelry design, wholesale diamond jewelry Surat"
-        canonicalUrl="https://www.starlinkjewels.com"
+        canonicalUrl="https://starlinkjewels.com"
         faqItems={faqItems}
       />
 

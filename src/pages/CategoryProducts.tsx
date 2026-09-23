@@ -86,7 +86,7 @@ const CategoryProducts = () => {
     return unique.length > 0 ? unique : category?.image ? [category.image] : [];
   }, [sortedProducts, category?.image]);
 
-  const baseUrl = `https://www.starlinkjewels.com/category/${id}`;
+  const baseUrl = `https://starlinkjewels.com/category/${id}`;
 
   const structuredData = category
     ? [
@@ -107,14 +107,14 @@ const CategoryProducts = () => {
               position: i + 1,
               item: {
                 '@type': 'Product',
-                '@id': `https://www.starlinkjewels.com/product/${p.id}#product`,
+                '@id': `https://starlinkjewels.com/product/${p.id}#product`,
                 name: p.name,
                 image: p.images && p.images.length > 0 ? p.images : [p.image],
                 description: p.description || `${p.name} from Starlink Jewels`,
                 sku: p.id,
                 category: category.name,
                 brand: { '@type': 'Brand', name: 'Starlink Jewels' },
-                offers: buildOffer(`https://www.starlinkjewels.com/product/${p.id}`, p.price),
+                offers: buildOffer(`https://starlinkjewels.com/product/${p.id}`, p.price),
               },
             })),
           },
@@ -158,8 +158,8 @@ const CategoryProducts = () => {
         canonicalUrl={baseUrl}
         structuredData={structuredData}
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: 'Collections', url: 'https://www.starlinkjewels.com/categories' },
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
           { name: category.name, url: baseUrl },
         ]}
         faqItems={category.seoFaq?.length ? category.seoFaq : buildFaqForCategory(category.name)}

@@ -42,6 +42,6 @@ jobs:
 
       - name: Ping search engines
         run: |
-          SITEMAP_URL="https://www.starlinkjewels.com/sitemap.xml"
+          SITEMAP_URL="https://starlinkjewels.com/sitemap.xml"
           curl -sS "https://www.google.com/ping?sitemap=${SITEMAP_URL}" >/dev/null || true
           curl -sS "https://www.bing.com/ping?sitemap=${SITEMAP_URL}" >/dev/null || true

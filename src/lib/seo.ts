@@ -1,7 +1,7 @@
 export const SITE = {
   name: "Starlink Jewels",
-  url: "https://www.starlinkjewels.com",
-  ogImage: "https://www.starlinkjewels.com/icon.png",
+  url: "https://starlinkjewels.com",
+  ogImage: "https://starlinkjewels.com/icon.png",
   phonePrimary: "+1 (201) 554-4824",
   phoneWhatsApp: "+1 (201) 554-4824",
   email: "info@starlinkjewels.com",
@@ -134,16 +134,16 @@ export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
 };
 
 export const buildMetaTitleForCategory = (categoryName: string) => {
-  return `${categoryName} Jewelry | Premium Diamond & Gold | ${SITE.name}`;
+  return `${categoryName} Jewelry — Certified Diamond & Gold Collection`;
 };
 
 export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
   if (desc && desc.trim().length > 40) return desc.trim();
-  return `Explore premium ${categoryName.toLowerCase()} jewelry at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery to USA, Canada, Australia, and Germany.`;
+  return `Shop certified ${categoryName.toLowerCase()} jewelry at ${SITE.name}. GIA & IGI certified lab-grown and natural diamonds with free insured worldwide delivery to USA, Canada, Australia, and Germany.`;
 };
 
 export const buildMetaTitleForProduct = (productName: string) => {
-  return `${productName} | ${SITE.name}`;
+  return productName;
 };
 
 export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string) => {
@@ -171,8 +171,15 @@ export const buildOffer = (url: string, price?: string) => {
   };
 };
 
+/** Returns value only if it's long enough to be a real meta title/description, otherwise '' */
+export const sanitizeMetaField = (value: string | undefined | null, minLength = 15): string => {
+  if (!value) return '';
+  const trimmed = value.trim();
+  return trimmed.length >= minLength ? trimmed : '';
+};
+
 export const buildMetaTitleForBlog = (title: string) => {
-  return `${title} | ${SITE.name} Blog`;
+  return title;
 };
 
 export const buildMetaDescriptionForBlog = (html: string) => {

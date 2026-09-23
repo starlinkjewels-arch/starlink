@@ -32,18 +32,18 @@ const Categories = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': 'https://www.starlinkjewels.com/categories#collectionpage',
+    '@id': 'https://starlinkjewels.com/categories#collectionpage',
     name: 'Jewelry Collections - Premium Diamond & Gold Jewelry | Starlink Jewels',
     description: 'Explore our premium jewelry collections featuring certified lab-grown and natural diamonds: rings, necklaces, earrings, and bracelets.',
-    url: 'https://www.starlinkjewels.com/categories',
-    mainEntityOfPage: 'https://www.starlinkjewels.com/categories',
+    url: 'https://starlinkjewels.com/categories',
+    mainEntityOfPage: 'https://starlinkjewels.com/categories',
     mainEntity: {
       '@type': 'ItemList',
-      '@id': 'https://www.starlinkjewels.com/categories#itemlist',
+      '@id': 'https://starlinkjewels.com/categories#itemlist',
       itemListElement: ordered.map((cat, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://www.starlinkjewels.com/category/${cat.id}`,
+        url: `https://starlinkjewels.com/category/${cat.id}`,
         name: cat.name,
       })),
     },
@@ -55,11 +55,11 @@ const Categories = () => {
         title="Jewelry Collections - Diamond Rings, Necklaces, Earrings & Bracelets"
         description="Explore our curated jewelry collections. Shop certified lab-grown and natural diamond rings, necklaces, earrings and bracelets, handcrafted in Surat with insured worldwide shipping."
         keywords="jewelry collections, diamond rings collection, diamond necklaces, diamond earrings, bracelets, engagement rings, wedding bands, solitaire rings, tennis bracelets, custom jewelry"
-        canonicalUrl="https://www.starlinkjewels.com/categories"
+        canonicalUrl="https://starlinkjewels.com/categories"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: 'Collections', url: 'https://www.starlinkjewels.com/categories' },
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
         ]}
         faqItems={faqItems}
       />

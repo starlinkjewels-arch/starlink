@@ -52,7 +52,7 @@ const ProductDetail = () => {
     if (!productsLoaded && productsStatus === 'idle') dispatch(loadProducts());
   }, [dispatch, productsLoaded, productsStatus]);
 
-  const pageUrl = `https://www.starlinkjewels.com/product/${id}`;
+  const pageUrl = `https://starlinkjewels.com/product/${id}`;
 
   if (!product) {
     const loading = !isReady || !productsReady;
@@ -107,9 +107,9 @@ const ProductDetail = () => {
         ogType="product"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: 'Collections', url: 'https://www.starlinkjewels.com/categories' },
-          ...(category ? [{ name: category.name, url: `https://www.starlinkjewels.com/category/${category.id}` }] : []),
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
+          ...(category ? [{ name: category.name, url: `https://starlinkjewels.com/category/${category.id}` }] : []),
           { name: product.name, url: pageUrl },
         ]}
         faqItems={product.seoFaq && product.seoFaq.length > 0 ? product.seoFaq : buildFaqForProduct(product.name, category?.name)}

@@ -1,5 +1,6 @@
 // src/components/admin/AdminBuyingGuides.tsx
 import { useState, useEffect } from 'react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,7 +136,7 @@ const AdminBuyingGuides = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {guides.map((guide) => (
           <Card key={guide.id} className="overflow-hidden">
-            <img src={guide.image || '/placeholder.jpg'} alt={guide.title} className="w-full h-48 object-cover" />
+            <OptimizedImage src={guide.image || '/placeholder.jpg'} alt={guide.title} className="w-full h-48 object-cover" wrapperClassName="w-full" />
             <div className="p-4">
               <h3 className="font-semibold text-lg mb-2 line-clamp-2">{guide.title}</h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
@@ -168,7 +169,7 @@ const AdminBuyingGuides = () => {
 
             <div>
               <Label>Cover Image</Label>
-              {imageUrl && <img src={imageUrl} alt="Preview" className="w-full h-64 object-cover rounded-lg mb-3" />}
+              {imageUrl && <OptimizedImage src={imageUrl} alt="Preview" className="w-full h-64 object-cover" wrapperClassName="w-full rounded-lg mb-3" />}
               <Input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && setImage(e.target.files[0])} />
             </div>
 

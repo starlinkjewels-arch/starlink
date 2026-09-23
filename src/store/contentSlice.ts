@@ -239,16 +239,11 @@ export const loadGlobalData = createAsyncThunk<
       }
     }
 
-    await initializeDefaultData();
-
-    const [
-      banners,
-      categories,
-      promoHeader,
-    ] = await Promise.all([
+    const [banners, categories, promoHeader] = await Promise.all([
       getBanners(),
       getCategories(),
       getPromoHeader(),
+      initializeDefaultData(), // run in parallel — doesn't block category load
     ]);
 
     // The getters swallow errors and return []. Treat "no categories" as a failed load so the

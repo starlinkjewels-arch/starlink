@@ -44,7 +44,7 @@ const BuyingGuidePage = () => {
 
   const content = useMemo(() => sanitizeHtml(selected?.content || '', { stripInlineStyles: true }), [selected?.content]);
   const loading = guides.length === 0 && !deferredLoaded && deferredStatus !== 'failed';
-  const canonical = `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`;
+  const canonical = `https://starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`;
 
   return (
     <SiteLayout>
@@ -74,9 +74,9 @@ const BuyingGuidePage = () => {
             : undefined
         }
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: 'Buying Guide', url: 'https://www.starlinkjewels.com/buying-guide' },
-          ...(selected ? [{ name: selected.title, url: `https://www.starlinkjewels.com/buying-guide/${selected.slug}` }] : []),
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'Buying Guide', url: 'https://starlinkjewels.com/buying-guide' },
+          ...(selected ? [{ name: selected.title, url: `https://starlinkjewels.com/buying-guide/${selected.slug}` }] : []),
         ]}
         faqItems={selected?.seoFaq?.length ? selected.seoFaq : defaultFaqItems}
       />

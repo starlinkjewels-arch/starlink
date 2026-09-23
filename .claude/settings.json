@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/bhumi/Downloads/google.com!starlinkjewels.com!1782000000!1782086399/**)",
+      "Bash(npm install)",
+      "Bash(git add package-lock.json)",
+      "Bash(git commit -m \"Update package-lock.json to sync with package.json\")",
+      "Bash(git push)"
+    ]
+  }
+}

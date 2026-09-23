@@ -49,14 +49,14 @@ const About = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    '@id': 'https://www.starlinkjewels.com/about#aboutpage',
+    '@id': 'https://starlinkjewels.com/about#aboutpage',
     name: 'About Starlink Jewels - Diamond Jewelry Manufacturer Since 2011',
     description: 'Starlink Jewels is a Surat-based manufacturer of lab-grown and natural diamond jewelry, crafting made-to-order pieces since 2011.',
-    url: 'https://www.starlinkjewels.com/about',
-    mainEntityOfPage: 'https://www.starlinkjewels.com/about',
+    url: 'https://starlinkjewels.com/about',
+    mainEntityOfPage: 'https://starlinkjewels.com/about',
     mainEntity: {
       '@type': 'Organization',
-      '@id': 'https://www.starlinkjewels.com/#jewelry-store',
+      '@id': 'https://starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
       foundingDate: String(BRAND.founded),
       areaServed: 'Worldwide',
@@ -70,11 +70,11 @@ const About = () => {
         title="About Us - Diamond Jewelry Manufacturer Since 2011"
         description="Discover Starlink Jewels: crafting certified lab-grown and natural diamond jewelry in Surat since 2011. Master craftsmanship, ethical sourcing and made-to-order pieces for clients worldwide."
         keywords="about starlink jewels, diamond jewelry manufacturer, jewelry brand story, lab grown diamond manufacturer Surat, custom jewelry makers, wholesale jewelry supplier, ethical diamond sourcing"
-        canonicalUrl="https://www.starlinkjewels.com/about"
+        canonicalUrl="https://starlinkjewels.com/about"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: 'About', url: 'https://www.starlinkjewels.com/about' },
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'About', url: 'https://starlinkjewels.com/about' },
         ]}
         faqItems={faqItems}
       />

@@ -59,14 +59,14 @@ const Contact = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    '@id': 'https://www.starlinkjewels.com/contact#contactpage',
+    '@id': 'https://starlinkjewels.com/contact#contactpage',
     name: 'Contact Starlink Jewels',
     description: 'Contact Starlink Jewels for diamond jewelry, custom designs, engagement rings, and wholesale enquiries.',
-    url: 'https://www.starlinkjewels.com/contact',
-    mainEntityOfPage: 'https://www.starlinkjewels.com/contact',
+    url: 'https://starlinkjewels.com/contact',
+    mainEntityOfPage: 'https://starlinkjewels.com/contact',
     mainEntity: {
       '@type': 'Organization',
-      '@id': 'https://www.starlinkjewels.com/#jewelry-store',
+      '@id': 'https://starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
       telephone: contactInfo?.phone || SITE.phonePrimary,
       email: contactInfo?.email || SITE.email,
@@ -92,11 +92,11 @@ const Contact = () => {
         title="Contact Us - Diamond Jewelry Enquiries & Custom Orders"
         description="Contact Starlink Jewels for certified diamond jewelry, custom designs, engagement rings and wholesale orders. Chat with our experts on WhatsApp."
         keywords="contact starlink jewels, diamond jewelry enquiries, custom jewelry design, wholesale diamond jewelry, engagement ring consultation, lab grown diamond manufacturer Surat"
-        canonicalUrl="https://www.starlinkjewels.com/contact"
+        canonicalUrl="https://starlinkjewels.com/contact"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: 'Contact', url: 'https://www.starlinkjewels.com/contact' },
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: 'Contact', url: 'https://starlinkjewels.com/contact' },
         ]}
         faqItems={faqItems}
       />

@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Product } from '@/lib/storage';
-import { stripHtml, SITE } from '@/lib/seo';
+import { SITE } from '@/lib/seo';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
@@ -14,17 +14,19 @@ interface WhatsAppButtonProps {
   size?: ButtonProps['size'];
 }
 
-export const buildProductEnquiry = (product: Product) => {
-  const summary = stripHtml(product.description || '').replace(/●/g, '•');
-  const shortSummary = summary.length > 400 ? `${summary.slice(0, 397)}...` : summary;
-  return [
-    "Hi Starlink Jewels! I'm interested in:",
-    '',
-    `*${product.name}*`,
-    `${SITE.url}/product/${product.id}`,
-    shortSummary ? `\n${shortSummary}` : '',
-  ].join('\n').trim();
-};
+export const buildProductEnquiry = (product: Product) =>
+  `Hello Starlink Jewels! 👋
+
+I am interested in the following product and would like more details:
+
+🏷️ ${product.name}
+
+🔗 View Product:
+${SITE.url}/product/${product.id}
+
+Could you please share availability, customisation options, and delivery details?
+
+Thank you!`;
 
 const WhatsAppButton = ({ product, className, label = 'Enquire on WhatsApp', variant = 'default', size = 'xl' }: WhatsAppButtonProps) => {
   const { contactInfo } = useAppSelector(selectGlobalData);

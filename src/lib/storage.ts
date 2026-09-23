@@ -96,6 +96,12 @@ export interface VideoPost {
   createdAt?: number;
 }
 
+export interface Ad {
+  image: string;
+  link?: string;
+  enabled: boolean;
+}
+
 export interface ContactInfo {
   address: string;
   phone: string;
@@ -144,6 +150,7 @@ const COLLECTIONS = {
   VISITORS: 'visitors',
   PROMO_HEADER: 'promo-header',
   TESTIMONIALS: 'testimonials',
+  ADS: 'ads',
 };
 
 const sanitizeForFirestore = <T>(value: T): T => {
@@ -541,6 +548,25 @@ export const deleteTestimonial = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.TESTIMONIALS, id));
   } catch (error) {
     console.error('Error deleting testimonial:', error);
+  }
+};
+
+// Ad methods
+export const getAd = async (): Promise<Ad | null> => {
+  try {
+    const docSnap = await getDoc(doc(db, COLLECTIONS.ADS, 'main'));
+    if (docSnap.exists()) return docSnap.data() as Ad;
+  } catch (error) {
+    console.error('Error getting ad:', error);
+  }
+  return null;
+};
+
+export const saveAd = async (ad: Ad) => {
+  try {
+    await setDoc(doc(db, COLLECTIONS.ADS, 'main'), ad);
+  } catch (error) {
+    console.error('Error saving ad:', error);
   }
 };
 

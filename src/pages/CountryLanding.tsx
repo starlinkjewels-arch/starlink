@@ -84,10 +84,10 @@ const CountryLanding = () => {
         title={`Diamond Jewelry Shipping to ${config.name}`}
         description={config.description}
         keywords={config.keywords}
-        canonicalUrl={`https://www.starlinkjewels.com/${config.slug}`}
+        canonicalUrl={`https://starlinkjewels.com/${config.slug}`}
         breadcrumbs={[
-          { name: 'Home', url: 'https://www.starlinkjewels.com' },
-          { name: config.name, url: `https://www.starlinkjewels.com/${config.slug}` },
+          { name: 'Home', url: 'https://starlinkjewels.com' },
+          { name: config.name, url: `https://starlinkjewels.com/${config.slug}` },
         ]}
       />
 

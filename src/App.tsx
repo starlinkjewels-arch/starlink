@@ -19,8 +19,9 @@ import {
 import Index from "./pages/Index";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
-import { preloadMedia } from "@/lib/preload";
+import { preloadCritical, preloadImages } from "@/lib/preload";
 import GlobalLoader from "@/components/GlobalLoader";
+import AdPopup from "@/components/AdPopup";
 
 // Home stays in the main bundle for the fastest first paint; everything else loads on demand.
 const About = lazy(() => import("./pages/About"));
@@ -29,6 +30,7 @@ const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Blog = lazy(() => import("./pages/Blog"));
+const BlogDetail = lazy(() => import("./pages/BlogDetail"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Admin = lazy(() => import("./pages/Admin"));
 const BuyingGuidePage = lazy(() => import("./pages/BuyingGuide"));
@@ -114,27 +116,45 @@ const AppContent = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Collect important images to preload (banners are most critical)
+  // Collect ALL critical images to preload so the service-worker cache is warm
+  // on first render and subsequent navigations are instant.
   const assetUrls = useMemo(() => {
     const take = (arr: string[], n: number) => arr.filter(Boolean).slice(0, n);
     if (isAdminRoute) return [];
     return [
-      ...take(data.banners.map((b) => b.image), 1),
+      // Banners — highest priority (LCP on home page)
+      ...take(data.banners.map((b) => b.image), 3),
+      // Category thumbnails — first row only
+      ...take(data.categories.map((c) => c.image), 4),
+      // Featured collection — first few products
+      ...take((data.featuredCollection ?? []).map((p: { thumbnail?: string; image?: string }) => p.thumbnail || p.image || ''), 3),
+      // Blog thumbnails — first few
+      ...take(data.blogs.map((b: { thumbnail?: string; image?: string }) => b.thumbnail || b.image || ''), 3),
     ];
   }, [
     data.banners,
+    data.categories,
+    data.featuredCollection,
+    data.blogs,
     isAdminRoute,
   ]);
 
   useEffect(() => {
     if (status === "succeeded" || hydrated) {
-      preloadMedia(assetUrls);
+      // Banners = LCP images → preload at high priority with hero sizing (1600px WebP)
+      const bannerUrls = (data.banners ?? []).map((b: { image?: string }) => b.image ?? '').filter(Boolean);
+      preloadCritical(bannerUrls, 1600);
+
+      // Everything else → standard priority (800px WebP thumbnails)
+      const rest = assetUrls.filter((u) => !bannerUrls.includes(u));
+      preloadImages(rest, 800);
     }
-  }, [assetUrls, hydrated, status]);
+  }, [assetUrls, data.banners, hydrated, status]);
 
   return (
     <>
       <GlobalLoader isLoading={showLoader} />
+      {!isAdminRoute && <AdPopup />}
       <ScrollToTop />
       <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <Routes>
@@ -145,7 +165,7 @@ const AppContent = () => {
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetail />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path={ADMIN_PATH} element={<Admin />} />
