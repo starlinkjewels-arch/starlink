@@ -11,7 +11,7 @@ export interface BuyingGuide {
   image: string;       // Main cover image
   order: number;       // For sorting
   published: boolean;
-  createdAt: Date;
+  createdAt: Date | string;
   metaTitle?: string;
   metaDescription?: string;
   seoFaq?: { question: string; answer: string }[];

@@ -1,199 +1,241 @@
-import { useMemo, useState } from "react";
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
+import { useMemo, useState } from 'react';
+import { MapPin, Phone, Mail, Clock, Flag, Send } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
+import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
-import { useAppSelector } from "@/store/hooks";
-import { selectGlobalData } from "@/store/contentSlice";
+import SiteLayout from '@/components/site/SiteLayout';
+import PageHero from '@/components/site/PageHero';
+import Reveal from '@/components/site/Reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Phone, Mail, Clock, Send, Flag, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAppSelector } from '@/store/hooks';
+import { selectGlobalData } from '@/store/contentSlice';
+import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
+import { SITE } from '@/lib/seo';
+
+const topics = ['Custom design', 'Product enquiry', 'Engagement ring', 'Wholesale / B2B', 'Order support', 'Other'];
+
+const faqItems = [
+  {
+    question: 'How can I contact Starlink Jewels?',
+    answer: 'You can contact us via WhatsApp, phone or email for product enquiries, custom orders, and wholesale requests.',
+  },
+  {
+    question: 'Do you offer custom jewelry design?',
+    answer: 'Yes. We provide custom design and manufacturing for engagement rings, wedding bands, and fine jewelry.',
+  },
+  {
+    question: 'Do you ship internationally?',
+    answer: 'Yes. We ship globally with secure packaging and delivery options for select regions.',
+  },
+];
 
 const Contact = () => {
-  const { categories, promoHeader, contactInfo, offices } = useAppSelector(selectGlobalData);
+  const { contactInfo, offices } = useAppSelector(selectGlobalData);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('');
+  const [topic, setTopic] = useState(topics[0]);
   const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const hasPromo = promoHeader?.enabled && promoHeader?.text;
-  const promoHeight = hasPromo ? 40 : 0;
-  const paddingTop = promoHeight + 80 + 52;
+  const sortedOffices = useMemo(() => [...offices].sort((a, b) => Number(Boolean(b.isHeadquarters)) - Number(Boolean(a.isHeadquarters))), [offices]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
-      toast.error('Please fill in all fields');
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      toast.error('Please fill in your name, email and message');
       return;
     }
-    setIsSubmitting(true);
-    try {
-      const whatsappMessage = `*New Contact Form*\n\n*Name:* ${name.trim()}\n*Email:* ${email.trim()}\n*Subject:* ${subject.trim()}\n*Message:*\n${message.trim()}`;
-      window.open(`https://wa.me/${contactInfo?.whatsapp || '91+1 (201) 554-4824'}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
-      setName(''); setEmail(''); setSubject(''); setMessage('');
-      toast.success('Message sent!');
-    } finally {
-      setIsSubmitting(false);
-    }
+    const text = `*New enquiry from the website*\n\n*Name:* ${name.trim()}\n*Email:* ${email.trim()}\n*Topic:* ${topic}\n\n${message.trim()}`;
+    openWhatsApp(text, contactInfo?.whatsapp);
+    setName('');
+    setEmail('');
+    setMessage('');
+    toast.success('Opening WhatsApp to send your message');
   };
-
-  const sortedOffices = useMemo(
-    () => [...offices].sort((a, b) => (a.isHeadquarters ? -1 : 0) - (b.isHeadquarters ? -1 : 0)),
-    [offices]
-  );
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
     '@id': 'https://www.starlinkjewels.com/contact#contactpage',
-    name: 'Contact Starlink Jewels - Diamond Jewelry Store',
-    description: 'Contact Starlink Jewels for premium diamond jewelry, custom designs, engagement rings, and wholesale inquiries.',
+    name: 'Contact Starlink Jewels',
+    description: 'Contact Starlink Jewels for diamond jewelry, custom designs, engagement rings, and wholesale enquiries.',
     url: 'https://www.starlinkjewels.com/contact',
     mainEntityOfPage: 'https://www.starlinkjewels.com/contact',
     mainEntity: {
       '@type': 'Organization',
       '@id': 'https://www.starlinkjewels.com/#jewelry-store',
       name: 'Starlink Jewels',
-      telephone: contactInfo?.phone,
-      email: contactInfo?.email,
+      telephone: contactInfo?.phone || SITE.phonePrimary,
+      email: contactInfo?.email || SITE.email,
       address: {
         '@type': 'PostalAddress',
-        addressLocality: 'Mumbai',
-        addressCountry: 'India'
-      }
-    }
+        addressLocality: SITE.addressIndia.locality,
+        addressRegion: SITE.addressIndia.region,
+        addressCountry: SITE.addressIndia.country,
+      },
+    },
   };
 
-  const faqItems = [
-    {
-      question: "How can I contact Starlink Jewels?",
-      answer:
-        "You can contact us via phone or WhatsApp for product inquiries, custom orders, and wholesale requests.",
-    },
-    {
-      question: "Do you offer custom jewelry design?",
-      answer:
-        "Yes. We provide custom design and manufacturing for engagement rings, wedding bands, and fine jewelry.",
-    },
-    {
-      question: "Do you ship internationally?",
-      answer:
-        "Yes. We ship globally with secure packaging and delivery options for select regions.",
-    },
-  ];
+  const methods = [
+    contactInfo?.phone && { icon: Phone, label: 'Call us', value: contactInfo.phone, href: `tel:${contactInfo.phone}` },
+    contactInfo?.email && { icon: Mail, label: 'Email', value: contactInfo.email, href: `mailto:${contactInfo.email}` },
+    { icon: Clock, label: 'Business hours', value: 'Mon – Sat, 10:00 AM – 8:00 PM', href: undefined },
+    contactInfo?.address && { icon: MapPin, label: 'Visit', value: contactInfo.address, href: undefined },
+  ].filter(Boolean) as { icon: typeof Phone; label: string; value: string; href?: string }[];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <SiteLayout>
       <SEOHead
-        title="Contact Us - Diamond Jewelry Inquiries & Custom Orders | Starlink Jewels"
-        description="Contact Starlink Jewels for inquiries about GIA certified diamonds, custom jewelry designs, engagement rings, wholesale orders. Global offices in Mumbai, New York, Dubai. 24/7 WhatsApp support."
-        keywords="contact starlink jewels, jewelry store contact, diamond jewelry inquiries, custom jewelry design, wholesale diamond jewelry, engagement ring consultation, buy diamonds online, jewelry showroom Mumbai, diamond dealer contact"
+        title="Contact Us - Diamond Jewelry Enquiries & Custom Orders"
+        description="Contact Starlink Jewels for certified diamond jewelry, custom designs, engagement rings and wholesale orders. Chat with our experts on WhatsApp."
+        keywords="contact starlink jewels, diamond jewelry enquiries, custom jewelry design, wholesale diamond jewelry, engagement ring consultation, lab grown diamond manufacturer Surat"
         canonicalUrl="https://www.starlinkjewels.com/contact"
         structuredData={structuredData}
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Contact", url: "https://www.starlinkjewels.com/contact" },
+          { name: 'Home', url: 'https://www.starlinkjewels.com' },
+          { name: 'Contact', url: 'https://www.starlinkjewels.com/contact' },
         ]}
         faqItems={faqItems}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
-      
-      <main className="flex-1" style={{ paddingTop: `${paddingTop}px` }}>
-        {sortedOffices.length > 0 && (
-          <section className="py-20 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <div className="text-center mb-12">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Our Global Presence</h1>
-                <p className="text-lg text-muted-foreground">Visit us at any of our offices worldwide</p>
-              </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                {sortedOffices.map((office) => (
-                  <Card key={office.id} className="relative overflow-hidden hover:shadow-xl transition-shadow">
-                    {office.isHeadquarters && <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-semibold z-10">HEADQUARTERS</div>}
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-start gap-3">
-                        {office.flagImage ? (
-                          <img src={office.flagImage} alt={`${office.country} flag`} className="w-12 h-8 object-cover rounded border flex-shrink-0" loading="lazy" decoding="async" fetchpriority="low" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Flag className="h-6 w-6 text-primary" /></div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h2 className="text-xl font-bold mb-1">{office.city}</h2>
-                          <p className="text-sm text-muted-foreground font-medium">{office.country}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-3 pt-2">
-                        <div className="flex items-start gap-3"><MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" /><p className="text-sm text-muted-foreground flex-1">{office.address}</p></div>
-                        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary flex-shrink-0" /><a href={`tel:${office.phone}`} className="text-sm font-medium break-all hover:text-primary">{office.phone}</a></div>
-                        <div className="flex items-center gap-3"><Mail className="h-5 w-5 text-primary flex-shrink-0" /><a href={`mailto:${office.email}`} className="text-sm font-medium break-all hover:text-primary">{office.email}</a></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+      <PageHero
+        eyebrow="Contact"
+        title="We'd love to hear from you"
+        description="Questions about a piece, a custom design or wholesale? Our team replies personally on WhatsApp, phone or email."
+        breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Contact' }]}
+      />
 
-        <section className="relative py-16 md:py-24 overflow-hidden">
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">Get In Touch</h2>
-              <p className="text-lg text-muted-foreground">We're here to help and answer any question you might have.</p>
+      <section className="section">
+        <div className="container-wide grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
+          <Reveal className="space-y-8">
+            <div className="rounded-md bg-neutral-950 p-8 text-neutral-100">
+              <FaWhatsapp className="h-8 w-8 text-whatsapp" />
+              <h2 className="mt-5 font-display text-3xl">The fastest way to reach us</h2>
+              <p className="mt-3 text-sm leading-relaxed text-neutral-400">
+                Send photos, ask for prices or request a live video viewing of any piece.
+              </p>
+              <Button asChild variant="whatsapp" size="xl" className="mt-6 w-full sm:w-auto">
+                <a href={whatsappLink('Hi Starlink Jewels! I have a question.', contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+                  Chat on WhatsApp
+                </a>
+              </Button>
             </div>
-          </div>
-        </section>
 
-        <section className="py-12 md:py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
-              <div>
-                <h3 className="text-3xl font-bold mb-4">Send Us a Message</h3>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2"><Label htmlFor="name">Your Name *</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required /></div>
-                  <div className="space-y-2"><Label htmlFor="email">Your Email *</Label><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" required /></div>
-                  <div className="space-y-2"><Label htmlFor="subject">Subject *</Label><Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="What's this about?" required /></div>
-                  <div className="space-y-2"><Label htmlFor="message">Message *</Label><Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Tell us more..." rows={6} required /></div>
-                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Sending...</> : <><Send className="h-5 w-5 mr-2" />Send Message</>}
-                  </Button>
-                </form>
-              </div>
-              <div className="space-y-8">
-                <h3 className="text-3xl font-bold mb-6">Quick Contact</h3>
-                <div className="space-y-4">
-                  {contactInfo?.phone && (
-                    <Card><CardContent className="p-6 flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Phone className="h-6 w-6 text-primary" /></div>
-                      <div><h4 className="font-semibold mb-1">Phone</h4><a href={`tel:${contactInfo.phone}`} className="text-muted-foreground hover:text-primary">{contactInfo.phone}</a></div>
-                    </CardContent></Card>
-                  )}
-                  {contactInfo?.email && (
-                    <Card><CardContent className="p-6 flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Mail className="h-6 w-6 text-primary" /></div>
-                      <div><h4 className="font-semibold mb-1">Email</h4><a href={`mailto:${contactInfo.email}`} className="text-muted-foreground hover:text-primary">{contactInfo.email}</a></div>
-                    </CardContent></Card>
-                  )}
-                  <Card><CardContent className="p-6 flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"><Clock className="h-6 w-6 text-primary" /></div>
-                    <div><h4 className="font-semibold mb-1">Business Hours</h4><p className="text-muted-foreground">Monday - Saturday: 10:00 AM - 8:00 PM</p><p className="text-muted-foreground">Sunday: Closed</p></div>
-                  </CardContent></Card>
+            <ul className="divide-y border-y">
+              {methods.map(({ icon: Icon, label, value, href }) => (
+                <li key={label} className="flex gap-4 py-5">
+                  <Icon className="mt-0.5 h-5 w-5 shrink-0 text-brand" strokeWidth={1.5} />
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+                    {href ? (
+                      <a href={href} className="mt-1 block break-words font-medium hover:text-brand">
+                        {value}
+                      </a>
+                    ) : (
+                      <p className="mt-1 font-medium">{value}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <p className="eyebrow mb-3">Send a message</p>
+            <h2 className="heading-md">Tell us what you're looking for</h2>
+            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Your name</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="h-12" autoComplete="name" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12" autoComplete="email" required />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>I'm interested in</Label>
+                <Select value={topic} onValueChange={setTopic}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {topics.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="message">Message</Label>
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={6}
+                  placeholder="Share details like stone shape, carat, metal, ring size or budget."
+                  required
+                />
+              </div>
+              <Button type="submit" size="xl" className="w-full">
+                <Send /> Send via WhatsApp
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">Your message opens in WhatsApp so you can review it before sending.</p>
+            </form>
+          </Reveal>
+        </div>
+      </section>
+
+      {sortedOffices.length > 0 && (
+        <section className="section border-t bg-secondary/40">
+          <div className="container-wide">
+            <div className="mb-10">
+              <p className="eyebrow mb-3">Global presence</p>
+              <h2 className="heading-lg">Our offices</h2>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {sortedOffices.map((office, i) => (
+                <Reveal key={office.id} delay={(i % 3) * 80} className="rounded-md border bg-card p-7">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      {office.flagImage ? (
+                        <img src={office.flagImage} alt={`${office.country} flag`} className="h-7 w-10 rounded-sm border object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        <Flag className="h-5 w-5 text-brand" />
+                      )}
+                      <div>
+                        <h3 className="font-display text-2xl leading-tight">{office.city}</h3>
+                        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{office.country}</p>
+                      </div>
+                    </div>
+                    {office.isHeadquarters && (
+                      <span className="rounded-full bg-brand-light px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-brand">HQ</span>
+                    )}
+                  </div>
+                  <div className="mt-6 space-y-3 text-sm">
+                    <p className="flex gap-3 text-muted-foreground">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {office.address}
+                    </p>
+                    <a href={`tel:${office.phone}`} className="flex gap-3 hover:text-brand">
+                      <Phone className="mt-0.5 h-4 w-4 shrink-0" /> {office.phone}
+                    </a>
+                    <a href={`mailto:${office.email}`} className="flex gap-3 break-all hover:text-brand">
+                      <Mail className="mt-0.5 h-4 w-4 shrink-0" /> {office.email}
+                    </a>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </div>
         </section>
-      </main>
-
-      <Footer />
-    </div>
+      )}
+    </SiteLayout>
   );
 };
 

@@ -1,439 +1,298 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, Link, useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
-import ProductCard from '@/components/ProductCard';
-import ProductDialog from '@/components/ProductDialog';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowRight, ArrowUpRight, LayoutGrid, Grid3X3 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import SEOHead from '@/components/SEOHead';
+import SiteLayout from '@/components/site/SiteLayout';
+import CollectionHero from '@/components/site/CollectionHero';
+import Reveal from '@/components/site/Reveal';
+import ProductCard from '@/components/ProductCard';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   buildFaqForCategory,
-  buildFaqForProduct,
   buildOffer,
   buildMetaDescriptionForCategory,
-  buildMetaDescriptionForProduct,
   buildMetaTitleForCategory,
-  buildMetaTitleForProduct,
+  SITE,
 } from '@/lib/seo';
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadProducts, selectContentHydrated, selectContentStatus, selectGlobalData, selectProductsLoaded, selectProductsStatus } from "@/store/contentSlice";
-import { Product, productHasCategory } from "@/lib/storage";
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  loadProducts,
+  selectContentHydrated,
+  selectContentStatus,
+  selectGlobalData,
+  selectProductsLoaded,
+  selectProductsStatus,
+} from '@/store/contentSlice';
+import { productHasCategory } from '@/lib/storage';
+import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
+import { whatsappLink } from '@/lib/whatsapp';
+import { cn } from '@/lib/utils';
+
+type SortOption = 'newest' | 'oldest' | 'name';
+
+const ProductGridSkeleton = () => (
+  <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div key={i}>
+        <div className="aspect-[4/5] animate-pulse rounded-md bg-muted" />
+        <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-muted" />
+        <div className="mt-2 h-4 w-1/2 animate-pulse rounded bg-muted" />
+      </div>
+    ))}
+  </div>
+);
+
 const CategoryProducts = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
-  const { categories, promoHeader, products } = useAppSelector(selectGlobalData);
+  const { categories, products, contactInfo } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
   const hydrated = useAppSelector(selectContentHydrated);
   const productsLoaded = useAppSelector(selectProductsLoaded);
   const productsStatus = useAppSelector(selectProductsStatus);
-  const isReady = status === "succeeded" || hydrated;
-  const productsReady = productsLoaded || productsStatus === "succeeded" || productsStatus === "failed";
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [searchParams, setSearchParams] = useSearchParams();
-  const hasPromo = promoHeader?.enabled && promoHeader?.text;
-  const promoHeight = hasPromo ? 40 : 0;
-  const paddingTop = promoHeight + 80 + 52 + 24;
-  const category = useMemo(
-    () => categories.find((c) => c.id === id) ?? null,
-    [categories, id]
-  );
+  const isReady = status === 'succeeded' || hydrated;
+  const productsReady = productsLoaded || productsStatus === 'succeeded' || productsStatus === 'failed';
 
-  const productsForCategory = useMemo(
-    () => products.filter((p) => productHasCategory(p, id || "")),
-    [products, id]
-  );
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [dense, setDense] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const category = useMemo(() => categories.find((c) => c.id === id) ?? null, [categories, id]);
+  const relatedCategories = useMemo(() => categories.filter((c) => c.id !== id).slice(0, 6), [categories, id]);
+
+  const sortedProducts = useMemo(() => {
+    const list = products.filter((p) => productHasCategory(p, id || ''));
+    if (sortBy === 'name') return list.sort((a, b) => a.name.localeCompare(b.name));
+    return list.sort((a, b) => (sortBy === 'oldest' ? getProductTime(a) - getProductTime(b) : getProductTime(b) - getProductTime(a)));
+  }, [products, id, sortBy]);
 
   useEffect(() => {
-    if (!productsLoaded && productsStatus === "idle") {
-      dispatch(loadProducts());
-    }
+    if (!productsLoaded && productsStatus === 'idle') dispatch(loadProducts());
   }, [dispatch, productsLoaded, productsStatus]);
 
-  const getProductTime = (item: Product): number => {
-    if (!item) return 0;
-    
-    // Check createdAt field
-    if (item.createdAt) {
-      if (typeof item.createdAt === 'object' && item.createdAt !== null && 'seconds' in item.createdAt) {
-        return item.createdAt.seconds * 1000;
-      } else if (typeof item.createdAt === 'number') {
-        return item.createdAt;
-      } else if (typeof item.createdAt === 'string') {
-        const date = new Date(item.createdAt);
-        return isNaN(date.getTime()) ? 0 : date.getTime();
-      }
-    }
-    
-    // Fallback: extract timestamp from id
-    if (item.id && typeof item.id === 'string') {
-      const idParts = item.id.split('_');
-      if (idParts.length > 1) {
-        const timestamp = parseInt(idParts[idParts.length - 1], 10);
-        if (!isNaN(timestamp) && timestamp > 0) {
-          return timestamp;
-        }
-      }
-    }
-    
-    return 0;
-  };
-
-  const sortProducts = (productsToSort: Product[], sortOption: string): Product[] => {
-    const result = [...productsToSort];
-
-    switch (sortOption) {
-      case 'oldest':
-        result.sort((a, b) => {
-          const timeA = getProductTime(a);
-          const timeB = getProductTime(b);
-          return timeA - timeB;
-        });
-        break;
-      case 'newest':
-      default:
-        result.sort((a, b) => {
-          const timeA = getProductTime(a);
-          const timeB = getProductTime(b);
-          return timeB - timeA;
-        });
-        break;
-    }
-
-    return result;
-  };
-
+  // Old quick-view links (/category/:id?product=:productId) now go straight to the product page.
+  const legacyProductId = searchParams.get('product');
   useEffect(() => {
-    if (!productsForCategory || productsForCategory.length === 0) {
-      setFilteredProducts([]);
-      return;
-    }
+    if (legacyProductId) navigate(`/product/${legacyProductId}`, { replace: true });
+  }, [legacyProductId, navigate]);
 
-    const sorted = sortProducts(productsForCategory, sortBy);
-    setFilteredProducts(sorted);
-  }, [productsForCategory, sortBy]);
-  useEffect(() => {
-    if (productsForCategory.length > 0) {
-      const prodId = searchParams.get('product');
-      if (prodId) {
-        const prod = productsForCategory.find(p => p.id === prodId);
-        if (prod) {
-          setSelectedProduct(prod);
-          setIsDialogOpen(true);
-        }
-      }
-    }
-  }, [productsForCategory, searchParams]);
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setIsDialogOpen(true);
-    setSearchParams({ product: product.id });
-  };
-  const handleDialogOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (!open) {
-      setSearchParams({});
-    }
-  };
-  const baseStructuredData = category ? {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    '@id': `https://www.starlinkjewels.com/category/${id}#collectionpage`,
-    name: `${category.name} - Starlink Jewels`,
-    description: category.description || `Shop our ${category.name} collection`,
-    url: `https://www.starlinkjewels.com/category/${id}`,
-    mainEntityOfPage: `https://www.starlinkjewels.com/category/${id}`,
-    mainEntity: {
-      '@type': 'ItemList',
-      '@id': `https://www.starlinkjewels.com/category/${id}#itemlist`,
-      numberOfItems: filteredProducts.length,
-      itemListElement: filteredProducts.slice(0, 20).map((p, i) => ({
-        '@type': 'ListItem',
-        '@id': `https://www.starlinkjewels.com/category/${id}#listitem-${i + 1}`,
-        position: i + 1,
-        item: {
-          '@type': 'Product',
-          '@id': `https://www.starlinkjewels.com/product/${p.id}#product`,
-          name: p.name,
-          image: (p.images && p.images.length > 0) ? p.images : [p.image],
-          description: p.description || `${p.name} from Starlink Jewels`,
-          sku: p.id,
-          category: category.name,
-          brand: {
-            '@type': 'Brand',
-            name: 'Starlink Jewels',
-          },
-          offers: {
-            ...buildOffer(`https://www.starlinkjewels.com/category/${id}?product=${p.id}`, p.price),
+  // Hero collage: the collection's newest pieces, falling back to the category image.
+  const heroImages = useMemo(() => {
+    const fromProducts = sortedProducts.map((p) => firstImage(p)).filter((url): url is string => Boolean(url) && !isVideoUrl(url));
+    const unique = Array.from(new Set(fromProducts)).slice(0, 3);
+    return unique.length > 0 ? unique : category?.image ? [category.image] : [];
+  }, [sortedProducts, category?.image]);
+
+  const baseUrl = `https://www.starlinkjewels.com/category/${id}`;
+
+  const structuredData = category
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          '@id': `${baseUrl}#collectionpage`,
+          name: `${category.name} - Starlink Jewels`,
+          description: category.description || `Shop our ${category.name} collection`,
+          url: baseUrl,
+          mainEntityOfPage: baseUrl,
+          mainEntity: {
+            '@type': 'ItemList',
+            '@id': `${baseUrl}#itemlist`,
+            numberOfItems: sortedProducts.length,
+            itemListElement: sortedProducts.slice(0, 20).map((p, i) => ({
+              '@type': 'ListItem',
+              position: i + 1,
+              item: {
+                '@type': 'Product',
+                '@id': `https://www.starlinkjewels.com/product/${p.id}#product`,
+                name: p.name,
+                image: p.images && p.images.length > 0 ? p.images : [p.image],
+                description: p.description || `${p.name} from Starlink Jewels`,
+                sku: p.id,
+                category: category.name,
+                brand: { '@type': 'Brand', name: 'Starlink Jewels' },
+                offers: buildOffer(`https://www.starlinkjewels.com/product/${p.id}`, p.price),
+              },
+            })),
           },
         },
-      })),
-    },
-  } : undefined;
-
-  const activeProduct = selectedProduct;
-  const productStructuredData =
-    category && activeProduct
-      ? {
-          '@context': 'https://schema.org',
-          '@type': 'Product',
-          '@id': `https://www.starlinkjewels.com/product/${activeProduct.id}#product`,
-          name: activeProduct.name,
-          image:
-            activeProduct.images && activeProduct.images.length > 0
-              ? activeProduct.images
-              : [activeProduct.image],
-          description: activeProduct.description || `${activeProduct.name} from Starlink Jewels`,
-          sku: activeProduct.id,
-          category: category.name,
-          mainEntityOfPage: `https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`,
-          brand: {
-            '@type': 'Brand',
-            name: 'Starlink Jewels',
-          },
-          offers: {
-            ...buildOffer(`https://www.starlinkjewels.com/category/${id}?product=${activeProduct.id}`, activeProduct.price),
-          },
-        }
-      : undefined;
-
-  const structuredData = [
-    ...(baseStructuredData ? [baseStructuredData] : []),
-    ...(productStructuredData ? [productStructuredData] : []),
-  ];
-
-  const seoTitle = category
-    ? activeProduct
-      ? (activeProduct.metaTitle || buildMetaTitleForProduct(activeProduct.name))
-      : (category.metaTitle || buildMetaTitleForCategory(category.name))
-    : 'Category';
-
-  const seoDescription = category
-    ? activeProduct
-      ? (activeProduct.metaDescription || buildMetaDescriptionForProduct(activeProduct.name, category.name))
-      : (category.metaDescription || buildMetaDescriptionForCategory(category.name, category.description))
-    : 'Category';
-
-  const seoFaqItems = category
-    ? activeProduct
-      ? (activeProduct.seoFaq && activeProduct.seoFaq.length > 0 ? activeProduct.seoFaq : buildFaqForProduct(activeProduct.name, category.name))
-      : (category.seoFaq && category.seoFaq.length > 0 ? category.seoFaq : buildFaqForCategory(category.name))
+      ]
     : undefined;
 
-  const relatedCategories = useMemo(
-    () => categories.filter((c) => c.id !== id).slice(0, 6),
-    [categories, id]
-  );
-
-  const faqItems = category ? [
-    {
-      question: `Are ${category.name} diamonds certified?`,
-      answer:
-        "Yes. We offer certified lab-grown and natural diamonds with trusted grading standards.",
-    },
-    {
-      question: `Can I customize ${category.name} designs?`,
-      answer:
-        "Yes. We offer custom design and manufacturing for select categories and styles.",
-    },
-    {
-      question: "Do you ship internationally?",
-      answer:
-        "Yes. We provide international shipping with secure packaging for select regions.",
-    },
-  ] : [
-    {
-      question: "Are your diamonds certified?",
-      answer:
-        "Yes. We offer certified lab-grown and natural diamonds with trusted grading standards.",
-    },
-  ];
-  if (!category && !isReady) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead
-          title="Loading Category"
-          description="Loading category details."
-          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
-        />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-          <div className="mb-8">
-            <div className="h-10 w-64 bg-muted rounded-md animate-pulse mb-3" />
-            <div className="h-4 w-96 bg-muted/70 rounded-md animate-pulse" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
-            ))}
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (category && !productsReady) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead
-          title={category ? `Loading ${category.name}` : "Loading Category"}
-          description="Loading products."
-          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
-        />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-          <div className="mb-8">
-            <div className="h-10 w-64 bg-muted rounded-md animate-pulse mb-3" />
-            <div className="h-4 w-96 bg-muted/70 rounded-md animate-pulse" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
-            ))}
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   if (!category) {
+    const stillLoading = !isReady;
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <SiteLayout>
         <SEOHead
-          title="Category Not Found"
-          description="The requested category could not be found."
-          canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
+          title={stillLoading ? 'Loading Collection' : 'Collection Not Found'}
+          description="Explore Starlink Jewels collections of certified lab-grown and natural diamond jewelry."
+          canonicalUrl={baseUrl}
         />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Category Not Found</h1>
-            <Link to="/categories">
-              <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Categories
-              </Button>
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <SEOHead
-        title={seoTitle}
-        description={seoDescription}
-        keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, gold ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
-        canonicalUrl={`https://www.starlinkjewels.com/category/${id}`}
-        structuredData={structuredData}
-        breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Categories", url: "https://www.starlinkjewels.com/categories" },
-          { name: category.name, url: `https://www.starlinkjewels.com/category/${id}` },
-        ]}
-        faqItems={seoFaqItems || faqItems}
-      />
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-        <Link to="/categories">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Categories
-          </Button>
-        </Link>
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{category.name}</h1>
-          <p className="text-lg text-muted-foreground">{category.description}</p>
-        </div>
-        {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 p-4 bg-muted/30 rounded-lg border">
-          {/* <div className="flex items-center gap-2 text-muted-foreground">
-            <span className="text-2xl font-bold text-foreground">{filteredProducts.length}</span>
-            <span className="text-sm">Product{filteredProducts.length !== 1 ? 's' : ''} Found</span>
-          </div> */}
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Sort by:</span>
-            </div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[200px] bg-background border-2 hover:border-primary transition-colors shadow-sm">
-                <SelectValue placeholder="Select sorting" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                {/* <SelectItem value="oldest">Oldest First</SelectItem> */}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-lg text-muted-foreground">No products in this category yet.</p>
-            <p className="text-sm text-muted-foreground mt-2">Check back soon for new arrivals!</p>
+        {stillLoading ? (
+          <div className="container-wide py-16">
+            <div className="mb-10 h-14 w-72 animate-pulse rounded bg-muted" />
+            <ProductGridSkeleton />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onClick={() => handleProductClick(product)}
-              />
+          <div className="container-wide py-28 text-center">
+            <h1 className="heading-lg">Collection not found</h1>
+            <p className="mt-4 text-muted-foreground">It may have been renamed or removed.</p>
+            <Button asChild size="xl" className="mt-8">
+              <Link to="/categories">Browse all collections</Link>
+            </Button>
+          </div>
+        )}
+      </SiteLayout>
+    );
+  }
+
+  return (
+    <SiteLayout>
+      <SEOHead
+        title={category.metaTitle || buildMetaTitleForCategory(category.name)}
+        description={category.metaDescription || buildMetaDescriptionForCategory(category.name, category.description)}
+        keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, lab grown diamond ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
+        canonicalUrl={baseUrl}
+        structuredData={structuredData}
+        breadcrumbs={[
+          { name: 'Home', url: 'https://www.starlinkjewels.com' },
+          { name: 'Collections', url: 'https://www.starlinkjewels.com/categories' },
+          { name: category.name, url: baseUrl },
+        ]}
+        faqItems={category.seoFaq?.length ? category.seoFaq : buildFaqForCategory(category.name)}
+      />
+
+      <CollectionHero
+        eyebrow="Collection"
+        title={category.name}
+        accent="collection"
+        description={category.description}
+        breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Collections', to: '/categories' }, { name: category.name }]}
+        images={heroImages}
+        chips={[...(productsReady ? [`${sortedProducts.length} ${sortedProducts.length === 1 ? 'piece' : 'pieces'}`] : []), 'IGI & GIA certified', 'Made to order']}
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild size="xl">
+            <a href={whatsappLink(`Hi Starlink Jewels! I'm interested in your ${category.name} collection.`, contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp /> Ask an expert
+            </a>
+          </Button>
+          <Button asChild size="xl" variant="outline" className="bg-background/60">
+            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
+              Design your own <ArrowUpRight />
+            </a>
+          </Button>
+        </div>
+      </CollectionHero>
+
+      {/* Category pills for quick switching */}
+      {categories.length > 1 && (
+        <div className="border-b">
+          <div className="container-wide scrollbar-hide flex gap-2 overflow-x-auto py-4">
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                to={`/category/${c.id}`}
+                className={cn(
+                  'shrink-0 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] transition-colors',
+                  c.id === id ? 'border-foreground bg-foreground text-background' : 'hover:border-foreground'
+                )}
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <section className="container-wide py-10 md:py-14">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            {productsReady ? `${sortedProducts.length} ${sortedProducts.length === 1 ? 'piece' : 'pieces'}` : 'Loading pieces…'}
+          </p>
+          <div className="flex items-center gap-2">
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+              <SelectTrigger className="h-10 w-[160px] text-sm" aria-label="Sort products">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest">Oldest first</SelectItem>
+                <SelectItem value="name">Name A–Z</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="hidden overflow-hidden rounded-md border lg:flex">
+              <button
+                type="button"
+                onClick={() => setDense(false)}
+                className={cn('flex h-10 w-10 items-center justify-center', !dense && 'bg-foreground text-background')}
+                aria-label="Larger grid"
+                aria-pressed={!dense}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setDense(true)}
+                className={cn('flex h-10 w-10 items-center justify-center', dense && 'bg-foreground text-background')}
+                aria-label="Compact grid"
+                aria-pressed={dense}
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {!productsReady ? (
+          <ProductGridSkeleton />
+        ) : sortedProducts.length === 0 ? (
+          <div className="rounded-md border border-dashed py-20 text-center">
+            <p className="font-display text-2xl">New pieces are on their way</p>
+            <p className="mt-2 text-sm text-muted-foreground">Check back soon, or ask us about custom designs in this style.</p>
+          </div>
+        ) : (
+          <div className={cn('grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-6 lg:gap-y-14', dense ? 'lg:grid-cols-4 xl:grid-cols-5' : 'lg:grid-cols-3 xl:grid-cols-4')}>
+            {sortedProducts.map((product, i) => (
+              <Reveal key={product.id} delay={(i % 4) * 60}>
+                <ProductCard product={product} priority={i < 4} />
+              </Reveal>
             ))}
           </div>
         )}
+      </section>
 
-        {relatedCategories.length > 0 && (
-          <section className="mt-16">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Explore More Collections</h2>
-              <p className="text-base text-muted-foreground">Browse other popular jewelry categories</p>
+      {relatedCategories.length > 0 && (
+        <section className="border-t bg-secondary/40 py-16 md:py-20">
+          <div className="container-wide">
+            <div className="mb-10 flex items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow mb-3">Keep exploring</p>
+                <h2 className="heading-md">More collections</h2>
+              </div>
+              <Link to="/categories" className="link-underline shrink-0">
+                View all <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
               {relatedCategories.map((c) => (
-                <Link
-                  key={c.id}
-                  to={`/category/${c.id}`}
-                  className="group rounded-xl border bg-card/50 hover:bg-card transition-all p-3 text-center"
-                >
-                  <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
-                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" fetchpriority="low" />
+                <Link key={c.id} to={`/category/${c.id}`} className="group block">
+                  <div className="aspect-square overflow-hidden rounded-md bg-muted">
+                    <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                   </div>
-                  <span className="text-sm font-semibold block">Shop {c.name} Jewelry</span>
+                  <p className="mt-3 text-sm font-medium group-hover:text-brand">{c.name}</p>
                 </Link>
               ))}
             </div>
-          </section>
-        )}
-      </main>
-      <ProductDialog
-        product={selectedProduct}
-        open={isDialogOpen}
-        onOpenChange={handleDialogOpenChange}
-      />
-      <Footer />
-    </div>
+          </div>
+        </section>
+      )}
+
+    </SiteLayout>
   );
 };
+
 export default CategoryProducts;

@@ -6,7 +6,7 @@ import {
   getGallery,
   getFeaturedCollection,
   getBlogs,
-  getInstagramPosts,
+  getVideos,
   getTestimonials,
   getPromoHeader,
   getContact,
@@ -18,7 +18,7 @@ import {
   type GalleryItem,
   type FeaturedCollection,
   type BlogPost,
-  type InstagramPost,
+  type VideoPost,
   type Testimonial,
   type PromoHeader,
   type ContactInfo,
@@ -34,7 +34,7 @@ export interface GlobalData {
   galleryItems: GalleryItem[];
   featuredCollection: FeaturedCollection[];
   blogs: BlogPost[];
-  instagramPosts: InstagramPost[];
+  videos: VideoPost[];
   testimonials: Testimonial[];
   promoHeader: PromoHeader | null;
   contactInfo: ContactInfo | null;
@@ -56,8 +56,11 @@ interface ContentState {
   blogsLoaded: boolean;
 }
 
-const SESSION_KEY = "starlink_global_data_v3";
-const LOCAL_KEY = "starlink_global_data_v3_persisted";
+type LoadArgs = { force?: boolean } | void;
+const isForced = (args: LoadArgs) => Boolean(args && args.force);
+
+const SESSION_KEY = "starlink_global_data_v4";
+const LOCAL_KEY = "starlink_global_data_v4_persisted";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 const emptyData: GlobalData = {
@@ -67,7 +70,7 @@ const emptyData: GlobalData = {
   galleryItems: [],
   featuredCollection: [],
   blogs: [],
-  instagramPosts: [],
+  videos: [],
   testimonials: [],
   promoHeader: null,
   contactInfo: null,
@@ -78,7 +81,7 @@ const emptyData: GlobalData = {
 const normalizeBuyingGuides = (guides: BuyingGuide[]): BuyingGuide[] => {
   return guides.map((g) => {
     const anyGuide = g as BuyingGuide & { createdAt?: unknown };
-    const createdAt = anyGuide.createdAt;
+    const createdAt: unknown = anyGuide.createdAt;
     const asDate =
       createdAt && typeof createdAt === "object" && "toDate" in (createdAt as object)
         ? (createdAt as { toDate: () => Date }).toDate()
@@ -99,7 +102,7 @@ const normalizeBuyingGuides = (guides: BuyingGuide[]): BuyingGuide[] => {
 const normalizeBlogDates = (blogs: BlogPost[]): BlogPost[] => {
   return blogs.map((b) => {
     const anyBlog = b as BlogPost & { date?: unknown };
-    const dateValue = anyBlog.date;
+    const dateValue: unknown = anyBlog.date;
     const asDate =
       dateValue && typeof dateValue === "object" && "toDate" in (dateValue as object)
         ? (dateValue as { toDate: () => Date }).toDate()
@@ -144,6 +147,8 @@ const normalizeCachePayload = (raw: unknown): CacheSnapshot | null => {
     blogsLoaded?: boolean;
   };
   if (!snapshot.data) return null;
+  // A snapshot without categories came from a failed load; never serve it.
+  if (!Array.isArray(snapshot.data.categories) || snapshot.data.categories.length === 0) return null;
   return {
     data: {
       ...snapshot.data,
@@ -158,7 +163,10 @@ const normalizeCachePayload = (raw: unknown): CacheSnapshot | null => {
 
 const readSessionCache = (): CacheSnapshot | null => {
   if (typeof window === "undefined") return null;
-  return normalizeCachePayload(safeParse(sessionStorage.getItem(SESSION_KEY)));
+  const snapshot = normalizeCachePayload(safeParse(sessionStorage.getItem(SESSION_KEY)));
+  // Expire like the persistent cache so admin edits reach open tabs within a few minutes.
+  if (!snapshot || Date.now() - snapshot.savedAt > CACHE_TTL_MS) return null;
+  return snapshot;
 };
 
 const readPersistentCache = (): CacheSnapshot | null => {
@@ -207,12 +215,12 @@ const initialState: ContentState = {
 
 export const loadGlobalData = createAsyncThunk<
   GlobalData,
-  { force?: boolean } | undefined,
+  LoadArgs,
   { state: RootState }
 >(
   "content/loadGlobalData",
   async (args) => {
-    if (!args?.force) {
+    if (!isForced(args)) {
       const session = readSessionCache() ?? readPersistentCache();
       if (session?.data) {
         return {
@@ -220,7 +228,7 @@ export const loadGlobalData = createAsyncThunk<
           ...session.data,
           featuredCollection: [],
           galleryItems: [],
-          instagramPosts: [],
+          videos: [],
           testimonials: [],
           contactInfo: null,
           offices: [],
@@ -243,6 +251,12 @@ export const loadGlobalData = createAsyncThunk<
       getPromoHeader(),
     ]);
 
+    // The getters swallow errors and return []. Treat "no categories" as a failed load so the
+    // empty result is not cached (the site always has categories) and the app can retry.
+    if (categories.length === 0) {
+      throw new Error("Could not load site content");
+    }
+
     return {
       banners,
       categories,
@@ -250,7 +264,7 @@ export const loadGlobalData = createAsyncThunk<
       galleryItems: [],
       featuredCollection: [],
       blogs: [],
-      instagramPosts: [],
+      videos: [],
       testimonials: [],
       promoHeader,
       contactInfo: null,
@@ -261,7 +275,7 @@ export const loadGlobalData = createAsyncThunk<
   {
     condition: (args, { getState }) => {
       const { content } = getState();
-      if (args?.force) return true;
+      if (isForced(args)) return true;
       if (content.status === "loading") return false;
       if (content.hydrated) return false;
       return true;
@@ -270,19 +284,19 @@ export const loadGlobalData = createAsyncThunk<
 );
 
 export const loadDeferredData = createAsyncThunk<
-  Pick<GlobalData, "galleryItems" | "featuredCollection" | "instagramPosts" | "testimonials" | "contactInfo" | "offices" | "buyingGuides">,
-  { force?: boolean } | undefined,
+  Pick<GlobalData, "galleryItems" | "featuredCollection" | "videos" | "testimonials" | "contactInfo" | "offices" | "buyingGuides">,
+  LoadArgs,
   { state: RootState }
 >(
   "content/loadDeferredData",
   async (args) => {
-    if (!args?.force) {
+    if (!isForced(args)) {
       const session = readSessionCache() ?? readPersistentCache();
       if (session?.deferredLoaded) {
         return {
           galleryItems: session.data.galleryItems,
           featuredCollection: session.data.featuredCollection,
-          instagramPosts: session.data.instagramPosts,
+          videos: session.data.videos,
           testimonials: session.data.testimonials,
           contactInfo: session.data.contactInfo,
           offices: session.data.offices,
@@ -294,7 +308,7 @@ export const loadDeferredData = createAsyncThunk<
     const [
       galleryItems,
       featuredCollection,
-      instagramPosts,
+      videos,
       testimonials,
       contactInfo,
       offices,
@@ -302,7 +316,7 @@ export const loadDeferredData = createAsyncThunk<
     ] = await Promise.all([
       getGallery(),
       getFeaturedCollection(),
-      getInstagramPosts(),
+      getVideos(),
       getTestimonials(),
       getContact(),
       getOffices(),
@@ -312,7 +326,7 @@ export const loadDeferredData = createAsyncThunk<
     return {
       galleryItems,
       featuredCollection,
-      instagramPosts,
+      videos,
       testimonials,
       contactInfo,
       offices,
@@ -322,7 +336,7 @@ export const loadDeferredData = createAsyncThunk<
   {
     condition: (args, { getState }) => {
       const { content } = getState();
-      if (args?.force) return true;
+      if (isForced(args)) return true;
       if (content.deferredStatus === "loading") return false;
       if (content.deferredLoaded) return false;
       return true;
@@ -332,12 +346,12 @@ export const loadDeferredData = createAsyncThunk<
 
 export const loadProducts = createAsyncThunk<
   Product[],
-  { force?: boolean } | undefined,
+  LoadArgs,
   { state: RootState }
 >(
   "content/loadProducts",
   async (args) => {
-    if (!args?.force) {
+    if (!isForced(args)) {
       const session = readSessionCache() ?? readPersistentCache();
       if (session?.productsLoaded && session.data?.products) {
         return session.data.products;
@@ -349,7 +363,7 @@ export const loadProducts = createAsyncThunk<
   {
     condition: (args, { getState }) => {
       const { content } = getState();
-      if (args?.force) return true;
+      if (isForced(args)) return true;
       if (content.productsStatus === "loading") return false;
       if (content.productsLoaded) return false;
       return true;
@@ -359,7 +373,7 @@ export const loadProducts = createAsyncThunk<
 
 export const loadBlogs = createAsyncThunk<
   BlogPost[],
-  { force?: boolean } | undefined,
+  LoadArgs,
   { state: RootState }
 >(
   "content/loadBlogs",
@@ -370,7 +384,7 @@ export const loadBlogs = createAsyncThunk<
   {
     condition: (args, { getState }) => {
       const { content } = getState();
-      if (args?.force) return true;
+      if (isForced(args)) return true;
       if (content.blogsStatus === "loading") return false;
       if (content.blogsLoaded) return false;
       return true;
@@ -391,7 +405,7 @@ const contentSlice = createSlice({
       state.deferredLoaded =
         action.payload.galleryItems.length > 0 ||
         action.payload.featuredCollection.length > 0 ||
-        action.payload.instagramPosts.length > 0 ||
+        action.payload.videos.length > 0 ||
         action.payload.testimonials.length > 0 ||
         Boolean(action.payload.contactInfo) ||
         action.payload.offices.length > 0 ||

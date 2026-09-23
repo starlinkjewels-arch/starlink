@@ -1,224 +1,173 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BuyingGuide } from "@/lib/buyingGuides";
-import { ArrowLeft, BookOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Header from '@/components/Header';
-import MiniHeader from '@/components/MiniHeader';
-import Footer from '@/components/Footer';
+import { BookOpen, ArrowRight, ArrowLeft } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
-import { useAppSelector } from "@/store/hooks";
-import { selectContentHydrated, selectContentStatus, selectGlobalData } from "@/store/contentSlice";
-import { buildMetaDescriptionFromHtml } from "@/lib/seo";
+import SiteLayout from '@/components/site/SiteLayout';
+import PageHero from '@/components/site/PageHero';
+import { Button } from '@/components/ui/button';
+import { useAppSelector } from '@/store/hooks';
+import { selectDeferredLoaded, selectDeferredStatus, selectGlobalData } from '@/store/contentSlice';
+import { buildMetaDescriptionFromHtml } from '@/lib/seo';
+import { sanitizeHtml } from '@/lib/sanitize';
+import { whatsappLink } from '@/lib/whatsapp';
+import { cn } from '@/lib/utils';
+
+const defaultFaqItems = [
+  {
+    question: 'What are Starlink Jewels buying guides?',
+    answer: 'They are expert guides covering diamond quality, ring styles, certifications, and purchase tips.',
+  },
+  {
+    question: 'Do the guides cover lab-grown and natural diamonds?',
+    answer: 'Yes. The guides explain both lab-grown and natural options to help you choose confidently.',
+  },
+  {
+    question: 'Can I request a custom recommendation?',
+    answer: 'Yes. Contact us for personalized advice based on your budget and preferences.',
+  },
+];
 
 const BuyingGuidePage = () => {
-  const { categories, promoHeader, buyingGuides } = useAppSelector(selectGlobalData);
-  const status = useAppSelector(selectContentStatus);
-  const hydrated = useAppSelector(selectContentHydrated);
-  const isReady = status === "succeeded" || hydrated;
-  const [guides, setGuides] = useState<BuyingGuide[]>([]);
-  const [selected, setSelected] = useState<BuyingGuide | null>(null);
+  const { buyingGuides, contactInfo } = useAppSelector(selectGlobalData);
+  const deferredLoaded = useAppSelector(selectDeferredLoaded);
+  const deferredStatus = useAppSelector(selectDeferredStatus);
   const { slug } = useParams<{ slug?: string }>();
 
-  const hasPromo = promoHeader?.enabled && promoHeader?.text;
-  const promoHeight = hasPromo ? 40 : 0;
-  const paddingTop = promoHeight + 80 + 52 + 12 + 26;
-
-  const publishedGuides = useMemo(
+  const guides = useMemo(
     () => buyingGuides.filter((g) => g.published).sort((a, b) => (a.order || 0) - (b.order || 0)),
     [buyingGuides]
   );
+  const selected = useMemo(() => (slug ? guides.find((g) => g.slug === slug) : guides[0]) || guides[0] || null, [guides, slug]);
+  const selectedIndex = selected ? guides.findIndex((g) => g.id === selected.id) : -1;
+  const nextGuide = selectedIndex >= 0 ? guides[selectedIndex + 1] : undefined;
+  const prevGuide = selectedIndex > 0 ? guides[selectedIndex - 1] : undefined;
 
-  const safeContent = useMemo(() => {
-    if (!selected?.content) return "";
-    try {
-      const doc = new DOMParser().parseFromString(selected.content, "text/html");
-      doc.querySelectorAll("style, link, script").forEach((el) => el.remove());
-      doc.querySelectorAll("[style]").forEach((el) => el.removeAttribute("style"));
-      doc.querySelectorAll("[face], [color], [size]").forEach((el) => {
-        el.removeAttribute("face");
-        el.removeAttribute("color");
-        el.removeAttribute("size");
-      });
-      return doc.body.innerHTML;
-    } catch {
-      return selected.content;
-    }
-  }, [selected?.content]);
-
-  useEffect(() => {
-    setGuides(publishedGuides);
-    if (slug) {
-      const found = publishedGuides.find((g) => g.slug === slug);
-      setSelected(found || publishedGuides[0] || null);
-    } else if (publishedGuides.length > 0) {
-      setSelected(publishedGuides[0]);
-    }
-  }, [publishedGuides, slug]);
-
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    '@id': `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}#howto`,
-    name: selected?.title || 'Jewelry Buying Guide',
-    description: selected?.content
-      ? buildMetaDescriptionFromHtml(selected.content, 160)
-      : 'Expert advice to help you make the perfect jewelry choice.',
-    mainEntityOfPage: `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`,
-  };
-
-  const defaultFaqItems = [
-    {
-      question: "What are Starlink Jewels buying guides?",
-      answer:
-        "They are expert guides covering diamond quality, ring styles, certifications, and purchase tips.",
-    },
-    {
-      question: "Do the guides cover lab-grown and natural diamonds?",
-      answer:
-        "Yes. The guides explain both lab-grown and natural options to help you choose confidently.",
-    },
-    {
-      question: "Can I request a custom recommendation?",
-      answer:
-        "Yes. Contact us for personalized advice based on your budget and preferences.",
-    },
-  ];
-  const faqItems = selected?.seoFaq && selected.seoFaq.length > 0 ? selected.seoFaq : defaultFaqItems;
-
-  if (guides.length === 0 && !isReady) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead
-          title="Jewelry Buying Guide"
-          description="Learn how to buy jewelry like a pro."
-          keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
-          canonicalUrl="https://www.starlinkjewels.com/buying-guide"
-          breadcrumbs={[
-            { name: "Home", url: "https://www.starlinkjewels.com" },
-            { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
-          ]}
-          faqItems={faqItems}
-        />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-          <div className="text-center mb-12">
-            <div className="h-12 w-72 bg-muted rounded-md mx-auto animate-pulse mb-4" />
-            <div className="h-5 w-96 bg-muted/70 rounded-md mx-auto animate-pulse" />
-          </div>
-          <div className="grid lg:grid-cols-4 gap-10">
-            <div className="lg:col-span-1">
-              <div className="h-80 bg-muted rounded-2xl animate-pulse" />
-            </div>
-            <div className="lg:col-span-3">
-              <div className="h-[420px] bg-muted rounded-2xl animate-pulse" />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (guides.length === 0) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead
-          title="Jewelry Buying Guide"
-          description="Learn how to buy jewelry like a pro."
-          keywords="jewelry buying guide, diamond buying guide, lab grown diamond guide, engagement ring guide, jewelry education"
-          canonicalUrl="https://www.starlinkjewels.com/buying-guide"
-          breadcrumbs={[
-            { name: "Home", url: "https://www.starlinkjewels.com" },
-            { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
-          ]}
-          faqItems={faqItems}
-        />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 flex items-center justify-center py-20" style={{ paddingTop: `${paddingTop}px` }}>
-          <div className="text-center">
-            <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
-            <p className="text-xl text-muted-foreground">No buying guides available yet.</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const content = useMemo(() => sanitizeHtml(selected?.content || '', { stripInlineStyles: true }), [selected?.content]);
+  const loading = guides.length === 0 && !deferredLoaded && deferredStatus !== 'failed';
+  const canonical = `https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <SiteLayout>
       <SEOHead
-        title={selected ? (selected.metaTitle || `${selected.title} - Buying Guide`) : 'Jewelry Buying Guide'}
-        description={selected
-          ? (selected.metaDescription || buildMetaDescriptionFromHtml(selected.content, 160))
-          : 'Comprehensive jewelry buying guides.'}
-        keywords="jewelry buying guide, diamond 4cs"
-        canonicalUrl={`https://www.starlinkjewels.com/buying-guide${slug ? `/${slug}` : ''}`}
-        structuredData={structuredData}
+        title={selected ? selected.metaTitle || `${selected.title} - Buying Guide` : 'Jewelry Buying Guide'}
+        description={
+          selected
+            ? selected.metaDescription || buildMetaDescriptionFromHtml(selected.content, 160)
+            : 'Expert guides to help you choose lab-grown and natural diamond jewelry with confidence.'
+        }
+        keywords="jewelry buying guide, diamond buying guide, diamond 4cs, lab grown diamond guide, engagement ring guide, jewelry education"
+        canonicalUrl={canonical}
+        ogImage={selected?.image || undefined}
+        structuredData={
+          selected
+            ? {
+                '@context': 'https://schema.org',
+                '@type': 'Article',
+                '@id': `${canonical}#article`,
+                headline: selected.title,
+                image: selected.image || undefined,
+                description: buildMetaDescriptionFromHtml(selected.content, 160),
+                mainEntityOfPage: canonical,
+                author: { '@type': 'Organization', name: 'Starlink Jewels' },
+                publisher: { '@type': 'Organization', name: 'Starlink Jewels' },
+              }
+            : undefined
+        }
         breadcrumbs={[
-          { name: "Home", url: "https://www.starlinkjewels.com" },
-          { name: "Buying Guide", url: "https://www.starlinkjewels.com/buying-guide" },
+          { name: 'Home', url: 'https://www.starlinkjewels.com' },
+          { name: 'Buying Guide', url: 'https://www.starlinkjewels.com/buying-guide' },
           ...(selected ? [{ name: selected.title, url: `https://www.starlinkjewels.com/buying-guide/${selected.slug}` }] : []),
         ]}
-        faqItems={faqItems}
+        faqItems={selected?.seoFaq?.length ? selected.seoFaq : defaultFaqItems}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
+      <PageHero
+        eyebrow="Buying guide"
+        title="Buy with confidence"
+        description="Everything you need to know about diamonds, settings and certification, explained simply."
+        breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Buying Guide' }]}
+      />
 
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-        <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Jewelry Buying Guide</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">Expert advice to help you make the perfect choice</p>
-        </div>
-
-        <div className="grid lg:grid-cols-4 gap-10">
-          <aside className="lg:col-span-1 order-2 lg:order-1">
-            <div className="bg-card rounded-2xl shadow-sm border p-6 sticky top-24">
-              <h2 className="font-bold text-xl mb-6 flex items-center gap-3"><BookOpen className="h-6 w-6" />All Guides</h2>
-              <nav className="space-y-2">
-                {guides.map((guide) => (
-                  <Link key={guide.id} to={`/buying-guide/${guide.slug}`} className={`block p-4 rounded-xl transition-all duration-300 border ${selected?.id === guide.id ? 'bg-primary text-primary-foreground border-primary shadow-md font-medium' : 'hover:bg-muted border-transparent'}`}>
-                    {guide.title}
-                  </Link>
-                ))}
+      <section className="container-wide py-12 md:py-16">
+        {loading ? (
+          <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
+            <div className="h-72 animate-pulse rounded-md bg-muted" />
+            <div className="h-[480px] animate-pulse rounded-md bg-muted" />
+          </div>
+        ) : guides.length === 0 || !selected ? (
+          <div className="py-20 text-center">
+            <BookOpen className="mx-auto h-10 w-10 text-muted-foreground" strokeWidth={1.2} />
+            <p className="mt-4 font-display text-2xl">Guides are coming soon</p>
+            <p className="mt-2 text-muted-foreground">In the meantime, our experts are happy to answer your questions.</p>
+            <Button asChild variant="whatsapp" size="xl" className="mt-8">
+              <a href={whatsappLink('Hi Starlink Jewels! I need help choosing a diamond.', contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+                Ask an expert
+              </a>
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-10 lg:grid-cols-[260px_1fr] lg:gap-16">
+            <aside className="lg:sticky lg:top-24 lg:self-start">
+              <p className="eyebrow mb-4 hidden lg:block">All guides</p>
+              <nav className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:gap-0 lg:overflow-visible lg:px-0" aria-label="Buying guides">
+                {guides.map((guide, i) => {
+                  const active = guide.id === selected.id;
+                  return (
+                    <Link
+                      key={guide.id}
+                      to={`/buying-guide/${guide.slug}`}
+                      className={cn(
+                        'shrink-0 rounded-full border px-4 py-2 text-sm transition-colors lg:flex lg:gap-3 lg:rounded-none lg:border-0 lg:border-l-2 lg:px-4 lg:py-3',
+                        active
+                          ? 'border-foreground bg-foreground text-background lg:border-l-brand lg:bg-transparent lg:font-semibold lg:text-foreground'
+                          : 'text-muted-foreground hover:text-foreground lg:border-l-border'
+                      )}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <span className="hidden tabular-nums text-muted-foreground lg:inline">{String(i + 1).padStart(2, '0')}</span>
+                      {guide.title}
+                    </Link>
+                  );
+                })}
               </nav>
-            </div>
-          </aside>
+            </aside>
 
-          <article className="lg:col-span-3 order-1 lg:order-2">
-            {selected ? (
-              <div className="bg-card rounded-2xl shadow-sm border overflow-hidden">
-                {selected.image && (
-                  <img
-                    src={selected.image}
-                    alt={selected.title}
-                    className="w-full h-96 md:h-[500px] object-cover"
-                    loading="eager"
-                    decoding="async"
-                    fetchpriority="high"
-                  />
-                )}
-                <div className="p-8 md:p-12">
-                  <h2 className="text-4xl md:text-5xl font-bold mb-8">{selected.title}</h2>
-                  <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: safeContent }} />
-                  <div className="mt-16 pt-10 border-t border-border">
-                    <Button asChild variant="outline" size="lg"><Link to="/buying-guide"><ArrowLeft className="h-5 w-5 mr-2" />Back to All Guides</Link></Button>
-                  </div>
+            <article className="min-w-0">
+              {selected.image && (
+                <div className="mb-10 aspect-[16/9] overflow-hidden rounded-md bg-muted">
+                  <img src={selected.image} alt={selected.title} className="h-full w-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
+                </div>
+              )}
+              <div className="mx-auto max-w-3xl">
+                <h2 className="heading-lg text-balance">{selected.title}</h2>
+                <div className="rich-text mt-8 md:prose-lg" dangerouslySetInnerHTML={{ __html: content }} />
+
+                <div className="mt-16 grid gap-4 border-t pt-8 sm:grid-cols-2">
+                  {prevGuide ? (
+                    <Link to={`/buying-guide/${prevGuide.slug}`} className="group rounded-md border p-5 transition-colors hover:border-foreground">
+                      <span className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        <ArrowLeft className="h-3.5 w-3.5" /> Previous
+                      </span>
+                      <span className="mt-2 block font-display text-xl">{prevGuide.title}</span>
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+                  {nextGuide && (
+                    <Link to={`/buying-guide/${nextGuide.slug}`} className="group rounded-md border p-5 text-right transition-colors hover:border-foreground">
+                      <span className="flex items-center justify-end gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        Next <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="mt-2 block font-display text-xl">{nextGuide.title}</span>
+                    </Link>
+                  )}
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-20 bg-card rounded-2xl border"><p className="text-xl text-muted-foreground">Select a guide from the sidebar</p></div>
-            )}
-          </article>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+            </article>
+          </div>
+        )}
+      </section>
+    </SiteLayout>
   );
 };
 

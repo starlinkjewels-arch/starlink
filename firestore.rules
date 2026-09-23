@@ -1,0 +1,85 @@
+rules_version = '2';
+
+// Starlink Jewels — Firestore security rules
+//
+// Model:
+//   * Website content is public to read, editable only by admins.
+//   * An "admin" is a signed-in Firebase Auth user who also has a document at
+//     admins/{uid}. Create that document by hand in the Firebase console
+//     (Firestore → admins → Document ID = the user's UID from Authentication).
+//   * Visitors may create one analytics record at a time in /visitors, with a
+//     fixed shape; only admins can read or delete those records.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ---- Admin allowlist -------------------------------------------------
+    // Managed only from the Firebase console; an admin can read their own entry.
+    match /admins/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---- Public website content -----------------------------------------
+    // Read by every visitor (and by the sitemap GitHub Action), written from
+    // the admin panel only.
+    match /banners/{docId}             { allow read: if true; allow write: if isAdmin(); }
+    match /categories/{docId}          { allow read: if true; allow write: if isAdmin(); }
+    match /products/{docId}            { allow read: if true; allow write: if isAdmin(); }
+    match /gallery/{docId}             { allow read: if true; allow write: if isAdmin(); }
+    match /featured-collection/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /contact/{docId}             { allow read: if true; allow write: if isAdmin(); }
+    match /offices/{docId}             { allow read: if true; allow write: if isAdmin(); }
+    match /blogs/{docId}               { allow read: if true; allow write: if isAdmin(); }
+    match /videos/{docId}              { allow read: if true; allow write: if isAdmin(); }
+    match /promo-header/{docId}        { allow read: if true; allow write: if isAdmin(); }
+    match /testimonials/{docId}        { allow read: if true; allow write: if isAdmin(); }
+
+    // The site loads all guides and hides drafts in the browser, so reads must
+    // stay public (a "published only" rule would reject that query outright).
+    match /buying-guides/{docId}       { allow read: if true; allow write: if isAdmin(); }
+
+    // ---- Visitor analytics ----------------------------------------------
+    match /visitors/{docId} {
+      allow read, delete: if isAdmin();
+      allow update: if false;
+      allow create: if isValidVisitorLog(request.resource.data);
+    }
+
+    // Mirrors the record built in src/lib/analytics.ts. Anything else is rejected,
+    // so the public endpoint can't be used to store arbitrary data.
+    function isValidVisitorLog(d) {
+      return d.keys().hasOnly([
+          'hostname', 'origin', 'referrer',
+          'ip', 'country', 'region', 'city', 'postal', 'timezone',
+          'userAgent', 'browser', 'device', 'os',
+          'page', 'timestamp', 'grantedLocation',
+          'latitude', 'longitude', 'accuracy'
+        ])
+        && d.keys().hasAll(['page', 'timestamp', 'grantedLocation', 'userAgent'])
+        && d.timestamp == request.time
+        && d.grantedLocation is bool
+        && d.page is string && d.page.size() <= 500
+        && d.userAgent is string && d.userAgent.size() <= 1000
+        && (!('hostname' in d) || (d.hostname is string && d.hostname.size() <= 255))
+        && (!('origin' in d) || (d.origin is string && d.origin.size() <= 255))
+        && (!('referrer' in d) || d.referrer == null || (d.referrer is string && d.referrer.size() <= 2000))
+        && (!('ip' in d) || (d.ip is string && d.ip.size() <= 64))
+        && (!('latitude' in d) || d.latitude is number)
+        && (!('longitude' in d) || d.longitude is number)
+        && (!('accuracy' in d) || d.accuracy is number);
+    }
+
+    // ---- Everything else --------------------------------------------------
+    // Collections not listed above are closed by default.
+  }
+}

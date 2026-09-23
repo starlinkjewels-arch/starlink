@@ -89,7 +89,7 @@ const SEOHead = ({
     },
     potentialAction: {
       "@type": "SearchAction",
-      target: `${baseUrl}/categories?search={search_term_string}`,
+      target: `${baseUrl}/search?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };

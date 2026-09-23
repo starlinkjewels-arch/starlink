@@ -1,42 +1,47 @@
 import { MessageCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { Product } from '@/lib/storage';
+import { stripHtml, SITE } from '@/lib/seo';
+import { openWhatsApp } from '@/lib/whatsapp';
+import { useAppSelector } from '@/store/hooks';
+import { selectGlobalData } from '@/store/contentSlice';
 
 interface WhatsAppButtonProps {
   product: Product;
   className?: string;
+  label?: string;
+  variant?: ButtonProps['variant'];
+  size?: ButtonProps['size'];
 }
 
-const WhatsAppButton = ({ product, className }: WhatsAppButtonProps) => {
-  const handleWhatsAppClick = () => {
-    // Strip HTML tags and decode common HTML entities for cleaner text
-    let cleanDescription = product.description
-      .replace(/<\/?[^>]+(>|$)/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ')       // Replace &nbsp; with space
-      .replace(/&amp;/g, '&')        // Replace &amp; with &
-      .trim();
+export const buildProductEnquiry = (product: Product) => {
+  const summary = stripHtml(product.description || '').replace(/●/g, '•');
+  const shortSummary = summary.length > 400 ? `${summary.slice(0, 397)}...` : summary;
+  return [
+    "Hi Starlink Jewels! I'm interested in:",
+    '',
+    `*${product.name}*`,
+    `${SITE.url}/product/${product.id}`,
+    shortSummary ? `\n${shortSummary}` : '',
+  ].join('\n').trim();
+};
 
-    // Optional: Replace multiple spaces or bullet-like characters with proper WhatsApp bullets
-    cleanDescription = cleanDescription.replace(/●/g, '•');
-
-    const message = `Hi! I'm interested in:\n\n*${
-      product.name
-    }*\n\n${cleanDescription}`;
-
-    const whatsappNumber = '12015544824'; // Fixed number
-
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
-    window.open(url, '_blank');
-  };
+const WhatsAppButton = ({ product, className, label = 'Enquire on WhatsApp', variant = 'default', size = 'xl' }: WhatsAppButtonProps) => {
+  const { contactInfo } = useAppSelector(selectGlobalData);
 
   return (
     <Button
-      onClick={handleWhatsAppClick}
-      className={`luxury-gradient text-primary-foreground hover:opacity-90 transition-opacity ${className}`}
+      type="button"
+      variant={variant}
+      size={size}
+      onClick={(e) => {
+        e.stopPropagation();
+        openWhatsApp(buildProductEnquiry(product), contactInfo?.whatsapp);
+      }}
+      className={className}
     >
-      <MessageCircle className="h-4 w-4 mr-2" />
-      Request More Details
+      <MessageCircle />
+      {label}
     </Button>
   );
 };

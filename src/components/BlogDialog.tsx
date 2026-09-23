@@ -1,9 +1,14 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { X, MessageCircle, Calendar, ArrowRight, Sparkles, Share2, Copy, Check } from 'lucide-react';
-import { BlogPost } from '@/lib/storage';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { X, Share2, Link2, Check, ArrowRight } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { BlogPost } from '@/lib/storage';
+import { sanitizeHtml } from '@/lib/sanitize';
+import { cleanRichTextHtml, stripHtml, SITE } from '@/lib/seo';
+import { whatsappLink } from '@/lib/whatsapp';
 
 interface BlogDialogProps {
   blog: BlogPost | null;
@@ -12,159 +17,96 @@ interface BlogDialogProps {
   whatsappNumber?: string;
 }
 
-const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber = '+1 (201) 554-4824' }: BlogDialogProps) => {
+const readingMinutes = (html: string) => Math.max(1, Math.round(stripHtml(html).split(/\s+/).length / 220));
+
+const BlogDialog = ({ blog, isOpen, onClose, whatsappNumber }: BlogDialogProps) => {
   const [copied, setCopied] = useState(false);
-  
+  const content = useMemo(() => (blog ? sanitizeHtml(cleanRichTextHtml(blog.content)) : ''), [blog]);
+
   if (!blog) return null;
 
-  const blogUrl = `${window.location.origin}/blog?id=${blog.id}`;
+  const blogUrl = `${SITE.url}/blog/${blog.id}`;
 
-  const handleWhatsAppShare = () => {
-    const message = encodeURIComponent(`Hi! I read your blog: "${blog.title}" and I'd like to learn more.`);
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-  };
-
-  const handleCopyUrl = async () => {
+  const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(blogUrl);
       setCopied(true);
-      toast.success('Blog link copied to clipboard!');
+      toast.success('Link copied');
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error('Failed to copy link');
+    } catch {
+      toast.error('Could not copy link');
     }
   };
 
-  const handleShare = async () => {
+  const share = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: blog.title,
-          text: `Check out this blog: ${blog.title}`,
-          url: blogUrl,
-        });
-      } catch (err) {
-        // User cancelled or error
-        handleCopyUrl();
+        await navigator.share({ title: blog.title, url: blogUrl });
+        return;
+      } catch {
+        // cancelled: fall back to copying
       }
-    } else {
-      handleCopyUrl();
     }
-  };
-
-  const cleanContent = (html: string) => {
-    // Create a temporary DOM element to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    
-    // Remove meta tags and other unwanted elements
-    const metaTags = tempDiv.querySelectorAll('meta, title, link, script, style');
-    metaTags.forEach(tag => tag.remove());
-    
-    // Remove any elements with meta-related classes or attributes
-    const metaElements = tempDiv.querySelectorAll('[data-meta], .meta-info, .seo-info');
-    metaElements.forEach(el => el.remove());
-    
-    return tempDiv.innerHTML;
+    copyLink();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl w-[95vw] max-h-[95vh] overflow-hidden p-0 rounded-2xl border border-border shadow-2xl bg-background">
-        {/* Close Button */}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-full max-w-4xl flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:h-[92vh] sm:rounded-lg sm:border [&>button:last-child]:hidden">
+        <DialogTitle className="sr-only">{blog.title}</DialogTitle>
+        <DialogDescription className="sr-only">Journal article</DialogDescription>
+
         <button
+          type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 z-50 rounded-full bg-black/60 backdrop-blur-sm p-2.5 hover:bg-black/80 transition-all duration-300 hover:scale-110"
+          className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-background/90 shadow-md backdrop-blur hover:bg-background"
+          aria-label="Close article"
         >
-          <X className="h-5 w-5 text-white" />
+          <X className="h-5 w-5" />
         </button>
-        <div className="flex flex-col max-h-[95vh] overflow-y-auto bg-background">
-          {/* Featured Image - Full Display with proper background */}
-          <div className="relative w-full bg-black flex items-center justify-center">
-            <img
-              src={blog.image}
-              alt={blog.title}
-              className="w-full h-auto max-h-[50vh] object-contain"
-              loading="eager"
-              decoding="async"
-              fetchpriority="high"
-            />
+
+        <article className="flex-1 overflow-y-auto">
+          <div className="bg-neutral-100 dark:bg-neutral-900">
+            <img src={blog.image} alt={blog.title} className="mx-auto max-h-[55vh] w-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
           </div>
-          {/* Content Section */}
-          <div className="relative px-5 py-5 sm:px-6 sm:py-6 md:px-8 md:py-8 space-y-4 bg-background">
-            {/* Badge, Date & Share Row */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Blog Post
-                </span>
-                <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                  <Calendar className="h-4 w-4" />
-                  <time dateTime={blog.date}>
-                    {new Date(blog.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </time>
-                </div>
-              </div>
-              {/* Share Buttons */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyUrl}
-                  className="gap-1.5 h-8 px-3 text-xs"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? 'Copied!' : 'Copy Link'}
+
+          <div className="mx-auto max-w-2xl px-6 py-10 md:py-14">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <time dateTime={blog.date}>{new Date(blog.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+              <span aria-hidden>·</span>
+              <span>{readingMinutes(blog.content)} min read</span>
+            </div>
+            <h1 className="heading-lg mt-4 text-balance">{blog.title}</h1>
+
+            <div className="mt-6 flex gap-2">
+              <Button variant="outline" size="sm" onClick={copyLink}>
+                {copied ? <Check /> : <Link2 />} {copied ? 'Copied' : 'Copy link'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={share}>
+                <Share2 /> Share
+              </Button>
+            </div>
+
+            <div className="rich-text mt-10 md:prose-lg" dangerouslySetInnerHTML={{ __html: content }} />
+
+            <div className="mt-14 rounded-md bg-secondary/60 p-8 text-center">
+              <p className="font-display text-2xl">Have a question about this?</p>
+              <p className="mt-2 text-sm text-muted-foreground">Our diamond experts are happy to help you choose.</p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Button asChild variant="whatsapp">
+                  <a href={whatsappLink(`Hi Starlink Jewels! I read "${blog.title}" and have a question.`, whatsappNumber)} target="_blank" rel="noopener noreferrer">
+                    <FaWhatsapp /> Ask on WhatsApp
+                  </a>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShare}
-                  className="gap-1.5 h-8 px-3 text-xs"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                  Share
-                </Button>
-              </div>
-            </div>
-            {/* Title */}
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight text-foreground">
-              {blog.title}
-            </h2>
-            {/* Decorative Divider */}
-            <div className="flex items-center gap-2">
-              <div className="h-0.5 w-12 bg-primary rounded-full" />
-              <div className="h-0.5 w-6 bg-primary/50 rounded-full" />
-              <div className="h-0.5 w-3 bg-primary/30 rounded-full" />
-            </div>
-            {/* Content - Render HTML with Tailwind Prose for attractive styling */}
-            <div className="prose prose-sm sm:prose-base max-w-none prose-headings:text-foreground prose-a:text-primary prose-strong:font-bold prose-em:font-medium prose-code:bg-muted/50 prose-pre:bg-muted/50 prose-ul:ml-4 prose-ol:ml-4 prose-li:my-1">
-              <div dangerouslySetInnerHTML={{ __html: cleanContent(blog.content) }} />
-            </div>
-            {/* CTA Section */}
-            <div className="pt-5 mt-4 border-t border-border">
-              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                  Interested in learning more? Contact us today!
-                </p>
-                <Button
-                  onClick={handleWhatsAppShare}
-                  className="w-full sm:w-auto gap-2 bg-[#25D366] hover:bg-[#20BA59] text-white font-semibold px-5 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  size="default"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chat on WhatsApp
-                  <ArrowRight className="h-4 w-4" />
+                <Button asChild variant="outline">
+                  <Link to="/categories" onClick={onClose}>
+                    Shop collections <ArrowRight />
+                  </Link>
                 </Button>
               </div>
             </div>
           </div>
-        </div>
+        </article>
       </DialogContent>
     </Dialog>
   );

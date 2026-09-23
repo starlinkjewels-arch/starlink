@@ -2,113 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/*
+  Starlink Jewels design system (2026 "bright modern")
+  White + soft grey surfaces, near-black type, sapphire brand blue (from the logo) as the accent,
+  bold Inter Tight headlines with an italic serif accent word, pill buttons, generous rounding.
+  All colors are HSL triplets consumed through hsl(var(--token)).
 */
 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 220 15% 15%;
+    --foreground: 240 6% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
+    --card-foreground: 240 6% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
+    --popover-foreground: 240 6% 10%;
 
-    --primary: 220 62% 40%;
+    /* Primary = ink. Pill buttons and key UI. */
+    --primary: 240 6% 10%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 220 62% 95%;
+    --primary-light: 240 5% 96%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 220 15% 15%;
+    /* Apple-style soft grey used for section bands and image wells. */
+    --secondary: 240 11% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    --muted: 220 10% 96%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 240 11% 96%;
+    --muted-foreground: 240 4% 42%;
 
-    --accent: 210 100% 95%;
-    --accent-foreground: 220 62% 40%;
+    --accent: 240 8% 94%;
+    --accent-foreground: 240 6% 10%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 220 62% 40%;
+    --border: 240 6% 90%;
+    --input: 240 6% 88%;
+    --ring: 219 59% 41%;
 
-    --radius: 0.75rem;
-    
-    /* Luxury theme colors */
-    --gold: 45 100% 50%;
-    --gold-light: 45 100% 95%;
+    --radius: 0.875rem;
+
+    --gold: 40 52% 50%;
+    --gold-light: 40 60% 94%;
+
+    /* "navy" is now the ink tone used for the utility bar and dark accents. */
+    --navy: 240 6% 8%;
+    --navy-foreground: 0 0% 98%;
+
     --silver: 0 0% 75%;
     --silver-light: 0 0% 95%;
-    
-    /* Animations */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-spring: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    
-    /* Shadows */
-    --shadow-luxury: 0 10px 40px -10px hsl(var(--primary) / 0.25);
-    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    --shadow-premium: 0 20px 60px -15px hsl(var(--primary) / 0.3);
+
+    /* Brand sapphire, sampled from the Starlink logo (#2B59A8). */
+    --brand: 219 59% 41%;
+    --brand-light: 219 60% 95%;
+
+    --whatsapp: 142 70% 41%;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 0 0% 95%;
+    --background: 240 6% 6%;
+    --foreground: 0 0% 96%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 0 0% 95%;
+    --card: 240 5% 9%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 240 5% 9%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 220 62% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 220 62% 15%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 240 6% 8%;
+    --primary-light: 240 5% 14%;
 
-    --secondary: 220 20% 15%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 220 20% 15%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 64%;
 
-    --accent: 220 25% 18%;
-    --accent-foreground: 220 62% 50%;
+    --accent: 240 5% 16%;
+    --accent-foreground: 0 0% 96%;
 
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 220 62% 50%;
-    
-    --gold: 45 100% 60%;
-    --gold-light: 45 100% 20%;
+    --border: 240 5% 18%;
+    --input: 240 5% 20%;
+    --ring: 219 75% 70%;
+
+    --gold: 40 55% 62%;
+    --gold-light: 30 20% 16%;
+    --navy: 240 6% 4%;
+    --navy-foreground: 0 0% 96%;
     --silver: 0 0% 60%;
     --silver-light: 0 0% 20%;
-    
-    --shadow-luxury: 0 10px 40px -10px hsl(var(--primary) / 0.4);
-    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-    --shadow-premium: 0 20px 60px -15px hsl(var(--primary) / 0.5);
+
+    --brand: 219 75% 70%;
+    --brand-light: 219 30% 16%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -120,154 +121,281 @@ All colors MUST be HSL.
   }
 }
 
+/* Accessibility panel modes (toggled on <html> by AccessibilityWidget). */
+html.a11y-contrast {
+  --foreground: 0 0% 0%;
+  --card-foreground: 0 0% 0%;
+  --muted-foreground: 0 0% 18%;
+  --border: 0 0% 35%;
+  --input: 0 0% 35%;
+  --brand: 219 90% 30%;
+  --secondary: 0 0% 94%;
+  --muted: 0 0% 94%;
+}
+html.a11y-contrast.dark {
+  --foreground: 0 0% 100%;
+  --card-foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 85%;
+  --border: 0 0% 70%;
+  --brand: 219 100% 78%;
+}
+html.a11y-contrast a {
+  text-decoration-thickness: 2px;
+}
+html.a11y-contrast img {
+  filter: contrast(1.08);
+}
+html.a11y-readable body,
+html.a11y-readable body * {
+  font-family: "Lexend", ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: 0.01em !important;
+  word-spacing: 0.06em;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-montserrat;
+  html {
+    scroll-behavior: smooth;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-montserrat;
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+
+  h1, h2, h3 {
+    @apply font-display font-semibold;
+    letter-spacing: -0.03em;
+  }
+
+  ::selection {
+    background: hsl(var(--brand) / 0.18);
+  }
+}
+
+@layer components {
+  /* Small pill label above headings. */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand;
+  }
+  .eyebrow::before {
+    content: "";
+    @apply h-1.5 w-1.5 rounded-full bg-current;
+  }
+
+  .section {
+    @apply py-16 md:py-28;
+  }
+
+  .container-wide {
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10;
+  }
+
+  .heading-xl {
+    @apply font-display text-[44px] font-semibold leading-[0.98] sm:text-6xl lg:text-7xl xl:text-[84px];
+    letter-spacing: -0.045em;
+  }
+
+  .heading-lg {
+    @apply font-display text-[34px] font-semibold leading-[1.02] sm:text-5xl lg:text-[56px];
+    letter-spacing: -0.04em;
+  }
+
+  .heading-md {
+    @apply font-display text-2xl font-semibold leading-tight sm:text-[32px];
+    letter-spacing: -0.03em;
+  }
+
+  /* Italic serif accent word inside a sans headline: <em className="accent">modern</em> */
+  .accent {
+    @apply font-serif font-medium italic text-brand;
+    letter-spacing: -0.01em;
+  }
+
+  .gold-divider {
+    @apply mx-auto mt-5 flex items-center justify-center gap-2 text-gold;
+  }
+  .gold-divider::before,
+  .gold-divider::after {
+    content: "";
+    @apply h-px w-10 bg-gold/60;
+  }
+
+  /* Faint diamond lattice for dark bands. */
+  .pattern-lattice {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M24 2 46 24 24 46 2 24Z' fill='none' stroke='%23ffffff' stroke-opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  /* Animated underline for text links. */
+  .link-underline {
+    @apply relative inline-flex items-center gap-2 text-sm font-semibold;
+  }
+  .link-underline::after {
+    content: "";
+    @apply absolute -bottom-1 left-0 h-px w-full origin-left scale-x-100 bg-current transition-transform duration-300;
+  }
+  .link-underline:hover::after {
+    @apply scale-x-0 origin-right;
+  }
+
+  /* Rich text coming from the admin editors. */
+  .rich-text {
+    @apply prose prose-neutral max-w-none dark:prose-invert
+      prose-headings:font-display prose-headings:font-semibold
+      prose-a:text-brand prose-a:underline-offset-4
+      prose-img:rounded-xl prose-li:my-1;
+  }
+  .rich-text :is(p, div):empty,
+  .rich-text :is(p, div):has(> br:only-child),
+  .rich-text :is(p, div):has(> span:only-child > br:only-child) {
+    display: none;
+  }
+
+  /* Diamond glint: a soft light sweep across a photo when its card is hovered. */
+  .glint {
+    @apply relative overflow-hidden;
+  }
+  .glint::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 48%, rgba(255, 255, 255, 0.1) 55%, transparent 62%);
+    transform: translateX(-120%);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .group:hover .glint::after {
+    animation: glint-sweep 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Slow shimmer that drifts across the announcement bar every few seconds. */
+  .bar-shine::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    transform: translateX(-120%);
+    animation: bar-shine 7s ease-in-out infinite;
+    pointer-events: none;
   }
 }
 
 @layer utilities {
-  .luxury-gradient {
-    @apply bg-gradient-to-br from-primary via-primary to-primary/80;
-  }
-  
-  .glass-effect {
-    @apply backdrop-blur-md bg-background/80 border border-border/50;
-  }
-  
-  .hover-lift {
-    @apply transition-all duration-300 hover:scale-105;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  }
-  
-  .hover-lift:hover {
-    box-shadow: var(--shadow-luxury);
-  }
-  
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
-  }
-  
-  .premium-shadow {
-    box-shadow: var(--shadow-premium);
-  }
-  
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
-  @keyframes scroll {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-  
-@keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
 
-/* Ensure typography plugin doesn't override global font */
-.prose {
-  font-family: inherit;
-}
-.prose :where(h1, h2, h3, h4, h5, h6) {
-  font-family: inherit;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(400%);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(45deg);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateY(-20px) rotate(45deg);
-    opacity: 1;
-  }
-}
-
-@keyframes fade-swap {
-  0% {
-    opacity: 0;
-    transform: scale(1.03) translateZ(0);
-    filter: brightness(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateZ(0);
-    filter: brightness(1);
-  }
-}
-
-@keyframes kenburns-soft {
-  0% {
-    transform: scale(1) translateZ(0);
-  }
-  100% {
-    transform: scale(1.035) translateZ(0);
-  }
-}
-  
-  .animate-marquee {
-    display: inline-block;
-    animation: marquee 20s linear infinite;
-  }
-  
   .pause {
     animation-play-state: paused !important;
   }
 
-  .animate-fade-swap {
-    animation: fade-swap 1000ms ease;
+  .text-balance {
+    text-wrap: balance;
   }
 
-  .animate-kenburns-soft {
-    animation: kenburns-soft 4s ease-in-out both;
+  /* Scroll-reveal: elements start hidden and animate in when .is-visible is added. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
   }
 
-  .animate-fade-slide {
-    animation: fade-slide 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Kinetic headline: each word slides up out of a clipping mask. */
+  .word-mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+  }
+  .word-mask > span {
+    display: inline-block;
+    transform: translateY(110%);
+    animation: word-rise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 70ms + 150ms);
   }
 
-  @keyframes fade-slide {
-    0% {
-      opacity: 0;
-      transform: translateY(6px) scale(1.01);
-      filter: blur(1px);
-    }
-    100% {
+  /* Image that un-clips from the bottom when revealed. */
+  .clip-reveal {
+    clip-path: inset(100% 0 0 0 round 1.5rem);
+    animation: clip-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .animate-float {
+    animation: float-y 6s ease-in-out infinite;
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    display: inline-flex;
+    animation: marquee 38s linear infinite;
+  }
+
+  @keyframes hero-zoom {
+    0% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .animate-hero-zoom {
+    animation: hero-zoom 7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes progress-fill {
+    0% { transform: scaleX(0); }
+    100% { transform: scaleX(1); }
+  }
+  .animate-progress {
+    transform-origin: left;
+    animation: progress-fill linear both;
+  }
+
+  @keyframes word-rise {
+    to { transform: translateY(0); }
+  }
+  @keyframes clip-up {
+    to { clip-path: inset(0 0 0 0 round 1.5rem); }
+  }
+  @keyframes glint-sweep {
+    to { transform: translateX(120%); }
+  }
+  @keyframes bar-shine {
+    0%, 55% { transform: translateX(-120%); }
+    100% { transform: translateX(320%); }
+  }
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .word-mask > span,
+    .clip-reveal {
       opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0);
+      transform: none;
+      clip-path: none;
+      animation: none;
+      transition: none;
+    }
+    .animate-marquee,
+    .animate-float,
+    .bar-shine::before,
+    .animate-hero-zoom {
+      animation: none;
     }
   }
 }

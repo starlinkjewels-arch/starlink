@@ -86,9 +86,14 @@ export interface BlogPost {
   seoFaq?: { question: string; answer: string }[];
 }
 
-export interface InstagramPost {
+export interface VideoPost {
   id: string;
   url: string;
+  poster?: string;
+  title?: string;
+  productId?: string;
+  priority?: number;
+  createdAt?: number;
 }
 
 export interface ContactInfo {
@@ -135,7 +140,7 @@ const COLLECTIONS = {
   CONTACT: 'contact',
   OFFICES: 'offices',
   BLOGS: 'blogs',
-  INSTAGRAM: 'instagram',
+  VIDEOS: 'videos',
   VISITORS: 'visitors',
   PROMO_HEADER: 'promo-header',
   TESTIMONIALS: 'testimonials',
@@ -470,31 +475,25 @@ export const deleteBlog = async (id: string) => {
   }
 };
 
-// Instagram methods
-export const getInstagramPosts = async (): Promise<InstagramPost[]> => {
+// Video (shoppable reels) methods
+export const getVideos = async (): Promise<VideoPost[]> => {
   try {
-    const snapshot = await getDocs(collection(db, COLLECTIONS.INSTAGRAM));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InstagramPost));
+    const snapshot = await getDocs(collection(db, COLLECTIONS.VIDEOS));
+    const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VideoPost));
+    return videos.sort((a, b) => (a.priority || 99) - (b.priority || 99) || (b.createdAt || 0) - (a.createdAt || 0));
   } catch (error) {
-    console.error('Error getting Instagram posts:', error);
+    console.error('Error getting videos:', error);
     return [];
   }
 };
 
-export const saveInstagramPost = async (post: InstagramPost) => {
-  try {
-    await setDoc(doc(db, COLLECTIONS.INSTAGRAM, post.id), { ...post, id: post.id });
-  } catch (error) {
-    console.error('Error saving Instagram post:', error);
-  }
+// Unlike most save helpers here, video writes rethrow so the admin sees real failures.
+export const saveVideo = async (video: VideoPost) => {
+  await setDoc(doc(db, COLLECTIONS.VIDEOS, video.id), sanitizeForFirestore({ ...video, id: video.id }));
 };
 
-export const deleteInstagramPost = async (id: string) => {
-  try {
-    await deleteDoc(doc(db, COLLECTIONS.INSTAGRAM, id));
-  } catch (error) {
-    console.error('Error deleting Instagram post:', error);
-  }
+export const deleteVideo = async (id: string) => {
+  await deleteDoc(doc(db, COLLECTIONS.VIDEOS, id));
 };
 
 // PromoHeader methods
@@ -733,6 +732,53 @@ const addVideoWatermark = async (file: File): Promise<File> => {
       video.onended = () => {
         if (recorder.state !== "inactive") recorder.stop();
       };
+    };
+  });
+};
+
+// Grab a frame from a local video file to use as its poster image. Resolves null if the browser can't decode it.
+export const captureVideoPoster = (file: File, atSeconds = 0.5): Promise<File | null> => {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.src = url;
+
+    const finish = (result: File | null) => {
+      URL.revokeObjectURL(url);
+      resolve(result);
+    };
+
+    const timeout = window.setTimeout(() => finish(null), 15000);
+
+    video.onerror = () => {
+      window.clearTimeout(timeout);
+      finish(null);
+    };
+
+    video.onloadedmetadata = () => {
+      video.currentTime = Math.min(atSeconds, (video.duration || 1) / 2);
+    };
+
+    video.onseeked = () => {
+      window.clearTimeout(timeout);
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 900 / Math.max(video.videoWidth, video.videoHeight));
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx || !canvas.width || !canvas.height) {
+        finish(null);
+        return;
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => finish(blob ? new File([blob], `${file.name.replace(/\.\w+$/, '')}-poster.jpg`, { type: 'image/jpeg' }) : null),
+        'image/jpeg',
+        0.82
+      );
     };
   });
 };

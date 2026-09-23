@@ -1,17 +1,20 @@
-import { useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
-import Header from "@/components/Header";
-import MiniHeader from "@/components/MiniHeader";
-import Footer from "@/components/Footer";
-import SEOHead from "@/components/SEOHead";
-import { useAppSelector } from "@/store/hooks";
-import { selectGlobalData } from "@/store/contentSlice";
-import { Button } from "@/components/ui/button";
+import { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { ArrowUpRight, ShieldCheck, Truck, PencilRuler, MessageCircle } from 'lucide-react';
+import SEOHead from '@/components/SEOHead';
+import SiteLayout from '@/components/site/SiteLayout';
+import PageHero from '@/components/site/PageHero';
+import Reveal from '@/components/site/Reveal';
+import { Button } from '@/components/ui/button';
+import { useAppSelector } from '@/store/hooks';
+import { selectGlobalData } from '@/store/contentSlice';
+import { orderCategoriesWithCustomFirst } from '@/lib/storage';
+import { whatsappLink } from '@/lib/whatsapp';
+import NotFound from './NotFound';
 
 type CountryConfig = {
   name: string;
   slug: string;
-  locale: string;
   headline: string;
   description: string;
   shippingText: string;
@@ -20,138 +23,128 @@ type CountryConfig = {
 
 const COUNTRIES: CountryConfig[] = [
   {
-    name: "United States",
-    slug: "usa",
-    locale: "en-US",
-    headline: "Diamond Jewelry Delivered Across the USA",
+    name: 'United States',
+    slug: 'usa',
+    headline: 'Diamond jewelry delivered across the USA',
     description:
-      "Shop certified lab-grown and natural diamond jewelry from Starlink Jewels with secure worldwide delivery to the United States. Custom designs, premium craftsmanship, and WhatsApp support.",
-    shippingText:
-      "Fast, insured international shipping to all US states with secure packaging and tracking.",
-    keywords:
-      "diamond jewelry USA, lab grown diamonds USA, engagement rings USA, luxury jewelry USA, diamond necklace USA",
+      'Shop certified lab-grown and natural diamond jewelry from Starlink Jewels with secure delivery to the United States. Custom designs, premium craftsmanship and WhatsApp support.',
+    shippingText: 'Fast, insured international shipping to all US states with secure packaging and tracking.',
+    keywords: 'diamond jewelry USA, lab grown diamonds USA, engagement rings USA, luxury jewelry USA, diamond necklace USA',
   },
   {
-    name: "Canada",
-    slug: "canada",
-    locale: "en-CA",
-    headline: "Luxury Jewelry Delivery Across Canada",
+    name: 'Canada',
+    slug: 'canada',
+    headline: 'Luxury jewelry delivered across Canada',
     description:
-      "Discover premium diamond and gold jewelry with worldwide delivery to Canada. Certified lab-grown and natural diamonds with custom design options.",
-    shippingText:
-      "Secure international shipping to all Canadian provinces with tracking and insurance.",
-    keywords:
-      "diamond jewelry Canada, lab grown diamonds Canada, engagement rings Canada, luxury jewelry Canada",
+      'Discover premium diamond and gold jewelry with delivery to Canada. Certified lab-grown and natural diamonds with custom design options.',
+    shippingText: 'Secure international shipping to all Canadian provinces with tracking and insurance.',
+    keywords: 'diamond jewelry Canada, lab grown diamonds Canada, engagement rings Canada, luxury jewelry Canada',
   },
   {
-    name: "Australia",
-    slug: "australia",
-    locale: "en-AU",
-    headline: "Premium Diamond Jewelry for Australia",
+    name: 'Australia',
+    slug: 'australia',
+    headline: 'Premium diamond jewelry for Australia',
     description:
-      "Shop certified diamond jewelry and custom designs delivered to Australia. Ethical lab-grown and natural diamonds with expert craftsmanship.",
-    shippingText:
-      "Tracked, insured shipping to all Australian states and territories.",
-    keywords:
-      "diamond jewelry Australia, lab grown diamonds Australia, engagement rings Australia, luxury jewelry Australia",
+      'Shop certified diamond jewelry and custom designs delivered to Australia. Lab-grown and natural diamonds with expert craftsmanship.',
+    shippingText: 'Tracked, insured shipping to all Australian states and territories.',
+    keywords: 'diamond jewelry Australia, lab grown diamonds Australia, engagement rings Australia, luxury jewelry Australia',
   },
   {
-    name: "Germany",
-    slug: "germany",
-    locale: "en-DE",
-    headline: "Certified Diamond Jewelry Delivered to Germany",
+    name: 'Germany',
+    slug: 'germany',
+    headline: 'Certified diamond jewelry delivered to Germany',
     description:
-      "Explore Starlink Jewels luxury diamond collections with secure delivery to Germany. Lab-grown and natural diamonds, custom jewelry, and expert support.",
-    shippingText:
-      "Reliable international shipping to Germany with secure packaging and tracking.",
-    keywords:
-      "diamond jewelry Germany, lab grown diamonds Germany, engagement rings Germany, luxury jewelry Germany",
+      'Explore Starlink Jewels diamond collections with secure delivery to Germany. Lab-grown and natural diamonds, custom jewelry and expert support.',
+    shippingText: 'Reliable international shipping to Germany with secure packaging and tracking.',
+    keywords: 'diamond jewelry Germany, lab grown diamonds Germany, engagement rings Germany, luxury jewelry Germany',
   },
 ];
 
 const CountryLanding = () => {
-  const { country } = useParams<{ country: string }>();
-  const { categories, promoHeader } = useAppSelector(selectGlobalData);
-  const hasPromo = promoHeader?.enabled && promoHeader?.text;
-  const promoHeight = hasPromo ? 40 : 0;
-  const paddingTop = promoHeight + 80 + 52 + 12;
+  // Routes are static (/usa, /canada, ...), so the country comes from the path rather than a route param.
+  const { pathname } = useLocation();
+  const slug = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const config = COUNTRIES.find((c) => c.slug === slug);
+  const { categories, banners, contactInfo } = useAppSelector(selectGlobalData);
+  const ordered = useMemo(() => orderCategoriesWithCustomFirst(categories).slice(0, 4), [categories]);
 
-  const config = useMemo(
-    () => COUNTRIES.find((c) => c.slug === country) ?? null,
-    [country]
-  );
+  if (!config) return <NotFound />;
 
-  if (!config) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <SEOHead
-          title="Country Page Not Found"
-          description="The requested country page could not be found."
-          canonicalUrl={`https://www.starlinkjewels.com/${country || ""}`}
-        />
-        <Header promoHeader={promoHeader} />
-        <MiniHeader categories={categories} promoHeight={promoHeight} />
-        <main className="flex-1 container mx-auto px-4 py-16" style={{ paddingTop: `${paddingTop}px` }}>
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Page Not Found</h1>
-            <Link to="/">
-              <Button>Back to Home</Button>
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const heroImage = banners.find((b) => b.mediaType !== 'video')?.image;
+  const benefits = [
+    { icon: Truck, title: `Shipping to ${config.name}`, text: config.shippingText },
+    { icon: ShieldCheck, title: 'Certified diamonds', text: 'Lab-grown and natural diamonds certified by IGI and GIA.' },
+    { icon: PencilRuler, title: 'Made to order', text: 'Custom design and manufacturing with CAD approval before crafting.' },
+    { icon: MessageCircle, title: 'Personal support', text: 'Chat directly with our experts on WhatsApp for quick answers.' },
+  ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <SiteLayout>
       <SEOHead
-        title={`${config.name} Diamond Jewelry Shipping`}
+        title={`Diamond Jewelry Shipping to ${config.name}`}
         description={config.description}
         keywords={config.keywords}
         canonicalUrl={`https://www.starlinkjewels.com/${config.slug}`}
+        breadcrumbs={[
+          { name: 'Home', url: 'https://www.starlinkjewels.com' },
+          { name: config.name, url: `https://www.starlinkjewels.com/${config.slug}` },
+        ]}
       />
 
-      <Header promoHeader={promoHeader} />
-      <MiniHeader categories={categories} promoHeight={promoHeight} />
-
-      <main className="flex-1 container mx-auto px-4 py-12" style={{ paddingTop: `${paddingTop}px` }}>
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{config.headline}</h1>
-          <p className="text-lg text-muted-foreground">{config.description}</p>
+      <PageHero
+        image={heroImage}
+        eyebrow={`Delivering to ${config.name}`}
+        title={config.headline}
+        description={config.description}
+        breadcrumbs={[{ name: 'Home', to: '/' }, { name: config.name }]}
+      >
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button asChild variant={heroImage ? "light" : "default"} size="xl">
+            <Link to="/categories">Shop collections</Link>
+          </Button>
+          <Button asChild variant={heroImage ? "outline-light" : "outline"} size="xl">
+            <a href={whatsappLink(`Hi Starlink Jewels! I'm in ${config.name} and would like to know more.`, contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              Talk to an expert
+            </a>
+          </Button>
         </div>
+      </PageHero>
 
-        <div className="max-w-3xl mx-auto grid gap-6">
-          <div className="rounded-2xl border bg-card p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-2">Shipping to {config.name}</h2>
-            <p className="text-muted-foreground">{config.shippingText}</p>
-          </div>
-
-          <div className="rounded-2xl border bg-card p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-2">Why Starlink Jewels</h2>
-            <ul className="text-muted-foreground space-y-2">
-              <li>Certified lab-grown and natural diamonds.</li>
-              <li>Custom design and manufacturing support.</li>
-              <li>Secure worldwide shipping with tracking.</li>
-              <li>WhatsApp support for quick inquiries.</li>
-            </ul>
-          </div>
-
-          <div className="rounded-2xl border bg-card p-6 shadow-sm text-center">
-            <h2 className="text-xl font-semibold mb-2">Explore Our Collections</h2>
-            <p className="text-muted-foreground mb-4">
-              Browse engagement rings, wedding bands, necklaces, earrings, and more.
-            </p>
-            <Link to="/categories">
-              <Button size="lg">View Collections</Button>
-            </Link>
-          </div>
+      <section className="section">
+        <div className="container-wide grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {benefits.map(({ icon: Icon, title, text }, i) => (
+            <Reveal key={title} delay={i * 80}>
+              <Icon className="h-7 w-7 text-brand" strokeWidth={1.4} />
+              <h2 className="mt-5 font-sans text-base font-semibold">{title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text}</p>
+            </Reveal>
+          ))}
         </div>
-      </main>
+      </section>
 
-      <Footer />
-    </div>
+      {ordered.length > 0 && (
+        <section className="section border-t bg-secondary/40">
+          <div className="container-wide">
+            <p className="eyebrow mb-3">Popular in {config.name}</p>
+            <h2 className="heading-lg mb-10">Explore our collections</h2>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+              {ordered.map((category) => (
+                <Link key={category.id} to={`/category/${category.id}`} className="group block">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-muted">
+                    <img src={category.image} alt={category.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white">
+                      <h3 className="font-display text-2xl">{category.name}</h3>
+                      <ArrowUpRight className="h-5 w-5" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </SiteLayout>
   );
 };
 

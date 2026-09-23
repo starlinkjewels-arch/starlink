@@ -1,183 +1,170 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { MouseEvent, TouchEvent } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { TouchEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { Play, Eye, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Product } from '@/lib/storage';
-import WhatsAppButton from './WhatsAppButton';
-import { Images, Play } from 'lucide-react';
-import { preloadMedia } from '@/lib/preload';
-import { stripHtml } from '@/lib/seo';
+import { getProductTime, isVideoUrl } from '@/lib/media';
+import { openWhatsApp } from '@/lib/whatsapp';
+import { buildProductEnquiry } from '@/components/WhatsAppButton';
+import { useAppSelector } from '@/store/hooks';
+import { selectGlobalData } from '@/store/contentSlice';
+import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
   product: Product;
+  /** When given, the card opens a quick view instead of navigating. */
   onClick?: () => void;
+  categoryName?: string;
+  className?: string;
+  priority?: boolean;
 }
 
-const ProductCard = ({ product, onClick }: ProductCardProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+const NEW_WINDOW_MS = 45 * 24 * 60 * 60 * 1000;
+
+const ProductCard = ({ product, onClick, categoryName, className, priority = false }: ProductCardProps) => {
+  const { contactInfo } = useAppSelector(selectGlobalData);
+  const [index, setIndex] = useState(0);
+  const [hovered, setHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  const mediaRaw = product.images && product.images.length > 0 ? product.images : [product.image];
-  const media = mediaRaw.filter((item) => Boolean(item));
-  const hasMultiple = media.length > 1;
-  
-  const isCoarsePointer = useMemo(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(pointer: coarse)').matches;
-  }, []);
+  const media = useMemo(
+    () => (product.images && product.images.length > 0 ? product.images : [product.image]).filter(Boolean),
+    [product.images, product.image]
+  );
+  const images = useMemo(() => media.filter((url) => !isVideoUrl(url)), [media]);
+  const hasVideo = media.length !== images.length;
+  const primary = images[index] || images[0] || media[0];
+  const secondary = images[1];
+  const primaryIsVideo = primary ? isVideoUrl(primary) : false;
+  const createdAt = getProductTime(product);
+  const isNew = createdAt > 0 && Date.now() - createdAt < NEW_WINDOW_MS;
 
-  const primaryMedia = media[0];
-  const secondaryMedia = media[1] || null;
-  const displayMedia = media[currentIndex] || primaryMedia;
-  const descriptionPreview = useMemo(() => {
-    const text = stripHtml(product.description || '');
-    if (!text) return '';
-    return text.length > 180 ? `${text.slice(0, 177).trimEnd()}...` : text;
-  }, [product.description]);
-
-  // Detect if media is video
-  const getMediaType = (url: string): 'image' | 'video' => {
-    const videoExtensions = /\.(mp4|webm|ogg|mov|avi|mkv)$/i;
-    return videoExtensions.test(url) || url.includes('video') ? 'video' : 'image';
-  };
-
-  const currentMediaType = getMediaType(displayMedia);
-  const hasVideo = media.some(url => getMediaType(url) === 'video');
-  const isSecondaryImage = secondaryMedia ? getMediaType(secondaryMedia) === 'image' : false;
-
-  useEffect(() => {
-    setCurrentIndex(0);
-    setIsHovered(false);
-  }, [product.id]);
-
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    if (!isCoarsePointer) return;
+  const handleTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches[0]?.clientX ?? null;
   };
 
-  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
-    if (!isCoarsePointer || touchStartX.current === null) return;
-    const endX = e.changedTouches[0]?.clientX ?? touchStartX.current;
-    const deltaX = endX - touchStartX.current;
-    const threshold = 30;
-    if (Math.abs(deltaX) >= threshold && hasMultiple) {
-      if (deltaX < 0) {
-        setCurrentIndex((prev) => (prev + 1) % media.length);
-      } else {
-        setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
-      }
+  const handleTouchEnd = (e: TouchEvent) => {
+    if (touchStartX.current === null || images.length < 2) return;
+    const delta = (e.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
+    if (Math.abs(delta) > 30) {
+      setIndex((prev) => (delta < 0 ? (prev + 1) % images.length : (prev - 1 + images.length) % images.length));
     }
     touchStartX.current = null;
   };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    if (primaryMedia) {
-      const urls = [primaryMedia, secondaryMedia].filter(Boolean) as string[];
-      preloadMedia(urls);
-    }
-    if (hasMultiple) {
-      setCurrentIndex(1);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
+  const href = `/product/${product.id}`;
+  const primaryAction = onClick ? (
+    <button type="button" onClick={onClick} className="absolute inset-0 z-10" aria-label={`Quick view ${product.name}`} />
+  ) : (
+    <Link to={href} className="absolute inset-0 z-10" aria-label={product.name} />
+  );
 
   return (
-    <div 
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className="group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-full cursor-pointer"
+    <article
+      className={cn(
+        'group relative flex h-full flex-col transition-transform duration-500 hover:-translate-y-1',
+        className
+      )}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {/* Image Container */}
-      <div
-        className="relative aspect-square overflow-hidden bg-muted"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {currentMediaType === 'video' ? (
-          <div className="relative w-full h-full">
-            <video
-              src={displayMedia}
-              className="w-full h-full object-cover"
-              autoPlay={isHovered}
-              loop
-              muted
-              playsInline
-              preload="metadata"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
-              <div className="bg-white/95 dark:bg-zinc-800/95 rounded-full p-3 shadow-lg">
-                <Play className="h-6 w-6 text-zinc-700 dark:text-zinc-300" fill="currentColor" />
-              </div>
-            </div>
-          </div>
+      <div className="glint relative aspect-square overflow-hidden rounded-3xl bg-secondary transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {primaryIsVideo ? (
+          <video src={primary} className="h-full w-full object-cover" muted loop playsInline autoPlay={hovered} preload="metadata" />
         ) : (
-          <div className="relative w-full h-full">
+          <>
             <img
-              src={primaryMedia}
+              src={primary}
               alt={product.name}
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150"
-              loading="lazy"
+              className={cn(
+                'absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-700 group-hover:scale-[1.04]',
+                hovered && secondary ? 'md:opacity-0' : 'opacity-100'
+              )}
+              loading={priority ? 'eager' : 'lazy'}
               decoding="async"
-              fetchpriority="low"
-              style={{ opacity: isHovered && isSecondaryImage ? 0 : 1 }}
+              fetchPriority={priority ? 'high' : 'low'}
             />
-            {secondaryMedia && isSecondaryImage && (
+            {secondary && (
               <img
-                src={secondaryMedia}
-                alt={product.name}
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150"
+                src={secondary}
+                alt=""
+                aria-hidden
+                className={cn('absolute inset-0 hidden h-full w-full object-cover transition-opacity duration-700 md:block', hovered ? 'opacity-100' : 'opacity-0')}
                 loading="lazy"
                 decoding="async"
-                fetchpriority="low"
-                style={{ opacity: isHovered ? 1 : 0 }}
               />
             )}
-          </div>
-        )}
-        
-        {/* Media Count Badge */}
-        {hasMultiple && (
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium shadow-lg border border-border/50">
-            <Images className="h-3.5 w-3.5 text-primary" />
-            <span className="font-semibold">{media.length}</span>
-          </div>
+          </>
         )}
 
-        {/* Video Badge */}
-        {/* {hasVideo && (
-          <div className="absolute top-3 left-3 flex items-center gap-1 bg-red-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg">
-            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-            VIDEO
-          </div>
-        )} */}
-      </div>
+        {primaryAction}
 
-      {/* Content Container */}
-      <div className="flex flex-col flex-1 p-4 sm:p-5 lg:p-6">
-        {/* Product Name */}
-        <h3 className="font-semibold text-base sm:text-lg lg:text-xl mb-2 line-clamp-2 min-h-[3rem] text-foreground group-hover:text-primary transition-colors">
-          {product.name}
-        </h3>
-        
-        {/* Description */}
-        <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 flex-1 leading-6">
-          {descriptionPreview}
-        </p>
-        
-        {/* Button Container */}
-        <div className="space-y-4 mt-auto">
-          {/* WhatsApp Button */}
-          <div onClick={(e) => e.stopPropagation()}>
-            <WhatsAppButton product={product} className="w-full" />
-          </div>
+        <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5">
+          {isNew && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">New</span>}
+          {hasVideo && (
+            <span className="flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
+              <Play className="h-3 w-3 fill-current" /> Video
+            </span>
+          )}
+        </div>
 
+        {images.length > 1 && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center gap-1.5 md:hidden">
+            {images.slice(0, 5).map((_, i) => (
+              <span key={i} className={cn('h-1 rounded-full bg-white shadow transition-all', i === index ? 'w-4' : 'w-1 opacity-70')} />
+            ))}
+          </div>
+        )}
+
+        {/* Hover actions (desktop) */}
+        <div className="absolute inset-x-3 bottom-3 z-20 hidden translate-y-3 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex">
+          {onClick ? (
+            <button
+              type="button"
+              onClick={onClick}
+              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-background/95 text-[13px] font-semibold shadow-md backdrop-blur hover:bg-primary hover:text-primary-foreground"
+            >
+              <Eye className="h-4 w-4" /> Quick view
+            </button>
+          ) : (
+            <Link
+              to={href}
+              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-background/95 text-[13px] font-semibold shadow-md backdrop-blur hover:bg-primary hover:text-primary-foreground"
+            >
+              View details <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => openWhatsApp(buildProductEnquiry(product), contactInfo?.whatsapp)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-whatsapp text-white shadow-md hover:brightness-110"
+            aria-label={`Enquire about ${product.name} on WhatsApp`}
+          >
+            <FaWhatsapp className="h-5 w-5" />
+          </button>
         </div>
       </div>
-    </div>
+
+      <div className="relative flex flex-1 flex-col px-1 pt-4">
+        {categoryName && <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{categoryName}</p>}
+        <h3 className="line-clamp-2 font-display text-base font-semibold leading-snug tracking-tight transition-colors group-hover:text-brand">
+          {onClick ? (
+            <button type="button" onClick={onClick} className="text-left">
+              {product.name}
+            </button>
+          ) : (
+            <Link to={href}>{product.name}</Link>
+          )}
+        </h3>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+          <span className="text-sm font-medium text-muted-foreground">Price on request</span>
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Certified
+          </span>
+        </div>
+      </div>
+    </article>
   );
 };
 

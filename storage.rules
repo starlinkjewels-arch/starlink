@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Starlink Jewels — Cloud Storage security rules
+//
+// All uploaded media (product photos, banners, videos, flags…) is public to
+// view. Only admins can upload, replace or delete files. "Admin" means the same
+// thing as in firestore.rules: signed in AND listed in Firestore admins/{uid}.
+//
+// The admin check reads Firestore from Storage rules (cross-service rules).
+// The first time these rules are published, the Firebase console asks to grant
+// Storage permission to read Firestore — accept it, otherwise uploads fail.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+
+    // Images are resized/compressed in the browser before upload, so 20 MB is generous.
+    // Videos (product clips, banners, homepage reels) are uploaded as-is, up to 200 MB.
+    function isAllowedMedia() {
+      return (isImage() && request.resource.size < 20 * 1024 * 1024)
+        || (isVideo() && request.resource.size < 200 * 1024 * 1024);
+    }
+
+    // Folders used by the admin panel: banners, categories, products, gallery,
+    // featured-collection, blogs, blogs/thumbnails, buying-guides, flags,
+    // videos, videos/posters.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isAllowedMedia();
+      allow delete: if isAdmin();
+    }
+  }
+}

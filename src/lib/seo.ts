@@ -5,6 +5,18 @@ export const SITE = {
   phonePrimary: "+1 (201) 554-4824",
   phoneWhatsApp: "+1 (201) 554-4824",
   email: "info@starlinkjewels.com",
+  ringBuilder: {
+    url: "https://ringbuilder.starlinkjewels.com/",
+    label: "Ring Builder",
+    description: "Design your own diamond ring",
+    title: "Custom Engagement Ring Builder – Design Your Own Diamond Ring | Starlink Jewels",
+  },
+  viewer360: {
+    url: "https://360.starlinkjewels.com/",
+    label: "360° View",
+    description: "Explore our jewelry from every angle",
+    title: "360° Diamond Jewelry Viewer – See Every Angle in HD | Starlink Jewels",
+  },
   areaServed: ["US", "CA", "AU", "DE", "GB", "IN"],
   addressIndia: {
     country: "IN",
@@ -75,17 +87,28 @@ export const pingSitemapOncePerDay = () => {
   window.localStorage.setItem(key, today);
 };
 
-export const stripHtml = (html: string) => {
-  return html
+// Quote-aware tag matcher: attribute values pasted from other apps (e.g. ChatGPT) can contain ">" characters.
+const TAG_PATTERN = /<\/?[a-zA-Z!][^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>/g;
+
+const decodeEntities = (value: string) =>
+  value
     .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/&amp;/gi, "&");
+
+export const stripHtml = (html: string) => {
+  if (!html) return "";
+  let text = html;
+  if (typeof DOMParser !== "undefined") {
+    // Let the browser parse real markup, then strip any escaped markup that was pasted as text.
+    text = new DOMParser().parseFromString(html, "text/html").body.textContent || "";
+  } else {
+    text = decodeEntities(text.replace(TAG_PATTERN, " "));
+  }
+  return text.replace(TAG_PATTERN, " ").replace(/\s+/g, " ").trim();
 };
 
 export const cleanRichTextHtml = (html: string) => {
@@ -95,6 +118,8 @@ export const cleanRichTextHtml = (html: string) => {
     .replace(/&nbsp;/gi, " ")
     .replace(/<li>(?:\s|&nbsp;|<br\s*\/?>|<\/?p>)*<\/li>/gi, "")
     .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+    .replace(/<div>(?:\s|&nbsp;|<br\s*\/?>)*<\/div>/gi, "")
+    .replace(/(?:<br\s*\/?>\s*){3,}/gi, "<br><br>")
     .replace(/<(ul|ol)>\s*<\/\1>/gi, "")
     .trim();
 };
