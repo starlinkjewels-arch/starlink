@@ -1,16 +1,18 @@
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BookOpen, ArrowRight, ArrowLeft } from 'lucide-react';
+import { BookOpen, ArrowRight, ArrowLeft, ArrowUpRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
-import PageHero from '@/components/site/PageHero';
+import CollectionHero from '@/components/site/CollectionHero';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/store/hooks';
 import { selectDeferredLoaded, selectDeferredStatus, selectGlobalData } from '@/store/contentSlice';
-import { buildMetaDescriptionFromHtml } from '@/lib/seo';
+import { SITE, buildMetaDescriptionFromHtml } from '@/lib/seo';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { whatsappLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
+import RichText from '@/components/site/RichText';
 
 const defaultFaqItems = [
   {
@@ -81,12 +83,28 @@ const BuyingGuidePage = () => {
         faqItems={selected?.seoFaq?.length ? selected.seoFaq : defaultFaqItems}
       />
 
-      <PageHero
+      <CollectionHero
         eyebrow="Buying guide"
-        title="Buy with confidence"
+        title="Buy with"
+        accent="confidence"
         description="Everything you need to know about diamonds, settings and certification, explained simply."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Buying Guide' }]}
-      />
+        images={guides.map((g) => g.image).filter(Boolean).slice(0, 3) as string[]}
+        chips={[...(guides.length > 1 ? [`${guides.length} guides`] : []), 'The 4Cs explained', 'GIA & IGI certification']}
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="whatsapp" size="xl">
+            <a href={whatsappLink('Hi Starlink Jewels! I need help choosing a diamond.', contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp /> Ask an expert
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="xl" className="bg-background/60">
+            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
+              Design your ring <ArrowUpRight />
+            </a>
+          </Button>
+        </div>
+      </CollectionHero>
 
       <section className="container-wide py-12 md:py-16">
         {loading ? (
@@ -134,17 +152,17 @@ const BuyingGuidePage = () => {
 
             <article className="min-w-0">
               {selected.image && (
-                <div className="mb-10 aspect-[16/9] overflow-hidden rounded-md bg-muted">
+                <div className="mb-8 aspect-[16/9] overflow-hidden rounded-2xl bg-muted md:mb-10 md:rounded-3xl">
                   <img src={selected.image} alt={selected.title} className="h-full w-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
                 </div>
               )}
               <div className="mx-auto max-w-3xl">
                 <h2 className="heading-lg text-balance">{selected.title}</h2>
-                <div className="rich-text mt-8 md:prose-lg" dangerouslySetInnerHTML={{ __html: content }} />
+                <RichText html={content} className="mt-8 md:prose-lg" />
 
                 <div className="mt-16 grid gap-4 border-t pt-8 sm:grid-cols-2">
                   {prevGuide ? (
-                    <Link to={`/buying-guide/${prevGuide.slug}`} className="group rounded-md border p-5 transition-colors hover:border-foreground">
+                    <Link to={`/buying-guide/${prevGuide.slug}`} className="group rounded-2xl border p-5 transition-colors hover:border-foreground">
                       <span className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
                         <ArrowLeft className="h-3.5 w-3.5" /> Previous
                       </span>
@@ -154,7 +172,7 @@ const BuyingGuidePage = () => {
                     <span />
                   )}
                   {nextGuide && (
-                    <Link to={`/buying-guide/${nextGuide.slug}`} className="group rounded-md border p-5 text-right transition-colors hover:border-foreground">
+                    <Link to={`/buying-guide/${nextGuide.slug}`} className="group rounded-2xl border p-5 text-right transition-colors hover:border-foreground">
                       <span className="flex items-center justify-end gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
                         Next <ArrowRight className="h-3.5 w-3.5" />
                       </span>

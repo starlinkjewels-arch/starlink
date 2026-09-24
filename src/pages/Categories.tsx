@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
-import PageHero from '@/components/site/PageHero';
+import CollectionHero from '@/components/site/CollectionHero';
+import { Button } from '@/components/ui/button';
+import { FaWhatsapp } from 'react-icons/fa';
 import Reveal from '@/components/site/Reveal';
 import { useAppSelector } from '@/store/hooks';
 import { selectContentHydrated, selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
+import { whatsappLink } from '@/lib/whatsapp';
+import { SITE } from '@/lib/seo';
 
 const faqItems = [
   {
@@ -25,7 +29,7 @@ const faqItems = [
 ];
 
 const Categories = () => {
-  const { categories } = useAppSelector(selectGlobalData);
+  const { categories, contactInfo } = useAppSelector(selectGlobalData);
   const hydrated = useAppSelector(selectContentHydrated);
   const ordered = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
 
@@ -64,12 +68,28 @@ const Categories = () => {
         faqItems={faqItems}
       />
 
-      <PageHero
+      <CollectionHero
         eyebrow="Collections"
-        title="Our collections"
+        title="Our"
+        accent="collections"
         description="From everyday diamonds to one-of-a-kind statement pieces, explore our curated categories of fine jewelry."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Collections' }]}
-      />
+        images={ordered.map((c) => c.image).slice(0, 3)}
+        chips={[...(ordered.length > 0 ? [`${ordered.length} collections`] : []), 'IGI & GIA certified', 'Insured worldwide shipping']}
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="whatsapp" size="xl">
+            <a href={whatsappLink("Hi Starlink Jewels! I'd like help choosing a piece from your collections.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp /> Ask an expert
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="xl" className="bg-background/60">
+            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
+              Design your ring <ArrowUpRight />
+            </a>
+          </Button>
+        </div>
+      </CollectionHero>
 
       <section className="section">
         <div className="container-wide">
@@ -77,18 +97,18 @@ const Categories = () => {
             hydrated ? (
               <p className="py-20 text-center text-muted-foreground">No collections available yet.</p>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="aspect-[4/5] animate-pulse rounded-md bg-muted" />
+                  <div key={i} className="aspect-[4/5] animate-pulse rounded-3xl bg-muted" />
                 ))}
               </div>
             )
           ) : (
-            <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
               {ordered.map((category, i) => (
                 <Reveal key={category.id} delay={(i % 3) * 90}>
                   <Link to={`/category/${category.id}`} className="group block">
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-muted">
+                    <div className="glint relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted sm:rounded-3xl">
                       <img
                         src={category.image}
                         alt={category.name}
@@ -96,13 +116,13 @@ const Categories = () => {
                         loading={i < 3 ? 'eager' : 'lazy'}
                         decoding="async"
                       />
-                      <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-background/95 opacity-0 shadow transition-all duration-300 group-hover:opacity-100">
+                      <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/95 shadow transition-all duration-300 sm:bottom-4 sm:right-4 sm:h-11 sm:w-11 lg:opacity-0 lg:group-hover:opacity-100">
                         <ArrowUpRight className="h-5 w-5" />
                       </span>
                     </div>
-                    <h2 className="mt-5 font-display text-3xl transition-colors group-hover:text-brand">{category.name}</h2>
+                    <h2 className="mt-3 font-display text-lg leading-tight transition-colors group-hover:text-brand sm:mt-5 sm:text-3xl">{category.name}</h2>
                     {category.description && (
-                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{category.description}</p>
+                      <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:mt-2 sm:text-sm">{category.description}</p>
                     )}
                   </Link>
                 </Reveal>

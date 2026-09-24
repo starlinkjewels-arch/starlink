@@ -35,7 +35,8 @@ const ensureReadableFont = () => {
 
 // Floating accessibility panel: text size, high contrast, readable font and read-aloud.
 // Settings persist per browser and apply site-wide through classes on <html>.
-const AccessibilityWidget = () => {
+// raised: lift the mobile button above a sticky bottom bar (e.g. the product enquiry bar).
+const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState<A11ySettings>(() => (typeof window === "undefined" ? DEFAULTS : loadSettings()));
   const [speaking, setSpeaking] = useState(false);
@@ -106,7 +107,13 @@ const AccessibilityWidget = () => {
   const isModified = settings.textScale !== 100 || settings.highContrast || settings.readableFont || speaking;
 
   return (
-    <div ref={panelRef} className="fixed left-0 top-1/2 z-[60] -translate-y-1/2">
+    <div
+      ref={panelRef}
+      className={cn(
+        "fixed left-4 z-[60] lg:bottom-auto lg:left-0 lg:top-1/2 lg:-translate-y-1/2",
+        raised ? "bottom-24" : "bottom-5"
+      )}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -114,12 +121,13 @@ const AccessibilityWidget = () => {
         aria-controls="a11y-panel"
         aria-label="Accessibility options"
         className={cn(
-          "flex flex-col items-center gap-2 rounded-r-2xl bg-gradient-to-b from-brand to-[#17305f] px-2.5 py-4 text-white shadow-[0_8px_20px_-8px_rgba(43,89,168,0.6)] transition-all hover:pl-4",
-          open && "pl-4"
+          "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-b from-brand to-[#17305f] text-white shadow-[0_8px_20px_-8px_rgba(43,89,168,0.6)] ring-4 ring-white/70 transition-all dark:ring-black/40",
+          "lg:h-auto lg:w-auto lg:flex-col lg:gap-2 lg:rounded-none lg:rounded-r-2xl lg:px-2.5 lg:py-4 lg:ring-0 lg:hover:pl-4",
+          open && "lg:pl-4"
         )}
       >
         <Accessibility className="h-5 w-5" />
-        <span className="text-[10px] font-bold tracking-[0.2em] [writing-mode:vertical-rl] rotate-180">A11Y</span>
+        <span className="hidden text-[10px] font-bold tracking-[0.2em] [writing-mode:vertical-rl] rotate-180 lg:block">A11Y</span>
       </button>
 
       {open && (
@@ -127,7 +135,7 @@ const AccessibilityWidget = () => {
           id="a11y-panel"
           role="dialog"
           aria-label="Accessibility options"
-          className="absolute left-14 top-1/2 w-[272px] -translate-y-1/2 rounded-3xl border bg-background/95 p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl animate-in fade-in slide-in-from-left-2 duration-200"
+          className="absolute bottom-16 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl border bg-background/95 p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
         >
           <div className="mb-5 flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-brand">

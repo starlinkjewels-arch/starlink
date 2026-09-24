@@ -115,8 +115,8 @@ const ProductDetail = () => {
         faqItems={product.seoFaq && product.seoFaq.length > 0 ? product.seoFaq : buildFaqForProduct(product.name, category?.name)}
       />
 
-      <div className="container-wide pb-16 pt-6 md:pb-24">
-        <nav aria-label="Breadcrumb" className="mb-6">
+      <div className="container-wide pb-16 pt-4 md:pb-24 md:pt-6">
+        <nav aria-label="Breadcrumb" className="mb-4 md:mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <li><Link to="/" className="hover:text-foreground">Home</Link></li>
             <li aria-hidden><ChevronRight className="h-3 w-3" /></li>
@@ -132,12 +132,12 @@ const ProductDetail = () => {
           </ol>
         </nav>
 
-        <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
-          <ProductGallery media={media} name={product.name} layout="side" className="lg:sticky lg:top-36" />
+        <div className="grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
+          <ProductGallery media={media} name={product.name} layout="side" className="min-w-0 lg:sticky lg:top-36" />
 
-          <div>
+          <div className="min-w-0">
             {category && <p className="eyebrow mb-3">{category.name}</p>}
-            <h1 className="font-display text-3xl leading-tight text-balance lg:text-[40px]">{product.name}</h1>
+            <h1 className="font-display text-[1.75rem] leading-tight text-balance break-words sm:text-3xl lg:text-[40px]">{product.name}</h1>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-b pb-6">
               <span className="text-lg font-semibold text-brand">Price on request</span>
               <span className="text-xs text-muted-foreground">Made to order · Certified diamonds · Insured delivery</span>

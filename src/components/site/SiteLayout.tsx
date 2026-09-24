@@ -56,7 +56,7 @@ const SiteLayout = ({ children, className, hideFloatingWhatsApp = false }: SiteL
     <main className={cn("flex-1", className)}>{children}</main>
     <Footer />
     {!hideFloatingWhatsApp && <FloatingWhatsApp />}
-    <AccessibilityWidget />
+    <AccessibilityWidget raised={hideFloatingWhatsApp} />
   </div>
 );
 

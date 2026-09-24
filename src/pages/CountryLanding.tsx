@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { ArrowUpRight, ShieldCheck, Truck, PencilRuler, MessageCircle } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
-import PageHero from '@/components/site/PageHero';
+import CollectionHero from '@/components/site/CollectionHero';
+import { FaWhatsapp } from 'react-icons/fa';
 import Reveal from '@/components/site/Reveal';
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/store/hooks';
@@ -65,12 +66,11 @@ const CountryLanding = () => {
   const { pathname } = useLocation();
   const slug = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   const config = COUNTRIES.find((c) => c.slug === slug);
-  const { categories, banners, contactInfo } = useAppSelector(selectGlobalData);
+  const { categories, contactInfo } = useAppSelector(selectGlobalData);
   const ordered = useMemo(() => orderCategoriesWithCustomFirst(categories).slice(0, 4), [categories]);
 
   if (!config) return <NotFound />;
 
-  const heroImage = banners.find((b) => b.mediaType !== 'video')?.image;
   const benefits = [
     { icon: Truck, title: `Shipping to ${config.name}`, text: config.shippingText },
     { icon: ShieldCheck, title: 'Certified diamonds', text: 'Lab-grown and natural diamonds certified by IGI and GIA.' },
@@ -91,27 +91,28 @@ const CountryLanding = () => {
         ]}
       />
 
-      <PageHero
-        image={heroImage}
+      <CollectionHero
         eyebrow={`Delivering to ${config.name}`}
         title={config.headline}
         description={config.description}
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: config.name }]}
+        images={ordered.map((c) => c.image).slice(0, 3)}
+        chips={[`Insured delivery to ${config.name}`, 'IGI & GIA certified', 'Made to order']}
       >
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Button asChild variant={heroImage ? "light" : "default"} size="xl">
-            <Link to="/categories">Shop collections</Link>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild size="xl">
+            <Link to="/categories">Shop collections <ArrowUpRight /></Link>
           </Button>
-          <Button asChild variant={heroImage ? "outline-light" : "outline"} size="xl">
+          <Button asChild variant="whatsapp" size="xl">
             <a href={whatsappLink(`Hi Starlink Jewels! I'm in ${config.name} and would like to know more.`, contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              Talk to an expert
+              <FaWhatsapp /> Talk to an expert
             </a>
           </Button>
         </div>
-      </PageHero>
+      </CollectionHero>
 
       <section className="section">
-        <div className="container-wide grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="container-wide grid grid-cols-2 gap-x-5 gap-y-9 sm:gap-10 lg:grid-cols-4">
           {benefits.map(({ icon: Icon, title, text }, i) => (
             <Reveal key={title} delay={i * 80}>
               <Icon className="h-7 w-7 text-brand" strokeWidth={1.4} />

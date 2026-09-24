@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, X, Expand } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, ChevronRight, X, Expand } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
-import PageHero from '@/components/site/PageHero';
+import CollectionHero from '@/components/site/CollectionHero';
 import Reveal from '@/components/site/Reveal';
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/store/hooks';
 import { selectDeferredLoaded, selectGlobalData } from '@/store/contentSlice';
 import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
+import { isVideoUrl } from '@/lib/media';
+import { SITE } from '@/lib/seo';
 import { FaWhatsapp } from 'react-icons/fa';
 
 const faqItems = [
@@ -81,12 +83,28 @@ const Gallery = () => {
         faqItems={faqItems}
       />
 
-      <PageHero
+      <CollectionHero
         eyebrow="Gallery"
-        title="From our atelier"
+        title="From our"
+        accent="atelier"
         description="A look at pieces we've designed and handcrafted. See something you love? We can create it for you."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Gallery' }]}
-      />
+        images={galleryItems.map((item) => item.image).filter((src) => !isVideoUrl(src)).slice(0, 3)}
+        chips={[...(count > 0 ? [`${count} pieces`] : []), 'Handcrafted in Surat', 'Custom made']}
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="whatsapp" size="xl">
+            <a href={whatsappLink("Hi Starlink Jewels! I saw a piece in your gallery and would like something similar.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp /> Recreate a piece
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="xl" className="bg-background/60">
+            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
+              Design your ring <ArrowUpRight />
+            </a>
+          </Button>
+        </div>
+      </CollectionHero>
 
       <section className="section">
         <div className="container-wide">
@@ -99,7 +117,7 @@ const Gallery = () => {
             ) : (
               <div className="columns-2 gap-4 md:columns-3 lg:columns-4">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className={`mb-4 animate-pulse rounded-md bg-muted ${i % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'}`} />
+                  <div key={i} className={`mb-4 animate-pulse rounded-2xl bg-muted ${i % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'}`} />
                 ))}
               </div>
             )
@@ -107,7 +125,7 @@ const Gallery = () => {
             <div className="columns-2 gap-3 md:columns-3 md:gap-4 lg:columns-4">
               {galleryItems.map((item, i) => (
                 <Reveal key={item.id} delay={(i % 4) * 60} className="mb-3 break-inside-avoid md:mb-4">
-                  <button type="button" onClick={() => setSelected(i)} className="group relative block w-full overflow-hidden rounded-md bg-muted text-left">
+                  <button type="button" onClick={() => setSelected(i)} className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-left">
                     <img
                       src={item.image}
                       alt={item.description || 'Starlink Jewels piece'}

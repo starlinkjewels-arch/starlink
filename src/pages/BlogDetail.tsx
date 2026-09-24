@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import Reveal from '@/components/site/Reveal';
+import RichText from '@/components/site/RichText';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectContentStatus, selectGlobalData } from '@/store/contentSlice';
@@ -169,7 +170,7 @@ const BlogDetail = () => {
             <span aria-hidden>·</span>
             <span>{minutes} min read</span>
           </div>
-          <h1 className="heading-xl mt-5 text-balance">{blog.title}</h1>
+          <h1 className="heading-lg mt-5 text-balance break-words lg:heading-xl">{blog.title}</h1>
 
           <div className="mt-8 flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={copyLink}>
@@ -197,7 +198,7 @@ const BlogDetail = () => {
         )}
 
         <div className="container-wide max-w-3xl py-12 md:py-16">
-          <div className="rich-text md:prose-lg" dangerouslySetInnerHTML={{ __html: content }} />
+          <RichText html={content} className="md:prose-lg" />
 
           <div className="mt-16 overflow-hidden rounded-3xl bg-secondary p-8 text-center md:p-12">
             <p className="eyebrow mb-3">Talk to an expert</p>

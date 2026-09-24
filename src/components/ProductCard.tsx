@@ -158,9 +158,9 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
           )}
         </h3>
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-          <span className="text-sm font-medium text-muted-foreground">Price on request</span>
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Certified
+          <span className="whitespace-nowrap text-xs font-medium text-muted-foreground sm:text-sm">Price on request</span>
+          <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground" title="Certified diamonds">
+            <ShieldCheck className="h-3.5 w-3.5 text-brand" /> <span className="hidden sm:inline">Certified</span>
           </span>
         </div>
       </div>

@@ -243,10 +243,23 @@ html.a11y-readable body * {
 
   /* Rich text coming from the admin editors. */
   .rich-text {
-    @apply prose prose-neutral max-w-none dark:prose-invert
-      prose-headings:font-display prose-headings:font-semibold
+    @apply prose prose-neutral max-w-none break-words text-[15px] leading-relaxed dark:prose-invert md:text-base
+      prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-balance
+      prose-h1:text-[1.6rem] prose-h1:leading-tight md:prose-h1:text-4xl
+      prose-h2:text-[1.35rem] prose-h2:leading-snug md:prose-h2:text-3xl
+      prose-h3:text-lg md:prose-h3:text-2xl
+      prose-h4:text-base md:prose-h4:text-xl
       prose-a:text-brand prose-a:underline-offset-4
       prose-img:rounded-xl prose-li:my-1;
+  }
+  .rich-text :is(h1, h2, h3, h4) :is(strong, b) {
+    font-weight: inherit;
+  }
+  /* Wide tables scroll sideways on phones instead of stretching the page. */
+  .rich-text table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
   }
   .rich-text :is(p, div):empty,
   .rich-text :is(p, div):has(> br:only-child),

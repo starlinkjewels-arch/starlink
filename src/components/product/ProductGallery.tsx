@@ -33,13 +33,13 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
   const go = (delta: number) => setIndex((prev) => (prev + delta + count) % count);
 
   if (count === 0) {
-    return <div className={cn('aspect-square rounded-md bg-muted', className)} />;
+    return <div className={cn('aspect-square rounded-2xl bg-muted md:rounded-3xl', className)} />;
   }
 
   const thumbs = count > 1 && (
     <div
       className={cn(
-        'scrollbar-hide flex gap-2 overflow-x-auto',
+        'scrollbar-hide flex min-w-0 gap-2 overflow-x-auto',
         layout === 'side' ? 'lg:order-first lg:max-h-[640px] lg:w-20 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible' : 'mt-3'
       )}
     >
@@ -49,7 +49,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
           type="button"
           onClick={() => setIndex(i)}
           className={cn(
-            'relative aspect-square w-16 shrink-0 overflow-hidden rounded border-2 transition-all lg:w-20',
+            'relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-all lg:w-20',
             i === index ? 'border-foreground' : 'border-transparent opacity-60 hover:opacity-100'
           )}
           aria-label={`Show media ${i + 1}`}
@@ -70,7 +70,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
   return (
     <div className={cn(layout === 'side' ? 'flex flex-col gap-3 lg:flex-row lg:items-start' : '', 'self-start', className)}>
       <div
-        className="relative w-full flex-1 overflow-hidden rounded-md bg-muted"
+        className="relative w-full min-w-0 flex-1 overflow-hidden rounded-2xl bg-muted md:rounded-3xl"
         onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
         onTouchEnd={(e) => {
           if (touchStartX.current === null || count < 2) return;

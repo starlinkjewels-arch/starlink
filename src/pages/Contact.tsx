@@ -4,7 +4,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
-import PageHero from '@/components/site/PageHero';
+import CollectionHero from '@/components/site/CollectionHero';
 import Reveal from '@/components/site/Reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,7 @@ const faqItems = [
 ];
 
 const Contact = () => {
-  const { contactInfo, offices } = useAppSelector(selectGlobalData);
+  const { contactInfo, offices, categories } = useAppSelector(selectGlobalData);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [topic, setTopic] = useState(topics[0]);
@@ -101,12 +101,28 @@ const Contact = () => {
         faqItems={faqItems}
       />
 
-      <PageHero
+      <CollectionHero
         eyebrow="Contact"
-        title="We'd love to hear from you"
+        title="We'd love to"
+        accent="hear from you"
         description="Questions about a piece, a custom design or wholesale? Our team replies personally on WhatsApp, phone or email."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Contact' }]}
-      />
+        images={categories.map((c) => c.image).slice(1, 4)}
+        chips={['Personal replies', 'Live video viewing', offices.length > 1 ? `${offices.length} offices worldwide` : 'Worldwide delivery']}
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="whatsapp" size="xl">
+            <a href={whatsappLink("Hi Starlink Jewels! I have a question.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp /> Chat on WhatsApp
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="xl" className="bg-background/60">
+            <a href={`tel:${contactInfo?.phone || SITE.phonePrimary}`}>
+              <Phone /> Call us
+            </a>
+          </Button>
+        </div>
+      </CollectionHero>
 
       <section className="section">
         <div className="container-wide grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
