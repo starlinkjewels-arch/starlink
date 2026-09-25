@@ -28,6 +28,8 @@ Could you please share availability, customisation options, and delivery details
 
 Thank you!`;
 
+
+
 const WhatsAppButton = ({ product, className, label = 'Enquire on WhatsApp', variant = 'default', size = 'xl' }: WhatsAppButtonProps) => {
   const { contactInfo } = useAppSelector(selectGlobalData);
 
