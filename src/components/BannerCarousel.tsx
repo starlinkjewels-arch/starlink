@@ -120,7 +120,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
 
         {/* Media panel */}
         <div
-          className="clip-reveal group relative isolate min-h-[420px] overflow-hidden rounded-[2rem] bg-neutral-200 sm:min-h-[520px] lg:min-h-[640px]"
+          className="clip-reveal group relative isolate order-first min-h-[420px] overflow-hidden rounded-[2rem] bg-neutral-200 sm:min-h-[520px] lg:order-none lg:min-h-[640px]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
