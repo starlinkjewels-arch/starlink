@@ -8,12 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Pencil, X, Play, GripVertical, Images, Copy, Search, ChevronsUpDown, Check } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Play, GripVertical, Images, Copy, Search, ChevronsUpDown, Check, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPriceRounded } from '@/lib/utils';
 import { stripHtml } from '@/lib/seo';
+
+
+// The product name is what shoppers see on the website. Short codes like "RR" or "EA" look broken there.
+const MIN_PRODUCT_NAME_LENGTH = 5;
+const needsProperName = (value: string) => value.trim().length < MIN_PRODUCT_NAME_LENGTH;
 
 interface MediaItem {
   id: string;
@@ -137,6 +142,7 @@ const AdminProducts = () => {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNeedsName, setShowNeedsName] = useState(false);
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
@@ -273,6 +279,10 @@ const AdminProducts = () => {
       toast.error('Please fill all required fields and add at least one image/video');
       return;
     }
+    if (needsProperName(name)) {
+      toast.error(`Enter the full product name (at least ${MIN_PRODUCT_NAME_LENGTH} characters), e.g. "Oval Halo Diamond Ring". It is shown on the website.`);
+      return;
+    }
     setIsUploading(true);
     try {
       const newFiles = mediaItems.filter(m => m.source === 'new' && m.file).map(m => m.file as File);
@@ -287,7 +297,7 @@ const AdminProducts = () => {
       const existing = editingId ? products.find((p) => p.id === editingId) : null;
       const productData: Product = {
         id: editingId || Date.now().toString(),
-        name,
+        name: name.trim(),
         description,
         price,
         categoryId: selectedCategoryIds[0],
@@ -378,12 +388,14 @@ const AdminProducts = () => {
     return categories.filter((category) => ids.includes(category.id)).map((category) => category.name);
   };
 
-  const filteredProducts = searchQuery.trim()
+  const searchedProducts = searchQuery.trim()
     ? products.filter((p) => {
         const q = searchQuery.toLowerCase();
         return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q) || getCategoryNames(p).some((n) => n.toLowerCase().includes(q));
       })
     : products;
+  const needsNameCount = products.filter((p) => needsProperName(p.name || '')).length;
+  const filteredProducts = showNeedsName ? searchedProducts.filter((p) => needsProperName(p.name || '')) : searchedProducts;
 
   const categoryOptions = categories.map(c => ({ id: c.id, label: c.name }));
   const productOptions = products.map(p => ({ id: p.id, label: p.name }));
@@ -450,6 +462,21 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
+      {/* Products whose names are placeholder codes */}
+      {needsNameCount > 0 && (
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-start gap-2 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              <strong>{needsNameCount} product{needsNameCount !== 1 ? 's' : ''}</strong> {needsNameCount !== 1 ? 'have' : 'has'} a short placeholder name (like &ldquo;RR&rdquo; or &ldquo;EA&rdquo;), and the website shows it exactly like that. Edit each one and enter the full product name.
+            </span>
+          </p>
+          <Button type="button" variant="outline" size="sm" className="shrink-0 border-amber-400 bg-white" onClick={() => setShowNeedsName((v) => !v)}>
+            {showNeedsName ? 'Show all products' : 'Show only these'}
+          </Button>
+        </div>
+      )}
+
       {/* Search */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
@@ -489,6 +516,11 @@ const AdminProducts = () => {
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">{getCategoryNames(product).join(', ') || 'Unknown'}</p>
                 <h3 className="font-bold text-lg mb-2 line-clamp-1">{product.name}</h3>
+                {needsProperName(product.name || '') && (
+                  <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-900">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Needs full product name
+                  </p>
+                )}
                 {product.description && <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{getDescriptionPreview(product.description)}</p>}
                 <p className="font-bold text-xl text-primary mb-4">${formatPriceRounded(product.price)}</p>
                 <div className="flex gap-2">
@@ -565,7 +597,19 @@ const AdminProducts = () => {
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="product-name">Product Name *</Label>
-              <Input id="product-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Diamond Ring" />
+              <Input
+                id="product-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Oval Halo Diamond Engagement Ring"
+                aria-invalid={name.length > 0 && needsProperName(name)}
+                className={name.length > 0 && needsProperName(name) ? 'border-amber-500 focus-visible:ring-amber-500' : undefined}
+              />
+              <p className={name.length > 0 && needsProperName(name) ? 'text-xs text-amber-700' : 'text-xs text-muted-foreground'}>
+                {name.length > 0 && needsProperName(name)
+                  ? `Too short. Customers see this name on the website, so write it in full (at least ${MIN_PRODUCT_NAME_LENGTH} characters).`
+                  : 'Shown to customers on the website. Use the full descriptive name.'}
+              </p>
             </div>
 
             {/* Description */}
