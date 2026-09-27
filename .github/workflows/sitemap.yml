@@ -28,20 +28,36 @@ jobs:
       - name: Generate sitemap
         run: npm run generate:sitemap
 
+      # Committing triggers a Vercel deploy, which also re-renders every page with the latest catalogue.
       - name: Commit sitemap
+        id: commit
         run: |
-          if git diff --quiet; then
+          if git diff --quiet -- public/sitemap.xml public/sitemap-index.xml; then
             echo "No sitemap changes."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/sitemap.xml
+          git add public/sitemap.xml public/sitemap-index.xml
           git commit -m "chore: update sitemap"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Ping search engines
+      # IndexNow tells Bing (and Copilot/ChatGPT search, DuckDuckGo, Yahoo), Yandex, Seznam and Naver
+      # about new or changed URLs. Google's sitemap ping endpoint was retired in 2023, so Google relies on
+      # the sitemap listed in robots.txt and Search Console.
+      - name: Notify IndexNow
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          INDEXNOW_KEY: 545aa70a1f4391552ef162456e1e822c
         run: |
-          SITEMAP_URL="https://starlinkjewels.com/sitemap.xml"
-          curl -sS "https://www.google.com/ping?sitemap=${SITEMAP_URL}" >/dev/null || true
-          curl -sS "https://www.bing.com/ping?sitemap=${SITEMAP_URL}" >/dev/null || true
+          sleep 120 # give the Vercel deploy time to go live
+          node -e '
+            const fs = require("fs");
+            const urls = fs.readFileSync("sitemap-urls.txt", "utf8").split("\n").filter(Boolean).slice(0, 10000);
+            const body = { host: "starlinkjewels.com", key: process.env.INDEXNOW_KEY, keyLocation: `https://starlinkjewels.com/${process.env.INDEXNOW_KEY}.txt`, urlList: urls };
+            fetch("https://api.indexnow.org/indexnow", { method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify(body) })
+              .then((r) => console.log(`IndexNow: HTTP ${r.status} for ${urls.length} URLs`))
+              .catch((e) => console.log(`IndexNow failed: ${e.message}`));
+          '

@@ -124,8 +124,11 @@ export const cleanRichTextHtml = (html: string) => {
     .trim();
 };
 
+// Bullets and emoji pasted into product text read badly in search snippets.
+const SNIPPET_NOISE = /[●•▪◆◇■□✓✔✨🌀-🫿]/gu;
+
 export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
-  const text = stripHtml(html);
+  const text = stripHtml(html).replace(SNIPPET_NOISE, " ").replace(/\s+/g, " ").trim();
   if (!text) return "";
   if (text.length <= max) return text;
   const cut = text.slice(0, max);
@@ -133,22 +136,25 @@ export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
   return `${cut.slice(0, lastSpace > 60 ? lastSpace : max).trim()}...`;
 };
 
+// Title/description builders are mirrored in scripts/seo-data.mjs (pre-rendered pages); keep them in sync.
 export const buildMetaTitleForCategory = (categoryName: string) => {
-  return `${categoryName} Jewelry — Certified Diamond & Gold Collection`;
+  return `Buy ${categoryName} Online – Certified Lab-Grown & Natural Diamonds`;
 };
 
 export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
-  if (desc && desc.trim().length > 40) return desc.trim();
-  return `Shop certified ${categoryName.toLowerCase()} jewelry at ${SITE.name}. GIA & IGI certified lab-grown and natural diamonds with free insured worldwide delivery to USA, Canada, Australia, and Germany.`;
+  if (desc && desc.trim().length > 40) return buildMetaDescriptionFromHtml(desc, 165);
+  return `Shop certified ${categoryName.toLowerCase()} at ${SITE.name}. GIA & IGI certified lab-grown and natural diamonds, handcrafted in Surat, with free insured worldwide delivery to the USA, Canada, Australia and Germany.`;
 };
 
-export const buildMetaTitleForProduct = (productName: string) => {
-  return productName;
+export const buildMetaTitleForProduct = (productName: string, categoryName?: string) => {
+  return categoryName ? `${productName} – ${categoryName}` : productName;
 };
 
-export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string) => {
+export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string, descriptionHtml?: string) => {
+  const text = stripHtml(descriptionHtml || "");
+  if (text.length > 60) return buildMetaDescriptionFromHtml(descriptionHtml || "", 165);
   const categoryText = categoryName ? ` in ${categoryName}` : "";
-  return `Discover ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds with worldwide delivery to USA, Canada, Australia, and Germany.`;
+  return `Discover ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds, made to order in Surat with insured worldwide delivery.`;
 };
 
 export const parsePrice = (price?: string): number | null => {

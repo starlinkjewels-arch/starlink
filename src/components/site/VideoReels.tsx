@@ -7,6 +7,7 @@ import { isVideoUrl } from "@/lib/media";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { cn } from "@/lib/utils";
 import CdnImage from "@/components/site/CdnImage";
+import { productPath } from "@/lib/urls";
 
 interface VideoReelsProps {
   videos: VideoPost[];
@@ -204,7 +205,7 @@ const ReelViewer = ({ videos, productsById, index, onClose, onChange }: ViewerPr
           {video.title && <p className="font-display text-2xl leading-tight">{video.title}</p>}
           {product ? (
             <div className="space-y-2 rounded-lg bg-white p-3 text-neutral-900">
-              <Link to={`/product/${product.id}`} onClick={onClose} className="flex items-center gap-3">
+              <Link to={productPath(product)} onClick={onClose} className="flex items-center gap-3">
                 {thumb && <CdnImage src={thumb} cdn={{ width: 120, quality: 82 }} alt="" className="h-14 w-14 shrink-0 rounded object-cover" />}
                 <span className="flex-1 text-sm font-medium leading-snug">{product.name}</span>
                 <ArrowUpRight className="h-4 w-4 shrink-0" />

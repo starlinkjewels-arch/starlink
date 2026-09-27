@@ -19,6 +19,7 @@ import { DIAMOND_SHAPES } from "@/lib/search";
 import { SITE } from "@/lib/seo";
 import { whatsappLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
+import { categoryPath, productPath } from "@/lib/urls";
 
 const DEFAULT_ANNOUNCEMENTS = [
   "Complimentary insured worldwide shipping on orders over $500",
@@ -211,12 +212,12 @@ const Header = () => {
                 </button>
               </li>
               {orderedCategories.slice(0, NAV_CATEGORY_LIMIT).map((category) => {
-                const active = activeMenu === category.id || location.pathname === `/category/${category.id}`;
+                const active = activeMenu === category.id || location.pathname === categoryPath(category);
                 const highlight = isCustomJewelryCategory(category);
                 return (
                   <li key={category.id}>
                     <Link
-                      to={`/category/${category.id}`}
+                      to={categoryPath(category)}
                       onMouseEnter={() => openMenu(category.id)}
                       className={cn(
                         "relative flex h-12 items-center gap-1.5 whitespace-nowrap px-3.5 text-[12px] font-medium uppercase tracking-[0.12em] transition-colors",
@@ -259,7 +260,7 @@ const Header = () => {
                 <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Shop by collection</p>
                 <div className="grid grid-cols-4 gap-5">
                   {orderedCategories.slice(0, 8).map((category) => (
-                    <Link key={category.id} to={`/category/${category.id}`} className="group flex items-center gap-3">
+                    <Link key={category.id} to={categoryPath(category)} className="group flex items-center gap-3">
                       <span className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
                         <CdnImage src={category.image} cdn={{ width: 320, height: 320, quality: 80 }} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" decoding="async" />
                       </span>
@@ -280,7 +281,7 @@ const Header = () => {
                 <p className="font-display text-3xl leading-tight">{activeCategory.name}</p>
                 {activeCategory.description && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{activeCategory.description}</p>}
                 <Button asChild className="mt-6 rounded-full" size="sm">
-                  <Link to={`/category/${activeCategory.id}`}>
+                  <Link to={categoryPath(activeCategory)}>
                     Shop {activeCategory.name} <ArrowRight />
                   </Link>
                 </Button>
@@ -290,7 +291,7 @@ const Header = () => {
                 {menuProducts.length > 0 ? (
                   <div className="grid grid-cols-4 gap-4">
                     {menuProducts.map((product) => (
-                      <Link key={product.id} to={`/product/${product.id}`} className="group block">
+                      <Link key={product.id} to={productPath(product)} className="group block">
                         <span className="block aspect-square overflow-hidden rounded-md bg-muted">
                           <CdnImage src={firstImage(product) || ""} cdn={{ width: 400, height: 400, quality: 80 }} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" />
                         </span>
@@ -346,7 +347,7 @@ const Header = () => {
             <ul className="divide-y">
               {orderedCategories.map((category) => (
                 <li key={category.id}>
-                  <Link to={`/category/${category.id}`} onClick={closeMenuNow} className="flex items-center gap-3 py-3">
+                  <Link to={categoryPath(category)} onClick={closeMenuNow} className="flex items-center gap-3 py-3">
                     <CdnImage src={category.image} cdn={{ width: 96, height: 96, quality: 75 }} alt="" className="h-11 w-11 shrink-0 rounded-md bg-muted object-cover" loading="lazy" decoding="async" />
                     <span className="flex-1 text-[15px] font-medium">{category.name}</span>
                     {isCustomJewelryCategory(category) && <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-gold">In stock</span>}

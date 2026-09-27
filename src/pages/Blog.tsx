@@ -10,6 +10,7 @@ import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } fro
 import { BlogPost } from '@/lib/storage';
 import { SITE, buildMetaDescriptionForBlog, stripHtml } from '@/lib/seo';
 import CdnImage from '@/components/site/CdnImage';
+import { categoryPath } from '@/lib/urls';
 
 const formatDate = (date: string) => new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -168,7 +169,7 @@ const Blog = () => {
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
               {categories.slice(0, 6).map((category) => (
-                <Link key={category.id} to={`/category/${category.id}`} className="group block">
+                <Link key={category.id} to={categoryPath(category)} className="group block">
                   <div className="aspect-square overflow-hidden rounded-3xl bg-muted">
                     <CdnImage src={category.image} cdn={{ width: 400, quality: 82 }} alt={category.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                   </div>

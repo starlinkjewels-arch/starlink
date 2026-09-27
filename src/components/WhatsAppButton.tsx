@@ -5,6 +5,7 @@ import { SITE } from '@/lib/seo';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
+import { productUrl } from '@/lib/urls';
 
 interface WhatsAppButtonProps {
   product: Product;
@@ -22,7 +23,7 @@ I am interested in the following product and would like more details:
 🏷️ ${product.name}
 
 🔗 View Product:
-${SITE.url}/product/${product.id}
+${productUrl(product)}
 
 Could you please share availability, customisation options, and delivery details?
 

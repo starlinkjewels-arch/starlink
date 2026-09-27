@@ -11,6 +11,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
+import { productPath } from '@/lib/urls';
 
 // 600px WebP covers a 2-column phone grid at 3x and desktop cards at 2x.
 const CARD_CDN = { width: 600, height: 600, quality: 80 } as const;
@@ -108,7 +109,7 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
     setDragX(0);
   };
 
-  const href = `/product/${product.id}`;
+  const href = productPath(product);
   const primaryAction = onClick ? (
     <button type="button" onClick={onClick} className="absolute inset-0 z-10" aria-label={`Quick view ${product.name}`} />
   ) : (

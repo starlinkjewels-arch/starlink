@@ -14,6 +14,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Pages are pre-rendered at build time (scripts/prerender.mjs) with their own title, meta, canonical and
+// JSON-LD. Drop those before React starts so react-helmet-async is the single source of head tags.
+document.querySelectorAll("[data-prerender]").forEach((node) => node.remove());
+
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <App />

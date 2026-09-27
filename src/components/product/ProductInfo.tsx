@@ -13,6 +13,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import GIA from '@/assets/paylogo/GIA_Logo.png';
 import IGI from '@/assets/paylogo/igi logo.webp';
+import { productUrl } from '@/lib/urls';
 
 const highlights = [
   { icon: ShieldCheck, title: 'Certified', text: 'IGI / GIA graded' },
@@ -39,15 +40,15 @@ const ProductInfo = ({ product, descriptionOpen = true }: ProductInfoProps) => {
     `Hi Starlink Jewels! I'd like a live video call to see "${product.name}" before ordering.`,
     contactInfo?.whatsapp
   );
-  const productUrl = `${SITE.url}/product/${product.id}`;
+  const shareUrl = productUrl(product);
 
   const share = async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ title: product.name, url: productUrl });
+        await navigator.share({ title: product.name, url: shareUrl });
         return;
       }
-      await navigator.clipboard.writeText(productUrl);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success('Link copied');
     } catch {
       // share sheet dismissed

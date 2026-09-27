@@ -10,6 +10,7 @@ import { selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
 import NotFound from './NotFound';
 import CdnImage from '@/components/site/CdnImage';
+import { categoryPath } from '@/lib/urls';
 
 type CountryConfig = {
   name: string;
@@ -116,7 +117,7 @@ const CountryLanding = () => {
             <h2 className="heading-lg mb-10">Explore our collections</h2>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
               {ordered.map((category) => (
-                <Link key={category.id} to={`/category/${category.id}`} className="group block">
+                <Link key={category.id} to={categoryPath(category)} className="group block">
                   <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-muted">
                     <CdnImage src={category.image} cdn={{ width: 600, quality: 82 }} alt={category.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

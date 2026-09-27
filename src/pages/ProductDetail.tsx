@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
@@ -18,12 +18,14 @@ import {
   selectProductsLoaded,
   selectProductsStatus,
 } from '@/store/contentSlice';
-import { buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, buildOffer, stripHtml } from '@/lib/seo';
+import { SITE, buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, sanitizeMetaField, stripHtml } from '@/lib/seo';
 import { getProductCategoryIds, productHasCategory } from '@/lib/storage';
 import { getProductTime, isVideoUrl } from '@/lib/media';
+import { categoryPath, categoryUrl, findProductByParam, productPath, productUrl } from '@/lib/urls';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { categories, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
@@ -33,7 +35,7 @@ const ProductDetail = () => {
   const isReady = status === 'succeeded' || hydrated;
   const productsReady = productsLoaded || productsStatus === 'succeeded' || productsStatus === 'failed';
 
-  const product = useMemo(() => products.find((p) => p.id === id) || null, [products, id]);
+  const product = useMemo(() => findProductByParam(products, id) || null, [products, id]);
   const productCategoryIds = useMemo(() => (product ? getProductCategoryIds(product) : []), [product]);
   const category = useMemo(() => categories.find((c) => productCategoryIds.includes(c.id)) || null, [categories, productCategoryIds]);
   const media = useMemo(
@@ -52,13 +54,19 @@ const ProductDetail = () => {
     if (!productsLoaded && productsStatus === 'idle') dispatch(loadProducts());
   }, [dispatch, productsLoaded, productsStatus]);
 
-  const pageUrl = `https://starlinkjewels.com/product/${id}`;
+  // Old id-only links (/product/123) move to the keyword URL (/product/oval-halo-ring-123).
+  const canonicalPath = product ? productPath(product) : null;
+  useEffect(() => {
+    if (canonicalPath && id && canonicalPath !== `/product/${id}`) navigate(canonicalPath, { replace: true });
+  }, [canonicalPath, id, navigate]);
+
+  const pageUrl = product ? productUrl(product) : `${SITE.url}/product/${id}`;
 
   if (!product) {
     const loading = !isReady || !productsReady;
     return (
       <SiteLayout>
-        <SEOHead title={loading ? 'Loading Product' : 'Product Not Found'} description="Certified lab-grown and natural diamond jewelry by Starlink Jewels." canonicalUrl={pageUrl} />
+        <SEOHead title={loading ? 'Loading Product' : 'Product Not Found'} description="Certified lab-grown and natural diamond jewelry by Starlink Jewels." canonicalUrl={pageUrl} noIndex={!loading} />
         {loading ? (
           <div className="container-wide grid gap-10 py-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
             <div className="aspect-square animate-pulse rounded-md bg-muted" />
@@ -88,20 +96,23 @@ const ProductDetail = () => {
     '@type': 'Product',
     '@id': `${pageUrl}#product`,
     name: product.name,
+    url: pageUrl,
     image: images.length > 0 ? images : undefined,
     description: stripHtml(product.description || '') || `${product.name} from Starlink Jewels`,
     sku: product.id,
     category: category?.name,
     mainEntityOfPage: pageUrl,
-    brand: { '@type': 'Brand', name: 'Starlink Jewels' },
-    offers: buildOffer(pageUrl, product.price),
+    brand: { '@type': 'Brand', name: SITE.name },
+    manufacturer: { '@id': `${SITE.url}/#jewelry-store` },
+    // No Offer/price: the page shows "Price on request" and Google requires structured data to match
+    // what visitors see. Add an Offer here only if prices become visible on the page.
   };
 
   return (
     <SiteLayout hideFloatingWhatsApp>
       <SEOHead
-        title={product.metaTitle || buildMetaTitleForProduct(product.name)}
-        description={product.metaDescription || buildMetaDescriptionForProduct(product.name, category?.name)}
+        title={sanitizeMetaField(product.metaTitle) || buildMetaTitleForProduct(product.name, category?.name)}
+        description={sanitizeMetaField(product.metaDescription, 30) || buildMetaDescriptionForProduct(product.name, category?.name, product.description)}
         canonicalUrl={pageUrl}
         ogImage={images[0]}
         ogType="product"
@@ -109,7 +120,7 @@ const ProductDetail = () => {
         breadcrumbs={[
           { name: 'Home', url: 'https://starlinkjewels.com' },
           { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
-          ...(category ? [{ name: category.name, url: `https://starlinkjewels.com/category/${category.id}` }] : []),
+          ...(category ? [{ name: category.name, url: categoryUrl(category) }] : []),
           { name: product.name, url: pageUrl },
         ]}
         faqItems={product.seoFaq && product.seoFaq.length > 0 ? product.seoFaq : buildFaqForProduct(product.name, category?.name)}
@@ -124,7 +135,7 @@ const ProductDetail = () => {
             {category && (
               <>
                 <li aria-hidden><ChevronRight className="h-3 w-3" /></li>
-                <li><Link to={`/category/${category.id}`} className="hover:text-foreground">{category.name}</Link></li>
+                <li><Link to={categoryPath(category)} className="hover:text-foreground">{category.name}</Link></li>
               </>
             )}
             <li aria-hidden><ChevronRight className="h-3 w-3" /></li>
@@ -157,7 +168,7 @@ const ProductDetail = () => {
                 <p className="eyebrow mb-3">You may also like</p>
                 <h2 className="heading-md">More from {category.name}</h2>
               </div>
-              <Link to={`/category/${category.id}`} className="link-underline shrink-0">
+              <Link to={categoryPath(category)} className="link-underline shrink-0">
                 View all <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

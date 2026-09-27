@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
+import { storage } from '@/lib/firebaseAdmin';
 import {
   getVideos,
   saveVideo,

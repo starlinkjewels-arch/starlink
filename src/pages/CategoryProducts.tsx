@@ -9,10 +9,11 @@ import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+  SITE,
   buildFaqForCategory,
-  buildOffer,
   buildMetaDescriptionForCategory,
   buildMetaTitleForCategory,
+  stripHtml,
 } from '@/lib/seo';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -27,6 +28,7 @@ import { productHasCategory } from '@/lib/storage';
 import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
+import { categoryPath, categoryUrl, findCategoryByParam, productUrl } from '@/lib/urls';
 
 type SortOption = 'newest' | 'oldest' | 'name';
 
@@ -43,7 +45,7 @@ const ProductGridSkeleton = () => (
 );
 
 const CategoryProducts = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: param } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const { categories, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
@@ -58,7 +60,13 @@ const CategoryProducts = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const category = useMemo(() => categories.find((c) => c.id === id) ?? null, [categories, id]);
+  // The URL segment is a slug (/category/eternity-bands) or a legacy id (/category/1764824647332).
+  const category = useMemo(() => findCategoryByParam(categories, param) ?? null, [categories, param]);
+  const id = category?.id ?? param;
+  const canonicalPath = category ? categoryPath(category) : null;
+  useEffect(() => {
+    if (canonicalPath && param && canonicalPath !== `/category/${param}`) navigate(`${canonicalPath}${window.location.search}`, { replace: true });
+  }, [canonicalPath, param, navigate]);
   const relatedCategories = useMemo(() => categories.filter((c) => c.id !== id).slice(0, 6), [categories, id]);
 
   const sortedProducts = useMemo(() => {
@@ -84,7 +92,7 @@ const CategoryProducts = () => {
     return unique.length > 0 ? unique : category?.image ? [category.image] : [];
   }, [sortedProducts, category?.image]);
 
-  const baseUrl = `https://starlinkjewels.com/category/${id}`;
+  const baseUrl = category ? categoryUrl(category) : `${SITE.url}/category/${param}`;
 
   const structuredData = category
     ? [
@@ -105,14 +113,14 @@ const CategoryProducts = () => {
               position: i + 1,
               item: {
                 '@type': 'Product',
-                '@id': `https://starlinkjewels.com/product/${p.id}#product`,
+                '@id': `${productUrl(p)}#product`,
                 name: p.name,
                 image: p.images && p.images.length > 0 ? p.images : [p.image],
-                description: p.description || `${p.name} from Starlink Jewels`,
+                url: productUrl(p),
+                description: stripHtml(p.description || '') || `${p.name} from Starlink Jewels`,
                 sku: p.id,
                 category: category.name,
-                brand: { '@type': 'Brand', name: 'Starlink Jewels' },
-                offers: buildOffer(`https://starlinkjewels.com/product/${p.id}`, p.price),
+                brand: { '@type': 'Brand', name: SITE.name },
               },
             })),
           },
@@ -128,6 +136,7 @@ const CategoryProducts = () => {
           title={stillLoading ? 'Loading Collection' : 'Collection Not Found'}
           description="Explore Starlink Jewels collections of certified lab-grown and natural diamond jewelry."
           canonicalUrl={baseUrl}
+          noIndex={!stillLoading}
         />
         {stillLoading ? (
           <div className="container-wide py-16">
@@ -179,7 +188,7 @@ const CategoryProducts = () => {
             {categories.map((c) => (
               <Link
                 key={c.id}
-                to={`/category/${c.id}`}
+                to={categoryPath(c)}
                 className={cn(
                   'shrink-0 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] transition-colors',
                   c.id === id ? 'border-foreground bg-foreground text-background' : 'hover:border-foreground'
@@ -263,7 +272,7 @@ const CategoryProducts = () => {
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
               {relatedCategories.map((c) => (
-                <Link key={c.id} to={`/category/${c.id}`} className="group block">
+                <Link key={c.id} to={categoryPath(c)} className="group block">
                   <div className="aspect-square overflow-hidden rounded-md bg-muted">
                     <CdnImage src={c.image} cdn={{ width: 400, quality: 82 }} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                   </div>

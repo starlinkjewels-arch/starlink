@@ -33,6 +33,7 @@ import DiamondShapeIcon from '@/components/site/DiamondShapeIcon';
 import craftEarrings from '@/assets/craft/craft-1.jpg';
 import craftBracelet from '@/assets/craft/craft-2.jpg';
 import craftBand from '@/assets/craft/craft-3.jpg';
+import { categoryPath } from '@/lib/urls';
 
 const promiseIcons = [ShieldCheck, Truck, PencilRuler, Gem];
 
@@ -120,7 +121,7 @@ const Index = () => {
                   // Phones show six tiles (big, wide, four small); desktop fills a full 4-column bento with eight.
                   className={i === 0 ? 'col-span-2 row-span-2' : i === 1 ? 'col-span-2' : i >= 6 ? 'hidden lg:block' : ''}
                 >
-                  <Link to={`/category/${category.id}`} className="group relative block h-full overflow-hidden rounded-3xl bg-secondary">
+                  <Link to={categoryPath(category)} className="group relative block h-full overflow-hidden rounded-3xl bg-secondary">
                     <CdnImage
                       src={category.image}
                       cdn={{ width: i === 0 ? 1000 : 600, quality: 82 }}

@@ -18,6 +18,7 @@ import IGI from "@/assets/paylogo/igi logo.webp";
 import Rapaport from "@/assets/paylogo/Rapaport-header-20250120083212-20250210092659-20250227142926-20250310094122.svg";
 import SDA from "@/assets/paylogo/sda-web.png";
 import Bourse from "@/assets/paylogo/sdb-web.png";
+import { categoryPath } from "@/lib/urls";
 
 const paymentMethods = [
   { name: "Visa", logo: Visa },
@@ -134,7 +135,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               {collections.map((c) => (
                 <li key={c.id}>
-                  <Link to={`/category/${c.id}`} className="text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to={categoryPath(c)} className="text-muted-foreground transition-colors hover:text-foreground">
                     {c.name}
                   </Link>
                 </li>

@@ -1,7 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBse5vfsARbl8k6ub9Mir6qs-CsPdaNuGU",
@@ -16,13 +14,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore
+// Initialize Firestore (the only Firebase service the public site needs).
+// Auth and Storage live in ./firebaseAdmin so shoppers don't download them.
 export const db = getFirestore(app);
-
-// Initialize Storage
-export const storage = getStorage(app);
-
-// Initialize Auth (used by the admin panel login)
-export const auth = getAuth(app);
 
 export default app;

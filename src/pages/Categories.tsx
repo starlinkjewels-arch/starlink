@@ -9,6 +9,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectContentHydrated, selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
 import CdnImage from '@/components/site/CdnImage';
+import { categoryPath, categoryUrl } from '@/lib/urls';
 
 const faqItems = [
   {
@@ -44,7 +45,7 @@ const Categories = () => {
       itemListElement: ordered.map((cat, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://starlinkjewels.com/category/${cat.id}`,
+        url: categoryUrl(cat),
         name: cat.name,
       })),
     },
@@ -90,7 +91,7 @@ const Categories = () => {
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
               {ordered.map((category, i) => (
                 <Reveal key={category.id} delay={(i % 3) * 90}>
-                  <Link to={`/category/${category.id}`} className="group block">
+                  <Link to={categoryPath(category)} className="group block">
                     <div className="glint relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted sm:rounded-3xl">
                       <CdnImage
                         src={category.image}

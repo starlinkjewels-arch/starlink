@@ -571,8 +571,6 @@ export const saveAd = async (ad: Ad) => {
 };
 
 // Upload file to Firebase Storage and return URL
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from './firebase';
 
 const getImageResizeConfig = (path: string) => {
   const lower = path.toLowerCase();
@@ -823,6 +821,8 @@ export const uploadImageToStorage = async (file: File, path: string, skipWaterma
       // Optimize even when watermark is skipped
       fileToUpload = await processImage(file, path, false);
     }
+    // Loaded on demand: only the admin panel uploads, so shoppers never download the Storage SDK.
+    const [{ ref, uploadBytes, getDownloadURL }, { storage }] = await Promise.all([import('firebase/storage'), import('./firebaseAdmin')]);
     const storageRef = ref(storage, `${path}/${Date.now()}_${fileToUpload.name}`);
     const snapshot = await uploadBytes(storageRef, fileToUpload);
     const downloadURL = await getDownloadURL(snapshot.ref);

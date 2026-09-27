@@ -1,10 +1,12 @@
 // src/pages/Admin.tsx
 import { Suspense, lazy, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
+import { auth } from '@/lib/firebaseAdmin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +33,14 @@ const AdminPromoHeader     = lazy(() => import('@/components/admin/AdminPromoHea
 const AdminTestimonials    = lazy(() => import('@/components/admin/AdminTestimonials'));
 const AdminBuyingGuides    = lazy(() => import('@/components/admin/AdminBuyingGuides'));
 const AdminAds             = lazy(() => import('@/components/admin/AdminAds'));
+
+// The admin panel must never appear in search results (noindex instead of listing the path in robots.txt).
+const AdminHead = () => (
+  <Helmet>
+    <title>Admin | Starlink Jewels</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </Helmet>
+);
 
 const SectionFallback = () => (
   <div className="flex items-center justify-center min-h-[400px]">
@@ -206,6 +216,7 @@ const Admin = () => {
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <AdminHead />
         <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
       </div>
     );
@@ -215,6 +226,7 @@ const Admin = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+        <AdminHead />
         <Card className="w-full max-w-md shadow-2xl border-0">
           <CardHeader className="text-center space-y-4 pb-2">
             <div className="mx-auto w-16 h-16 bg-black rounded-2xl flex items-center justify-center shadow-lg">
@@ -348,6 +360,7 @@ const Admin = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
+      <AdminHead />
       {/* Desktop Sidebar */}
       <Sidebar />
 
