@@ -121,7 +121,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
         aria-controls="a11y-panel"
         aria-label="Accessibility options"
         className={cn(
-          "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-b from-brand to-[#17305f] text-white shadow-[0_8px_20px_-8px_rgba(43,89,168,0.6)] ring-4 ring-white/70 transition-all dark:ring-black/40",
+          "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-b from-brand to-[#17305f] text-white shadow-[0_8px_20px_-8px_rgba(43,89,168,0.6)] ring-2 ring-white/70 transition-all dark:ring-black/40",
           "lg:h-auto lg:w-auto lg:flex-col lg:gap-2 lg:rounded-none lg:rounded-r-2xl lg:px-2.5 lg:py-4 lg:ring-0 lg:hover:pl-4",
           open && "lg:pl-4"
         )}
@@ -135,7 +135,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
           id="a11y-panel"
           role="dialog"
           aria-label="Accessibility options"
-          className="absolute bottom-16 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl border bg-background/95 p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
+          className="absolute bottom-14 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl border bg-background/95 p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
         >
           <div className="mb-5 flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-brand">

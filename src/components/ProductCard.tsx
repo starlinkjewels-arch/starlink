@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TouchEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Eye, ArrowUpRight, ShieldCheck } from 'lucide-react';
@@ -10,6 +10,10 @@ import { buildProductEnquiry } from '@/components/WhatsAppButton';
 import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { cn } from '@/lib/utils';
+import CdnImage from '@/components/site/CdnImage';
+
+// 600px WebP covers a 2-column phone grid at 3x and desktop cards at 2x.
+const CARD_CDN = { width: 600, height: 600, quality: 80 } as const;
 
 interface ProductCardProps {
   product: Product;
@@ -26,7 +30,13 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
   const { contactInfo } = useAppSelector(selectGlobalData);
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
-  const touchStartX = useRef<number | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  // Once the card is near the viewport, neighbouring photos load so swiping/hovering is instant.
+  const [armed, setArmed] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const horizontal = useRef<boolean | null>(null);
 
   const media = useMemo(
     () => (product.images && product.images.length > 0 ? product.images : [product.image]).filter(Boolean),
@@ -40,17 +50,55 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
   const createdAt = getProductTime(product);
   const isNew = createdAt > 0 && Date.now() - createdAt < NEW_WINDOW_MS;
 
+  useEffect(() => {
+    const node = cardRef.current;
+    if (!node || images.length < 2 || armed) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setArmed(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setArmed(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [images.length, armed]);
+
   const handleTouchStart = (e: TouchEvent) => {
-    touchStartX.current = e.touches[0]?.clientX ?? null;
+    if (images.length < 2) return;
+    setArmed(true);
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    horizontal.current = null;
   };
 
-  const handleTouchEnd = (e: TouchEvent) => {
-    if (touchStartX.current === null || images.length < 2) return;
-    const delta = (e.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
-    if (Math.abs(delta) > 30) {
-      setIndex((prev) => (delta < 0 ? (prev + 1) % images.length : (prev - 1 + images.length) % images.length));
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!touchStart.current) return;
+    const dx = e.touches[0].clientX - touchStart.current.x;
+    const dy = e.touches[0].clientY - touchStart.current.y;
+    // Decide once per gesture whether the finger is swiping photos or scrolling the page.
+    if (horizontal.current === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      horizontal.current = Math.abs(dx) > Math.abs(dy);
     }
-    touchStartX.current = null;
+    if (horizontal.current) {
+      setDragging(true);
+      setDragX(dx);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (horizontal.current && Math.abs(dragX) > 30) {
+      setIndex((prev) => (dragX < 0 ? (prev + 1) % images.length : (prev - 1 + images.length) % images.length));
+    }
+    touchStart.current = null;
+    horizontal.current = null;
+    setDragging(false);
+    setDragX(0);
   };
 
   const href = `/product/${product.id}`;
@@ -66,32 +114,60 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
         'group relative flex h-full flex-col transition-transform duration-500 hover:-translate-y-1',
         className
       )}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => {
+        setHovered(true);
+        setArmed(true);
+      }}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="glint relative aspect-square overflow-hidden rounded-3xl bg-secondary transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div
+        ref={cardRef}
+        className="glint relative aspect-square touch-pan-y overflow-hidden rounded-3xl bg-secondary transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+      >
         {primaryIsVideo ? (
           <video src={primary} className="h-full w-full object-cover" muted loop playsInline autoPlay={hovered} preload="metadata" />
         ) : (
           <>
-            <img
-              src={primary}
-              alt={product.name}
+            {/* Photo track: slides follow the finger on touch; neighbours are preloaded once armed. */}
+            <div
               className={cn(
-                'absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-700 group-hover:scale-[1.04]',
-                hovered && secondary ? 'md:opacity-0' : 'opacity-100'
+                'absolute inset-0 flex',
+                dragging ? 'transition-opacity duration-700' : 'transition-[opacity,transform] duration-300 ease-out',
+                hovered && secondary && index === 0 ? 'md:opacity-0' : 'opacity-100'
               )}
-              loading={priority ? 'eager' : 'lazy'}
-              decoding="async"
-              fetchPriority={priority ? 'high' : 'low'}
-            />
+              style={{ transform: `translateX(calc(${-index * 100}% + ${dragX}px))` }}
+            >
+              {images.map((url, i) => {
+                const near = i === index || (armed && Math.abs(i - index) <= 1);
+                return (
+                  <div key={`${url}-${i}`} className="relative h-full w-full shrink-0 overflow-hidden">
+                    <CdnImage
+                      src={url}
+                      cdn={CARD_CDN}
+                      alt={i === 0 ? product.name : ''}
+                      aria-hidden={i !== index}
+                      className="h-full w-full select-none object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                      loading={near && (priority || i !== 0 || armed) ? 'eager' : 'lazy'}
+                      decoding="async"
+                      fetchPriority={priority && i === 0 ? 'high' : 'auto'}
+                      draggable={false}
+                    />
+                  </div>
+                );
+              })}
+            </div>
             {secondary && (
-              <img
+              <CdnImage
                 src={secondary}
+                cdn={CARD_CDN}
                 alt=""
                 aria-hidden
-                className={cn('absolute inset-0 hidden h-full w-full object-cover transition-opacity duration-700 md:block', hovered ? 'opacity-100' : 'opacity-0')}
-                loading="lazy"
+                className={cn('absolute inset-0 hidden h-full w-full object-cover md:block', !(hovered && index === 0) && '!opacity-0')}
+                loading={armed ? 'eager' : 'lazy'}
                 decoding="async"
               />
             )}

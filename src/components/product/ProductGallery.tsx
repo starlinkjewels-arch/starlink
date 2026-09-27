@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import CdnImage from '@/components/site/CdnImage';
 import { isVideoUrl } from '@/lib/media';
-import { preloadMedia } from '@/lib/preload';
 import { cn } from '@/lib/utils';
 
 interface ProductGalleryProps {
@@ -12,29 +12,56 @@ interface ProductGalleryProps {
   layout?: 'stacked' | 'side';
 }
 
+// 1200px covers a full-width phone at 3x and the desktop gallery column at 2x.
+const SLIDE_CDN = { width: 1200, height: 1200, quality: 85 } as const;
+const THUMB_CDN = { width: 160, height: 160, quality: 75 } as const;
+const SWIPE_THRESHOLD = 40;
+
 const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductGalleryProps) => {
   const [index, setIndex] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const touchStartX = useRef<number | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const horizontal = useRef<boolean | null>(null);
   const count = media.length;
-  const current = media[Math.min(index, count - 1)];
-  const currentIsVideo = isVideoUrl(current);
 
   useEffect(() => {
     setIndex(0);
   }, [media]);
-
-  useEffect(() => {
-    setLoaded(false);
-    const next = media[(index + 1) % count];
-    if (next && !isVideoUrl(next)) preloadMedia([next]);
-  }, [index, media, count]);
 
   const go = (delta: number) => setIndex((prev) => (prev + delta + count) % count);
 
   if (count === 0) {
     return <div className={cn('aspect-square rounded-2xl bg-muted md:rounded-3xl', className)} />;
   }
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (count < 2) return;
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    horizontal.current = null;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const dx = e.touches[0].clientX - touchStart.current.x;
+    const dy = e.touches[0].clientY - touchStart.current.y;
+    // Decide once per gesture whether this is a swipe or a page scroll.
+    if (horizontal.current === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      horizontal.current = Math.abs(dx) > Math.abs(dy);
+    }
+    if (horizontal.current) {
+      setDragging(true);
+      setDragX(dx);
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (horizontal.current && Math.abs(dragX) > SWIPE_THRESHOLD) go(dragX < 0 ? 1 : -1);
+    touchStart.current = null;
+    horizontal.current = null;
+    setDragging(false);
+    setDragX(0);
+  };
 
   const thumbs = count > 1 && (
     <div
@@ -49,7 +76,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
           type="button"
           onClick={() => setIndex(i)}
           className={cn(
-            'relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-all lg:w-20',
+            'relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-muted transition-all lg:w-20',
             i === index ? 'border-foreground' : 'border-transparent opacity-60 hover:opacity-100'
           )}
           aria-label={`Show media ${i + 1}`}
@@ -60,7 +87,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
               <Play className="h-4 w-4 fill-current" />
             </span>
           ) : (
-            <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+            <CdnImage src={url} cdn={THUMB_CDN} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
           )}
         </button>
       ))}
@@ -70,42 +97,46 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
   return (
     <div className={cn(layout === 'side' ? 'flex flex-col gap-3 lg:flex-row lg:items-start' : '', 'self-start', className)}>
       <div
-        className="relative w-full min-w-0 flex-1 overflow-hidden rounded-2xl bg-muted md:rounded-3xl"
-        onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
-        onTouchEnd={(e) => {
-          if (touchStartX.current === null || count < 2) return;
-          const dx = e.changedTouches[0].clientX - touchStartX.current;
-          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
-          touchStartX.current = null;
-        }}
+        className="relative w-full min-w-0 flex-1 touch-pan-y overflow-hidden rounded-2xl bg-muted md:rounded-3xl"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
       >
-        <div className="relative aspect-square">
-          {!loaded && <div className="absolute inset-0 animate-pulse bg-muted" />}
-          {currentIsVideo ? (
-            <video
-              key={current}
-              src={current}
-              className="h-full w-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              controls
-              onLoadedData={() => setLoaded(true)}
-            />
-          ) : (
-            <img
-              key={current}
-              src={current}
-              alt={`${name}${count > 1 ? ` – view ${index + 1}` : ''}`}
-              className="h-full w-full object-cover animate-in fade-in duration-500"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-              onLoad={() => setLoaded(true)}
-              draggable={false}
-            />
-          )}
+        {/* All slides sit side by side; the track slides and follows the finger while swiping. */}
+        <div
+          className={cn('flex aspect-square', !dragging && 'transition-transform duration-300 ease-out')}
+          style={{ transform: `translateX(calc(${-index * 100}% + ${dragX}px))` }}
+        >
+          {media.map((url, i) => {
+            // Keep the visible slide and two either side loaded (wrapping round) so swiping never waits on the network.
+            const distance = Math.min(Math.abs(i - index), count - Math.abs(i - index));
+            const near = distance <= 2;
+            return (
+              <div key={`${url}-${i}`} className="relative h-full w-full shrink-0 bg-muted" aria-hidden={i !== index}>
+                {isVideoUrl(url) ? (
+                  i === index ? (
+                    <video src={url} className="h-full w-full object-cover" autoPlay muted loop playsInline controls />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center bg-neutral-900 text-white">
+                      <Play className="h-8 w-8 fill-current" />
+                    </span>
+                  )
+                ) : (
+                  <CdnImage
+                    src={url}
+                    cdn={SLIDE_CDN}
+                    alt={`${name}${count > 1 ? ` – view ${i + 1}` : ''}`}
+                    className="h-full w-full select-none object-cover"
+                    loading={near ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : 'auto'}
+                    decoding="async"
+                    draggable={false}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {count > 1 && (
