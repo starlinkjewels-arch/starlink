@@ -6,6 +6,7 @@ import type { Product, VideoPost } from "@/lib/storage";
 import { isVideoUrl } from "@/lib/media";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { cn } from "@/lib/utils";
+import CdnImage from "@/components/site/CdnImage";
 
 interface VideoReelsProps {
   videos: VideoPost[];
@@ -53,7 +54,7 @@ const ReelCard = ({ video, product, onOpen }: { video: VideoPost; product?: Prod
       aria-label={video.title ? `Play video: ${video.title}` : "Play video"}
     >
       {video.poster && (
-        <img src={video.poster} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+        <CdnImage src={video.poster} cdn={{ width: 600, quality: 82 }} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
       )}
       <video
         ref={videoRef}
@@ -75,7 +76,7 @@ const ReelCard = ({ video, product, onOpen }: { video: VideoPost; product?: Prod
         {video.title && <p className="font-display text-xl leading-tight">{video.title}</p>}
         {product && (
           <div className="flex items-center gap-2.5 rounded-md bg-white/95 p-2 text-neutral-900">
-            {thumb && <img src={thumb} alt="" className="h-10 w-10 shrink-0 rounded object-cover" loading="lazy" />}
+            {thumb && <CdnImage src={thumb} cdn={{ width: 96, quality: 82 }} alt="" className="h-10 w-10 shrink-0 rounded object-cover" loading="lazy" />}
             <span className="line-clamp-2 text-xs font-medium leading-snug">{product.name}</span>
           </div>
         )}
@@ -204,7 +205,7 @@ const ReelViewer = ({ videos, productsById, index, onClose, onChange }: ViewerPr
           {product ? (
             <div className="space-y-2 rounded-lg bg-white p-3 text-neutral-900">
               <Link to={`/product/${product.id}`} onClick={onClose} className="flex items-center gap-3">
-                {thumb && <img src={thumb} alt="" className="h-14 w-14 shrink-0 rounded object-cover" />}
+                {thumb && <CdnImage src={thumb} cdn={{ width: 120, quality: 82 }} alt="" className="h-14 w-14 shrink-0 rounded object-cover" />}
                 <span className="flex-1 text-sm font-medium leading-snug">{product.name}</span>
                 <ArrowUpRight className="h-4 w-4 shrink-0" />
               </Link>

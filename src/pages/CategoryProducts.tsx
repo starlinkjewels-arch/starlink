@@ -26,6 +26,7 @@ import {
 import { productHasCategory } from '@/lib/storage';
 import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
+import CdnImage from '@/components/site/CdnImage';
 
 type SortOption = 'newest' | 'oldest' | 'name';
 
@@ -264,7 +265,7 @@ const CategoryProducts = () => {
               {relatedCategories.map((c) => (
                 <Link key={c.id} to={`/category/${c.id}`} className="group block">
                   <div className="aspect-square overflow-hidden rounded-md bg-muted">
-                    <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+                    <CdnImage src={c.image} cdn={{ width: 400, quality: 82 }} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                   </div>
                   <p className="mt-3 text-sm font-medium group-hover:text-brand">{c.name}</p>
                 </Link>

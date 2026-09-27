@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from '@/store/contentSlice';
 import { BlogPost } from '@/lib/storage';
 import { SITE, buildMetaDescriptionForBlog, stripHtml } from '@/lib/seo';
+import CdnImage from '@/components/site/CdnImage';
 
 const formatDate = (date: string) => new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -30,7 +31,7 @@ const defaultFaqItems = [
 const BlogCard = ({ blog }: { blog: BlogPost }) => (
   <Link to={`/blog/${blog.id}`} className="group block">
     <div className="glint aspect-[4/3] overflow-hidden rounded-3xl bg-muted">
-      <img src={blog.thumbnail || blog.image} alt={blog.title} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" />
+      <CdnImage src={blog.thumbnail || blog.image} cdn={{ width: 600, quality: 82 }} alt={blog.title} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" />
     </div>
     <time dateTime={blog.date} className="mt-5 block text-xs uppercase tracking-[0.16em] text-muted-foreground">
       {formatDate(blog.date)}
@@ -127,7 +128,7 @@ const Blog = () => {
                 <Reveal>
                   <Link to={`/blog/${featured.id}`} className="group grid items-center gap-8 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
                     <div className="glint aspect-[16/10] overflow-hidden rounded-3xl bg-muted">
-                      <img src={featured.image} alt={featured.title} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="eager" decoding="async" />
+                      <CdnImage src={featured.image} cdn={{ width: 1200, quality: 82 }} alt={featured.title} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="eager" decoding="async" />
                     </div>
                     <div>
                       <p className="eyebrow mb-4">Latest article</p>
@@ -169,7 +170,7 @@ const Blog = () => {
               {categories.slice(0, 6).map((category) => (
                 <Link key={category.id} to={`/category/${category.id}`} className="group block">
                   <div className="aspect-square overflow-hidden rounded-3xl bg-muted">
-                    <img src={category.image} alt={category.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+                    <CdnImage src={category.image} cdn={{ width: 400, quality: 82 }} alt={category.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                   </div>
                   <p className="mt-3 text-sm font-medium group-hover:text-brand">{category.name}</p>
                 </Link>

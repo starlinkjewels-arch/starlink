@@ -12,6 +12,7 @@ import { loadProducts, selectGlobalData, selectProductsLoaded, selectProductsSta
 import { DIAMOND_SHAPES, searchProducts } from "@/lib/search";
 import { getProductCategoryIds } from "@/lib/storage";
 import { cn } from "@/lib/utils";
+import CdnImage from "@/components/site/CdnImage";
 
 const SearchPage = () => {
   const dispatch = useAppDispatch();
@@ -180,7 +181,7 @@ const EmptyState = ({ onPick }: { onPick: (q: string) => void }) => {
             {categories.slice(0, 6).map((c) => (
               <Link key={c.id} to={`/category/${c.id}`} className="group block">
                 <div className="aspect-square overflow-hidden rounded-md bg-muted">
-                  <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                  <CdnImage src={c.image} cdn={{ width: 400, quality: 82 }} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                 </div>
                 <p className="mt-2 text-sm font-medium group-hover:text-brand">{c.name}</p>
               </Link>

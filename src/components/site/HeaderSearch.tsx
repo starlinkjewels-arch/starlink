@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import CdnImage from "@/components/site/CdnImage";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, X, ArrowRight, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -130,7 +131,7 @@ const HeaderSearch = ({ className, autoFocus, onNavigate, variant = "bar" }: Hea
                 <div className="border-b p-3">
                   {categoryHits.map((c) => (
                     <Link key={c.id} to={`/category/${c.id}`} onClick={finish} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-secondary">
-                      <img src={c.image} alt="" className="h-9 w-9 rounded-full object-cover" loading="lazy" />
+                      <CdnImage src={c.image} cdn={{ width: 80, height: 80, quality: 75 }} alt="" className="h-9 w-9 rounded-full bg-muted object-cover" loading="lazy" decoding="async" />
                       <span className="text-sm">
                         Shop <strong className="font-semibold">{c.name}</strong>
                       </span>
@@ -151,7 +152,7 @@ const HeaderSearch = ({ className, autoFocus, onNavigate, variant = "bar" }: Hea
                   {results.map(({ product }) => (
                     <li key={product.id}>
                       <Link to={`/product/${product.id}`} onClick={finish} className="flex items-center gap-3 rounded-md p-2 hover:bg-secondary">
-                        <img src={firstImage(product)} alt="" className="h-14 w-14 shrink-0 rounded-md bg-muted object-cover" loading="lazy" />
+                        <CdnImage src={firstImage(product) || ""} cdn={{ width: 120, height: 120, quality: 75 }} alt="" className="h-14 w-14 shrink-0 rounded-md bg-muted object-cover" loading="lazy" decoding="async" />
                         <span className="min-w-0">
                           <span className="line-clamp-1 text-sm font-medium">{product.name}</span>
                           <span className="text-xs text-muted-foreground">{categoryName(getProductCategoryIds(product)[0])}</span>

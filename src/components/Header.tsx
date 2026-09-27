@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, Moon, Sun, ChevronDown, ArrowRight, Search, Phone, Mail, Gem, Sparkles, Rotate3d } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import CdnImage from "@/components/site/CdnImage";
 import { Button } from "@/components/ui/button";
 import HeaderSearch from "@/components/site/HeaderSearch";
 import DiamondShapeIcon from "@/components/site/DiamondShapeIcon";
@@ -101,6 +103,11 @@ const Header = () => {
       .sort((a, b) => getProductTime(b) - getProductTime(a))
       .slice(0, 4);
   }, [activeCategory, products]);
+
+  // Close the mobile menu immediately when a link in it is tapped. Without flushSync the close is
+  // committed together with the route change, so the open menu sat frozen on screen until the
+  // next page had loaded, which felt like a hang on phones.
+  const closeMenuNow = () => flushSync(() => setMobileOpen(false));
 
   const toggleTheme = () => setTheme(isDark ? "light" : "dark");
   const isActivePath = (path: string) => location.pathname === path;
@@ -254,7 +261,7 @@ const Header = () => {
                   {orderedCategories.slice(0, 8).map((category) => (
                     <Link key={category.id} to={`/category/${category.id}`} className="group flex items-center gap-3">
                       <span className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
-                        <img src={category.image} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                        <CdnImage src={category.image} cdn={{ width: 320, height: 320, quality: 80 }} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" decoding="async" />
                       </span>
                       <span className="text-sm font-medium group-hover:text-brand">{category.name}</span>
                     </Link>
@@ -285,7 +292,7 @@ const Header = () => {
                     {menuProducts.map((product) => (
                       <Link key={product.id} to={`/product/${product.id}`} className="group block">
                         <span className="block aspect-square overflow-hidden rounded-md bg-muted">
-                          <img src={firstImage(product)} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                          <CdnImage src={firstImage(product) || ""} cdn={{ width: 400, height: 400, quality: 80 }} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" />
                         </span>
                         <span className="mt-2 line-clamp-2 text-xs font-medium leading-snug group-hover:text-brand">{product.name}</span>
                       </Link>
@@ -324,8 +331,10 @@ const Header = () => {
             <button
               type="button"
               onClick={() => {
+                // Let the menu finish closing before the search panel opens; two overlapping
+                // panels can leave the page locked on iOS Safari.
                 setMobileOpen(false);
-                setSearchOpen(true);
+                window.setTimeout(() => setSearchOpen(true), 320);
               }}
               className="flex h-11 w-full items-center gap-3 rounded-full border px-4 text-sm text-muted-foreground"
             >
@@ -337,8 +346,8 @@ const Header = () => {
             <ul className="divide-y">
               {orderedCategories.map((category) => (
                 <li key={category.id}>
-                  <Link to={`/category/${category.id}`} className="flex items-center gap-3 py-3">
-                    <img src={category.image} alt="" className="h-11 w-11 rounded-md object-cover" loading="lazy" />
+                  <Link to={`/category/${category.id}`} onClick={closeMenuNow} className="flex items-center gap-3 py-3">
+                    <CdnImage src={category.image} cdn={{ width: 96, height: 96, quality: 75 }} alt="" className="h-11 w-11 shrink-0 rounded-md bg-muted object-cover" loading="lazy" decoding="async" />
                     <span className="flex-1 text-[15px] font-medium">{category.name}</span>
                     {isCustomJewelryCategory(category) && <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-gold">In stock</span>}
                   </Link>
@@ -363,7 +372,7 @@ const Header = () => {
               </a>
             ))}
             {[{ name: "Home", path: "/" }, { name: "Diamond Guide", path: "/buying-guide" }, ...utilityLinks].map((link) => (
-              <Link key={link.path} to={link.path} className="rounded-md bg-secondary/70 px-3 py-2.5 text-sm font-medium">
+              <Link key={link.path} to={link.path} onClick={closeMenuNow} className="rounded-md bg-secondary/70 px-3 py-2.5 text-sm font-medium">
                 {link.name}
               </Link>
             ))}

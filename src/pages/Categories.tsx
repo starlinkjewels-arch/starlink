@@ -8,6 +8,7 @@ import Reveal from '@/components/site/Reveal';
 import { useAppSelector } from '@/store/hooks';
 import { selectContentHydrated, selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
+import CdnImage from '@/components/site/CdnImage';
 
 const faqItems = [
   {
@@ -91,8 +92,9 @@ const Categories = () => {
                 <Reveal key={category.id} delay={(i % 3) * 90}>
                   <Link to={`/category/${category.id}`} className="group block">
                     <div className="glint relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted sm:rounded-3xl">
-                      <img
+                      <CdnImage
                         src={category.image}
+                        cdn={{ width: 700, quality: 82 }}
                         alt={category.name}
                         className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         loading={i < 3 ? 'eager' : 'lazy'}

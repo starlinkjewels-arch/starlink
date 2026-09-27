@@ -9,6 +9,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
 import NotFound from './NotFound';
+import CdnImage from '@/components/site/CdnImage';
 
 type CountryConfig = {
   name: string;
@@ -117,7 +118,7 @@ const CountryLanding = () => {
               {ordered.map((category) => (
                 <Link key={category.id} to={`/category/${category.id}`} className="group block">
                   <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-muted">
-                    <img src={category.image} alt={category.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" />
+                    <CdnImage src={category.image} cdn={{ width: 600, quality: 82 }} alt={category.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white">
                       <h3 className="font-display text-2xl">{category.name}</h3>

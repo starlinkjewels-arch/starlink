@@ -12,6 +12,7 @@ import { sanitizeHtml } from '@/lib/sanitize';
 import { whatsappLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
 import RichText from '@/components/site/RichText';
+import CdnImage from '@/components/site/CdnImage';
 
 const defaultFaqItems = [
   {
@@ -138,7 +139,7 @@ const BuyingGuidePage = () => {
             <article className="min-w-0">
               {selected.image && (
                 <div className="mb-8 aspect-[16/9] overflow-hidden rounded-2xl bg-muted md:mb-10 md:rounded-3xl">
-                  <img src={selected.image} alt={selected.title} className="h-full w-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
+                  <CdnImage src={selected.image} cdn={{ width: 1400, quality: 82 }} alt={selected.title} className="h-full w-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
                 </div>
               )}
               <div className="mx-auto max-w-3xl">

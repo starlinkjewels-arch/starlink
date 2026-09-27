@@ -20,6 +20,7 @@ import {
   stripHtml,
 } from '@/lib/seo';
 import { whatsappLink } from '@/lib/whatsapp';
+import CdnImage from '@/components/site/CdnImage';
 
 const formatDate = (date: string, month: 'long' | 'short' = 'long') =>
   new Date(date).toLocaleDateString('en-US', { year: 'numeric', month, day: 'numeric' });
@@ -185,8 +186,9 @@ const BlogDetail = () => {
         {blog.image && (
           <div className="container-wide max-w-6xl">
             <div className="clip-reveal overflow-hidden rounded-3xl bg-secondary">
-              <img
+              <CdnImage
                 src={blog.image}
+                cdn={{ width: 1600, quality: 82 }}
                 alt={blog.title}
                 className="aspect-[16/9] w-full object-cover"
                 loading="eager"
@@ -245,8 +247,9 @@ const BlogDetail = () => {
                 <Reveal key={b.id} delay={i * 80}>
                   <Link to={`/blog/${b.id}`} className="group block">
                     <div className="glint aspect-[4/3] overflow-hidden rounded-3xl bg-muted">
-                      <img
+                      <CdnImage
                         src={b.thumbnail || b.image}
+                        cdn={{ width: 600, quality: 82 }}
                         alt={b.title}
                         className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         loading="lazy"

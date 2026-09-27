@@ -11,6 +11,7 @@ import { selectDeferredLoaded, selectGlobalData } from '@/store/contentSlice';
 import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
 import { isVideoUrl } from '@/lib/media';
 import { FaWhatsapp } from 'react-icons/fa';
+import CdnImage from '@/components/site/CdnImage';
 
 const faqItems = [
   {
@@ -111,8 +112,9 @@ const Gallery = () => {
               {galleryItems.map((item, i) => (
                 <Reveal key={item.id} delay={(i % 4) * 60} className="mb-3 break-inside-avoid md:mb-4">
                   <button type="button" onClick={() => setSelected(i)} className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-left">
-                    <img
+                    <CdnImage
                       src={item.image}
+                      cdn={{ width: 700, quality: 82 }}
                       alt={item.description || 'Starlink Jewels piece'}
                       className="w-full transition-transform duration-1000 group-hover:scale-105"
                       loading={i < 4 ? 'eager' : 'lazy'}

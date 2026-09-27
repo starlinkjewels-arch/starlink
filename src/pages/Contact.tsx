@@ -15,6 +15,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
 import { SITE } from '@/lib/seo';
+import CdnImage from '@/components/site/CdnImage';
 
 const topics = ['Custom design', 'Product enquiry', 'Engagement ring', 'Wholesale / B2B', 'Order support', 'Other'];
 
@@ -207,7 +208,7 @@ const Contact = () => {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
                       {office.flagImage ? (
-                        <img src={office.flagImage} alt={`${office.country} flag`} className="h-7 w-10 rounded-sm border object-cover" loading="lazy" decoding="async" />
+                        <CdnImage src={office.flagImage} cdn={{ width: 96, quality: 82 }} alt={`${office.country} flag`} className="h-7 w-10 rounded-sm border object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <Flag className="h-5 w-5 text-brand" />
                       )}
