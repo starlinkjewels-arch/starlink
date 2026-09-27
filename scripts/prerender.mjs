@@ -81,7 +81,7 @@ const run = async () => {
   const template = await readFile(resolve(dist, shellFile), "utf8");
   if (!template.includes('<div id="root"></div>')) throw new Error('dist/index.html has no empty <div id="root"></div>');
 
-  // The untouched shell is the SPA fallback (vercel.json rewrites unknown routes to /200.html).
+  // The untouched shell is the SPA fallback (vercel.json rewrites unknown routes to /200 (cleanUrls serves 200.html)).
   await writeFile(resolve(dist, "200.html"), template, "utf8");
 
   let data;
