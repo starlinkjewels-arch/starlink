@@ -17,14 +17,14 @@ interface CraftStoryProps {
   consultHref: string;
 }
 
-// Bespoke section: a story-style workshop film whose progress drives the 4-step process list.
+// Bespoke / savoir-faire section: the workshop film in an arched window, driving an editorial 4-chapter list.
 const CraftStory = ({ consultHref }: CraftStoryProps) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const fillRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const durationRef = useRef(22.9);
   const userPausedRef = useRef(false);
+  const visibleRef = useRef(false);
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [loadVideo, setLoadVideo] = useState(false);
@@ -38,9 +38,7 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
       const end = STEP_STARTS[i + 1] ?? durationRef.current;
       const p = i < current ? 1 : i > current ? 0 : Math.min(1, Math.max(0, (t - start) / (end - start)));
       const transform = `scaleX(${p})`;
-      const bar = barRefs.current[i];
       const fill = fillRefs.current[i];
-      if (bar) bar.style.transform = transform;
       if (fill) fill.style.transform = transform;
     });
     setActive((prev) => (prev === current ? prev : current));
@@ -75,6 +73,7 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         const video = videoRef.current;
+        visibleRef.current = entry.isIntersecting;
         if (!video) return;
         if (entry.isIntersecting) {
           if (!userPausedRef.current && !reduceMotion && video.paused) video.play().catch(() => {});
@@ -102,6 +101,22 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
+  // iOS Safari only autoplays when the muted *attribute* is present, and React sets just the property.
+  // Mark the element muted before the source is attached, then start as soon as it can play.
+  const attachVideo = (el: HTMLVideoElement | null) => {
+    videoRef.current = el;
+    if (!el) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute("muted", "");
+    el.setAttribute("playsinline", "");
+    el.setAttribute("webkit-playsinline", "");
+  };
+
+  const startIfVisible = (video: HTMLVideoElement) => {
+    if (visibleRef.current && !userPausedRef.current && !reduceMotion && video.paused) video.play().catch(() => {});
+  };
+
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -123,163 +138,152 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
   };
 
   return (
-    <section className="section">
-      <div className="container-wide">
-        <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#0b1630] px-5 py-10 text-white sm:px-8 md:px-12 md:py-14 lg:px-14">
-          {/* Ambient backdrop: the film itself, heavily blurred, behind a navy wash */}
-          <img src={POSTER_SRC} alt="" aria-hidden className="pointer-events-none absolute inset-0 -z-20 h-full w-full scale-110 object-cover opacity-40 blur-3xl" />
-          <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-[#0b1630]/95 via-[#132a57]/90 to-brand/80" />
-          <div className="pattern-lattice pointer-events-none absolute inset-0 -z-10 opacity-10" />
+    <section className="relative isolate overflow-hidden bg-[#0b0b0d] py-16 text-white md:py-24">
+      {/* Warm gold glow + fine grain, like a jeweller's display case */}
+      <div className="pointer-events-none absolute -left-40 top-1/4 -z-10 h-[520px] w-[520px] rounded-full bg-gold/20 blur-[140px]" />
+      <div className="pointer-events-none absolute -right-40 bottom-0 -z-10 h-[420px] w-[420px] rounded-full bg-brand/25 blur-[140px]" />
+      <div className="pattern-lattice pointer-events-none absolute inset-0 -z-10 opacity-[0.06]" />
 
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_minmax(0,360px)_1fr] lg:gap-12 xl:gap-16">
-            {/* Copy + actions */}
-            <div className="lg:order-1">
-              <p className="mb-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">
-                <span className="h-1.5 w-1.5 rounded-full bg-white/70" /> Bespoke · made in Surat
-              </p>
-              <h2 className="heading-lg text-balance">
-                From sketch to <em className="accent text-white">sparkle</em>
-              </h2>
-              <p className="mt-5 max-w-md text-base leading-relaxed text-white/75 md:text-lg">
-                Watch a piece come to life in our workshop. Design your own ring online, or share an idea and our artisans will craft it for you.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
-                <Button asChild variant="light" size="xl" className="px-3 text-[13px] sm:px-7 sm:text-[15px]">
-                  <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
-                    <Gem /> {SITE.ringBuilder.label}
-                  </a>
-                </Button>
-                <Button asChild variant="outline-light" size="xl" className="px-3 text-[13px] sm:px-7 sm:text-[15px]">
-                  <a href={SITE.viewer360.url} target="_blank" rel="noopener" title={SITE.viewer360.title}>
-                    <Rotate3d /> {SITE.viewer360.label}
-                  </a>
-                </Button>
+      <div className="container-wide grid items-center gap-12 lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-20 xl:gap-28">
+        {/* Arched film window */}
+        <div ref={cardRef} className="relative mx-auto w-full max-w-[360px] lg:max-w-[420px]">
+          <div className="relative aspect-[3/4.6] overflow-hidden rounded-b-[2rem] rounded-t-[999px] border border-gold/30 bg-black shadow-[0_60px_120px_-40px_rgba(201,164,92,0.35)]">
+            <video
+              ref={attachVideo}
+              src={loadVideo ? VIDEO_SRC : undefined}
+              poster={POSTER_SRC}
+              muted
+              loop
+              playsInline
+              autoPlay={!reduceMotion}
+              preload={loadVideo ? "auto" : "none"}
+              disablePictureInPicture
+              className="h-full w-full object-cover"
+              aria-label="Inside the Starlink Jewels workshop: sketching, CAD, casting, stone setting and finishing"
+              onPlay={() => setPlaying(true)}
+              onPause={() => setPlaying(false)}
+              onLoadedMetadata={(e) => {
+                durationRef.current = e.currentTarget.duration || 22.9;
+              }}
+              onSeeked={(e) => paint(e.currentTarget.currentTime)}
+              onCanPlay={(e) => startIfVisible(e.currentTarget)}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+            {/* inner hairline frame */}
+            <div className="pointer-events-none absolute inset-3 rounded-b-[1.5rem] rounded-t-[999px] border border-white/15" />
+
+            {/* current step caption */}
+            <div className="absolute inset-x-6 bottom-6 flex items-end justify-between gap-3">
+              <div key={active} className="min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-gold">Chapter {BRAND.process[active]?.step}</p>
+                <p className="mt-1 font-serif text-2xl italic leading-tight">{BRAND.process[active]?.title}</p>
               </div>
-              <a
-                href={consultHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white/85 underline-offset-4 hover:text-white hover:underline"
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-black"
+                aria-label={playing ? "Pause video" : "Play video"}
               >
-                <FaWhatsapp className="h-4 w-4 text-[#6ee7a0]" /> Or talk to a designer on WhatsApp
-              </a>
+                {playing ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 translate-x-px fill-current" />}
+              </button>
             </div>
+          </div>
 
-            {/* Story-style film card */}
-            <div ref={cardRef} className="mx-auto w-full max-w-[340px] lg:order-2 lg:max-w-none">
-              <div className="relative aspect-[9/16] max-h-[78vh] overflow-hidden rounded-[1.75rem] border border-white/15 bg-black shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)] ring-1 ring-white/5">
-                <video
-                  ref={videoRef}
-                  src={loadVideo ? VIDEO_SRC : undefined}
-                  poster={POSTER_SRC}
-                  muted
-                  loop
-                  playsInline
-                  autoPlay={!reduceMotion}
-                  preload={loadVideo ? "auto" : "none"}
-                  disablePictureInPicture
-                  className="h-full w-full object-cover"
-                  aria-label="Inside the Starlink Jewels workshop: sketching, CAD, casting, stone setting and finishing"
-                  onPlay={() => setPlaying(true)}
-                  onPause={() => setPlaying(false)}
-                  onLoadedMetadata={(e) => {
-                    durationRef.current = e.currentTarget.duration || 22.9;
-                  }}
-                  onSeeked={(e) => paint(e.currentTarget.currentTime)}
-                />
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 to-transparent" />
+          {/* Rotating seal overlapping the arch */}
+          <div className="absolute -right-1 top-10 h-24 w-24 sm:-right-8 sm:h-28 sm:w-28 md:h-32 md:w-32" aria-hidden>
+            <svg viewBox="0 0 120 120" className="h-full w-full animate-[spin_24s_linear_infinite]">
+              <defs>
+                <path id="craft-seal" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
+              </defs>
+              <circle cx="60" cy="60" r="58" fill="#0b0b0d" stroke="hsl(var(--gold))" strokeOpacity="0.5" />
+              <text fill="hsl(var(--gold))" fontSize="10.5" letterSpacing="3.2" fontWeight="600">
+                <textPath href="#craft-seal">HANDCRAFTED IN SURAT • SINCE 2011 •</textPath>
+              </text>
+            </svg>
+            <span className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-full bg-gold text-[#0b0b0d]">
+              <Gem className="h-5 w-5" strokeWidth={1.8} />
+            </span>
+          </div>
+        </div>
 
-                {/* Story progress bars, one per step */}
-                <div className="absolute inset-x-3 top-3 flex gap-1.5">
-                  {STEP_STARTS.map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => jumpTo(i)}
-                      className="h-1 flex-1 overflow-hidden rounded-full bg-white/25"
-                      aria-label={`Jump to step ${i + 1}: ${BRAND.process[i]?.title}`}
-                    >
-                      <span
-                        ref={(el) => (barRefs.current[i] = el)}
-                        className="block h-full origin-left rounded-full bg-white will-change-transform"
-                        style={{ transform: "scaleX(0)" }}
-                      />
-                    </button>
-                  ))}
-                </div>
+        {/* Editorial copy + chapters */}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">Savoir-faire · Bespoke</p>
+          <h2 className="mt-5 font-display text-[2.6rem] font-semibold leading-[0.98] tracking-[-0.04em] sm:text-6xl lg:text-7xl">
+            From sketch
+            <br />
+            to <span className="font-serif font-normal italic text-gold">sparkle.</span>
+          </h2>
+          <p className="mt-6 max-w-lg text-base leading-relaxed text-white/65 md:text-lg">
+            Every Starlink piece passes through the hands of our Surat artisans. Watch one come to life, then design your own.
+          </p>
 
-                <span className="absolute left-3 top-7 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[11px] font-semibold backdrop-blur-md">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
-                  </span>
-                  Inside our Surat workshop
-                </span>
-
-                {/* Current step caption */}
-                <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3">
-                  <div key={active} className="min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/65">Step {BRAND.process[active]?.step}</p>
-                    <p className="mt-0.5 font-display text-xl font-semibold leading-tight">{BRAND.process[active]?.title}</p>
-                  </div>
+          <ol className="mt-10 border-t border-white/10">
+            {BRAND.process.map((step, i) => {
+              const isActive = i === active;
+              return (
+                <li key={step.step} className="relative border-b border-white/10">
                   <button
                     type="button"
-                    onClick={togglePlay}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-lg backdrop-blur transition hover:scale-105"
-                    aria-label={playing ? "Pause video" : "Play video"}
+                    onClick={() => jumpTo(i)}
+                    aria-current={isActive ? "step" : undefined}
+                    className="group grid w-full grid-cols-[3.25rem_1fr] items-start gap-x-4 py-5 text-left md:grid-cols-[4.5rem_1fr] md:py-6"
                   >
-                    {playing ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 translate-x-px fill-current" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Process timeline, synced with the film */}
-            <ol className="relative grid grid-cols-2 gap-3 lg:order-3 lg:grid-cols-1 lg:gap-2">
-              {BRAND.process.map((step, i) => {
-                const isActive = i === active;
-                return (
-                  <li key={step.step}>
-                    <button
-                      type="button"
-                      onClick={() => jumpTo(i)}
-                      aria-current={isActive ? "step" : undefined}
+                    <span
                       className={cn(
-                        "group relative h-full w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-500 md:p-5",
-                        isActive ? "border-white/35 bg-white/[0.14] shadow-[0_20px_40px_-24px_rgba(0,0,0,0.6)]" : "border-white/10 bg-white/[0.04] hover:border-white/25 hover:bg-white/[0.08]"
+                        "font-serif text-4xl italic leading-none transition-colors duration-500 md:text-5xl",
+                        isActive ? "text-gold" : "text-white/20 group-hover:text-white/40"
                       )}
                     >
-                      {/* progress fill along the bottom edge */}
-                      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10">
-                        <span
-                          ref={(el) => (fillRefs.current[i] = el)}
-                          className="block h-full origin-left bg-white/80 will-change-transform"
-                          style={{ transform: "scaleX(0)" }}
-                        />
+                      {step.step}
+                    </span>
+                    <span>
+                      <span className={cn("block font-display text-lg font-semibold tracking-tight transition-colors md:text-xl", isActive ? "text-white" : "text-white/55")}>
+                        {step.title}
                       </span>
-                      <span className="flex items-center gap-3">
-                        <span
-                          className={cn(
-                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-display text-xs font-semibold transition-colors",
-                            isActive ? "bg-white text-[#0b1630]" : "bg-white/10 text-white/70"
-                          )}
-                        >
-                          {step.step}
-                        </span>
-                        <span className={cn("font-sans text-sm font-semibold transition-colors md:text-base", isActive ? "text-white" : "text-white/80")}>
-                          {step.title}
-                        </span>
+                      <span
+                        className={cn(
+                          "grid transition-all duration-500",
+                          isActive ? "mt-1.5 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        )}
+                      >
+                        <span className="overflow-hidden text-sm leading-relaxed text-white/60">{step.text}</span>
                       </span>
-                      <span className={cn("mt-2 block text-xs leading-relaxed transition-colors md:text-[13px]", isActive ? "text-white/80" : "text-white/55")}>
-                        {step.text}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
+                    </span>
+                  </button>
+                  {/* gold progress hairline */}
+                  <span className="pointer-events-none absolute inset-x-0 -bottom-px h-px">
+                    <span
+                      ref={(el) => (fillRefs.current[i] = el)}
+                      className="block h-full origin-left bg-gold will-change-transform"
+                      style={{ transform: "scaleX(0)" }}
+                    />
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+
+          <div className="mt-10 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
+            <Button asChild size="xl" className="bg-gold px-3 text-[13px] text-[#0b0b0d] hover:bg-gold/90 sm:px-7 sm:text-[15px]">
+              <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
+                <Gem /> {SITE.ringBuilder.label}
+              </a>
+            </Button>
+            <Button asChild variant="outline-light" size="xl" className="px-3 text-[13px] sm:px-7 sm:text-[15px]">
+              <a href={SITE.viewer360.url} target="_blank" rel="noopener" title={SITE.viewer360.title}>
+                <Rotate3d /> {SITE.viewer360.label}
+              </a>
+            </Button>
           </div>
+          <a
+            href={consultHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white/75 underline-offset-4 hover:text-white hover:underline"
+          >
+            <FaWhatsapp className="h-4 w-4 text-[#6ee7a0]" /> Or talk to a designer on WhatsApp
+          </a>
         </div>
       </div>
     </section>
