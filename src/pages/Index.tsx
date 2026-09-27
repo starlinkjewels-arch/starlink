@@ -10,6 +10,7 @@ import BannerCarousel from '@/components/BannerCarousel';
 import ProductCard from '@/components/ProductCard';
 import CountUp from '@/components/site/CountUp';
 import CdnImage from '@/components/site/CdnImage';
+import Marquee from '@/components/site/Marquee';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadProducts, selectGlobalData, selectProductsLoaded, selectProductsStatus } from '@/store/contentSlice';
@@ -35,7 +36,7 @@ const faqItems = [
   },
 ];
 
-// The home page is deliberately short: hero, trust, collections, products, videos, brand, reviews.
+// The home page is deliberately short: hero, ribbon, collections, products, videos, brand, reviews, trust.
 // Gallery, journal and buying guides live on their own pages (linked from the header and footer).
 const Index = () => {
   const dispatch = useAppDispatch();
@@ -70,28 +71,8 @@ const Index = () => {
       {/* 1. Hero */}
       <BannerCarousel banners={banners} whatsappNumber={contactInfo?.whatsapp} />
 
-      {/* 2. Trust bar */}
-      <section className="container-wide">
-        <ul className="grid grid-cols-2 divide-border rounded-3xl border lg:grid-cols-4 lg:divide-x">
-          {BRAND.promises.map((item, i) => {
-            const Icon = promiseIcons[i % promiseIcons.length];
-            return (
-              <li
-                key={item.title}
-                className={`flex items-center gap-3 p-4 md:gap-4 md:p-6 ${i < 2 ? 'border-b lg:border-b-0' : ''} ${i % 2 === 0 ? 'border-r lg:border-r-0' : ''}`}
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary md:h-11 md:w-11">
-                  <Icon className="h-5 w-5 text-brand" strokeWidth={1.7} />
-                </span>
-                <div className="min-w-0">
-                  <h3 className="font-display text-sm font-semibold leading-tight tracking-tight md:text-base">{item.title}</h3>
-                  <p className="mt-0.5 hidden text-[13px] leading-snug text-muted-foreground md:block">{item.text}</p>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {/* 2. Kinetic ribbon */}
+      <Marquee items={['Lab-grown', 'Natural', 'IGI certified', 'Made to order', 'Handcrafted in Surat', 'Shipped worldwide']} className="mt-8 border-y md:mt-12" />
 
       {/* 3. Shop by collection — bento grid */}
       {orderedCategories.length > 0 && (
@@ -212,7 +193,7 @@ const Index = () => {
 
       {/* 7. Testimonials */}
       {testimonials.length > 0 && (
-        <section className="section">
+        <section className="section !pb-0">
           <div className="container-wide">
             <SectionHeading eyebrow="Client love" title={<>Worn and loved <em className="accent">worldwide</em></>} align="center" />
             <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 sm:-mx-6 sm:gap-5 sm:px-6 lg:mx-0 lg:px-0">
@@ -240,6 +221,28 @@ const Index = () => {
           </div>
         </section>
       )}
+      {/* 8. Trust bar — closes the page just above the footer */}
+      <section className="container-wide pb-16 pt-10 md:pb-24 md:pt-16">
+        <ul className="grid grid-cols-2 divide-border rounded-3xl border lg:grid-cols-4 lg:divide-x">
+          {BRAND.promises.map((item, i) => {
+            const Icon = promiseIcons[i % promiseIcons.length];
+            return (
+              <li
+                key={item.title}
+                className={`flex items-center gap-3 p-4 md:gap-4 md:p-6 ${i < 2 ? 'border-b lg:border-b-0' : ''} ${i % 2 === 0 ? 'border-r lg:border-r-0' : ''}`}
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary md:h-11 md:w-11">
+                  <Icon className="h-5 w-5 text-brand" strokeWidth={1.7} />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-display text-sm font-semibold leading-tight tracking-tight md:text-base">{item.title}</h3>
+                  <p className="mt-0.5 hidden text-[13px] leading-snug text-muted-foreground md:block">{item.text}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </SiteLayout>
   );
 };
