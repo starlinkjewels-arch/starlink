@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Gem, Truck, PencilRuler, ShieldCheck, Star, Quote, Rotate3d } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
+import { ArrowRight, ArrowUpRight, Gem, Truck, PencilRuler, ShieldCheck, Star, Quote } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import SectionHeading from '@/components/site/SectionHeading';
@@ -12,6 +11,7 @@ import ProductCard from '@/components/ProductCard';
 import CountUp from '@/components/site/CountUp';
 import CdnImage from '@/components/site/CdnImage';
 import Marquee from '@/components/site/Marquee';
+import CraftStory from '@/components/site/CraftStory';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -26,7 +26,7 @@ import {
 import { orderCategoriesWithCustomFirst, getProductCategoryIds } from '@/lib/storage';
 import { getProductTime } from '@/lib/media';
 import { BRAND } from '@/lib/brand';
-import { SITE, stripHtml } from '@/lib/seo';
+import { stripHtml } from '@/lib/seo';
 import { whatsappLink } from '@/lib/whatsapp';
 import { DIAMOND_SHAPES } from '@/lib/search';
 import DiamondShapeIcon from '@/components/site/DiamondShapeIcon';
@@ -189,52 +189,8 @@ const Index = () => {
         </section>
       )}
 
-      {/* 6. Design your own: ring builder, 360° viewer and bespoke consultation */}
-      <section className="section">
-        <div className="container-wide">
-          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#0f1f3d] via-[#17305f] to-brand px-6 py-10 text-white md:px-14 md:py-16">
-            <div className="pattern-lattice pointer-events-none absolute inset-0 -z-10 opacity-20" />
-            <div className="pointer-events-none absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-            <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-              <div>
-                <p className="mb-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white/70" /> Bespoke
-                </p>
-                <h2 className="heading-lg text-balance">
-                  Design a ring that&rsquo;s <em className="accent text-white">only yours</em>
-                </h2>
-                <p className="mt-5 max-w-lg text-base leading-relaxed text-white/75 md:text-lg">
-                  Choose your diamond, setting and metal in our Ring Builder, inspect every angle in 360°, or share an idea and our designers will create it.
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Button asChild variant="light" size="xl">
-                    <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
-                      <Gem /> {SITE.ringBuilder.label}
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline-light" size="xl">
-                    <a href={SITE.viewer360.url} target="_blank" rel="noopener" title={SITE.viewer360.title}>
-                      <Rotate3d /> {SITE.viewer360.label}
-                    </a>
-                  </Button>
-                </div>
-                <a href={consultHref} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white/85 underline-offset-4 hover:text-white hover:underline">
-                  <FaWhatsapp className="h-4 w-4 text-[#6ee7a0]" /> Or talk to a designer on WhatsApp
-                </a>
-              </div>
-              <ol className="grid grid-cols-2 gap-3">
-                {BRAND.process.map((step) => (
-                  <li key={step.step} className="rounded-2xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur md:p-5">
-                    <span className="font-display text-sm font-semibold text-white/60">{step.step}</span>
-                    <h3 className="mt-2 font-sans text-sm font-semibold md:text-base">{step.title}</h3>
-                    <p className="mt-1 text-xs leading-relaxed text-white/65 md:text-[13px]">{step.text}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 6. Bespoke: workshop film synced with the 4-step process, Ring Builder and 360° links */}
+      <CraftStory consultHref={consultHref} />
 
       {/* 7. Shoppable video reels */}
       {videos.length > 0 && (
