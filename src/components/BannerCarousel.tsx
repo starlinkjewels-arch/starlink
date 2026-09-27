@@ -1,6 +1,6 @@
 import { useEffect, useState, memo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles, ShieldCheck, Gem, Rotate3d, Plane } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { Banner } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import KineticHeading from '@/components/site/KineticHeading';
@@ -24,13 +24,6 @@ const readCachedFallback = () => {
     return heroFallback;
   }
 };
-
-// What sets Starlink apart, kept distinct from the "Why Starlink" numbers further down the page.
-const heroHighlights = [
-  { icon: Gem, label: 'Lab-grown & natural' },
-  { icon: Rotate3d, label: '360° product view' },
-  { icon: Plane, label: 'Insured worldwide delivery' },
-];
 
 // Split hero: kinetic headline on a soft panel + rounded media carousel (admin banners).
 const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
@@ -84,7 +77,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     <section className="container-wide pb-10 pt-4 md:pb-16 md:pt-6" aria-label="Featured collections">
       <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr] lg:gap-5">
         {/* Copy panel */}
-        <div className="relative flex flex-col justify-between overflow-hidden rounded-[2rem] bg-secondary p-7 sm:p-10 lg:min-h-[640px] lg:p-14">
+        <div className="relative flex flex-col justify-center overflow-hidden rounded-[2rem] bg-secondary p-7 sm:p-10 lg:min-h-[640px] lg:p-14">
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/10 blur-3xl" />
           <div className="relative">
             <p className="eyebrow animate-in fade-in duration-700">Lab-grown &amp; natural diamonds</p>
@@ -109,18 +102,6 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
               </Button>
             </div>
           </div>
-
-          {/* Phones: one compact row of three (icon above label). Larger screens: pill chips. */}
-          <ul className="relative mt-7 grid grid-cols-3 gap-2 border-t border-foreground/10 pt-5 animate-in fade-in fill-mode-both delay-1000 duration-1000 sm:flex sm:flex-wrap sm:pt-6 lg:mt-12">
-            {heroHighlights.map(({ icon: Icon, label }) => (
-              <li key={label} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-semibold leading-tight sm:flex-row sm:gap-2 sm:rounded-full sm:border sm:border-foreground/10 sm:bg-background/70 sm:py-1.5 sm:pl-1.5 sm:pr-3.5 sm:text-left sm:text-xs sm:backdrop-blur">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-light text-brand">
-                  <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                </span>
-                {label}
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* Media panel */}
