@@ -6,8 +6,8 @@ const Marquee = ({ items, className }: { items: string[]; className?: string }) 
     <div className="flex shrink-0 items-center" aria-hidden>
       {items.map((item) => (
         <span key={item} className="flex items-center">
-          <span className="px-6 font-display text-4xl font-semibold tracking-tight md:px-10 md:text-6xl">{item}</span>
-          <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand md:h-7 md:w-7" fill="currentColor">
+          <span className="px-4 font-display text-xl font-semibold tracking-tight md:px-7 md:text-3xl">{item}</span>
+          <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0 text-brand md:h-4 md:w-4" fill="currentColor">
             <path d="M12 2 22 12 12 22 2 12Z" />
           </svg>
         </span>
@@ -16,7 +16,7 @@ const Marquee = ({ items, className }: { items: string[]; className?: string }) 
   );
 
   return (
-    <div className={cn("group overflow-hidden py-8 md:py-12", className)} role="presentation">
+    <div className={cn("group overflow-hidden py-4 md:py-6", className)} role="presentation">
       <div className="animate-marquee whitespace-nowrap group-hover:pause">
         {row}
         {row}

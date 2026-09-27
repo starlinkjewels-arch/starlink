@@ -11,6 +11,7 @@ import BannerCarousel from '@/components/BannerCarousel';
 import ProductCard from '@/components/ProductCard';
 import CountUp from '@/components/site/CountUp';
 import CdnImage from '@/components/site/CdnImage';
+import Marquee from '@/components/site/Marquee';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -99,6 +100,9 @@ const Index = () => {
 
       {/* 1. Hero */}
       <BannerCarousel banners={banners} whatsappNumber={contactInfo?.whatsapp} />
+
+      {/* 2. Kinetic ribbon */}
+      <Marquee items={['Lab-grown', 'Natural', 'IGI certified', 'Made to order', 'Handcrafted in Surat', 'Shipped worldwide']} className="border-y" />
 
       {/* 3. Shop by collection — bento grid */}
       {orderedCategories.length > 0 && (
