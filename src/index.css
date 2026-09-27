@@ -314,17 +314,6 @@ html.a11y-readable body * {
     text-wrap: balance;
   }
 
-  /* Scroll-reveal: elements start hidden and animate in when .is-visible is added. */
-  .reveal {
-    opacity: 0;
-    transform: translateY(32px);
-    transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-  }
-
   /* Kinetic headline: each word slides up out of a clipping mask. */
   .word-mask {
     display: inline-block;

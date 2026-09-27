@@ -236,7 +236,7 @@ const VideoReels = ({ videos, products }: VideoReelsProps) => {
 
   return (
     <div className="relative">
-      <div ref={scrollerRef} className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+      <div ref={scrollerRef} className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:-mx-10 lg:scroll-px-10 lg:px-10">
         {videos.map((video, i) => (
           <ReelCard
             key={video.id}

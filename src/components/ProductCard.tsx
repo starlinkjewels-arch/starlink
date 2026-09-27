@@ -22,11 +22,16 @@ interface ProductCardProps {
   categoryName?: string;
   className?: string;
   priority?: boolean;
+  /**
+   * Swipe between photos on touch. Turn off when the card sits inside a horizontally
+   * scrolling row, so a sideways swipe scrolls the row instead of changing the photo.
+   */
+  swipeable?: boolean;
 }
 
 const NEW_WINDOW_MS = 45 * 24 * 60 * 60 * 1000;
 
-const ProductCard = ({ product, onClick, categoryName, className, priority = false }: ProductCardProps) => {
+const ProductCard = ({ product, onClick, categoryName, className, priority = false, swipeable = true }: ProductCardProps) => {
   const { contactInfo } = useAppSelector(selectGlobalData);
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
@@ -52,7 +57,7 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
 
   useEffect(() => {
     const node = cardRef.current;
-    if (!node || images.length < 2 || armed) return;
+    if (!node || !swipeable || images.length < 2 || armed) return;
     if (typeof IntersectionObserver === 'undefined') {
       setArmed(true);
       return;
@@ -68,10 +73,12 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [images.length, armed]);
+  }, [swipeable, images.length, armed]);
+
+  const canSwipe = swipeable && images.length > 1;
 
   const handleTouchStart = (e: TouchEvent) => {
-    if (images.length < 2) return;
+    if (!canSwipe) return;
     setArmed(true);
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     horizontal.current = null;
@@ -122,7 +129,10 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
     >
       <div
         ref={cardRef}
-        className="glint relative aspect-square touch-pan-y overflow-hidden rounded-3xl bg-secondary transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)]"
+        className={cn(
+          'glint relative aspect-square overflow-hidden rounded-3xl bg-secondary transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)]',
+          canSwipe && 'touch-pan-y'
+        )}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -185,7 +195,7 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
           )}
         </div>
 
-        {images.length > 1 && (
+        {canSwipe && (
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center gap-1.5 md:hidden">
             {images.slice(0, 5).map((_, i) => (
               <span key={i} className={cn('h-1 rounded-full bg-white shadow transition-all', i === index ? 'w-4' : 'w-1 opacity-70')} />

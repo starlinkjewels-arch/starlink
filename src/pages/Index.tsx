@@ -129,10 +129,10 @@ const Index = () => {
               title={<>New <em className="accent">arrivals</em></>}
               action={{ label: 'Shop all', to: '/categories' }}
             />
-            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 sm:-mx-6 sm:gap-5 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-6 lg:gap-y-12 lg:overflow-visible lg:px-0">
+            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:gap-5 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-6 lg:gap-y-12 lg:overflow-visible lg:px-0">
               {newArrivals.map((product, i) => (
                 <Reveal key={product.id} delay={(i % 4) * 90} className="w-[62vw] max-w-[300px] shrink-0 snap-start lg:w-auto lg:max-w-none">
-                  <ProductCard product={product} categoryName={categoryNameById.get(getProductCategoryIds(product)[0])} />
+                  <ProductCard product={product} categoryName={categoryNameById.get(getProductCategoryIds(product)[0])} swipeable={false} />
                 </Reveal>
               ))}
             </div>
@@ -196,7 +196,7 @@ const Index = () => {
         <section className="section !pb-0">
           <div className="container-wide">
             <SectionHeading eyebrow="Client love" title={<>Worn and loved <em className="accent">worldwide</em></>} align="center" />
-            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 sm:-mx-6 sm:gap-5 sm:px-6 lg:mx-0 lg:px-0">
+            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:gap-5 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0">
               {testimonials.map((t, i) => (
                 <Reveal
                   key={t.id}
