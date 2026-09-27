@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, MessageCircle } from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, MessageCircle, Plane } from "lucide-react";
 import logo from "@/assets/starlink-logo-full.png";
 import { useAppSelector } from "@/store/hooks";
 import { selectGlobalData } from "@/store/contentSlice";
@@ -43,13 +43,6 @@ const companyLinks = [
   { name: "Journal", to: "/blog" },
   { name: "Buying Guide", to: "/buying-guide" },
   { name: "Contact", to: "/contact" },
-];
-
-const shipToLinks = [
-  { name: "United States", to: "/usa" },
-  { name: "Canada", to: "/canada" },
-  { name: "Australia", to: "/australia" },
-  { name: "Germany", to: "/germany" },
 ];
 
 const Footer = () => {
@@ -170,15 +163,10 @@ const Footer = () => {
               ))}
             </ul>
             <h3 className="mb-4 mt-8 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-foreground">We ship to</h3>
-            <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-              {shipToLinks.map((l) => (
-                <li key={l.to}>
-                  <Link to={l.to} className="text-muted-foreground transition-colors hover:text-foreground">
-                    {l.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <p className="inline-flex items-center gap-2.5 rounded-full border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm">
+              <Plane className="h-4 w-4 text-brand" /> Worldwide
+              <span className="font-normal text-muted-foreground">· fully insured</span>
+            </p>
           </div>
 
           <div>

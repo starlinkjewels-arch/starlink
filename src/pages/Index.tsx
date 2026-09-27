@@ -11,7 +11,6 @@ import BannerCarousel from '@/components/BannerCarousel';
 import ProductCard from '@/components/ProductCard';
 import CountUp from '@/components/site/CountUp';
 import CdnImage from '@/components/site/CdnImage';
-import Marquee from '@/components/site/Marquee';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -100,9 +99,6 @@ const Index = () => {
 
       {/* 1. Hero */}
       <BannerCarousel banners={banners} whatsappNumber={contactInfo?.whatsapp} />
-
-      {/* 2. Kinetic ribbon */}
-      <Marquee items={['Lab-grown', 'Natural', 'IGI certified', 'Made to order', 'Handcrafted in Surat', 'Shipped worldwide']} className="mt-8 border-y md:mt-12" />
 
       {/* 3. Shop by collection — bento grid */}
       {orderedCategories.length > 0 && (
@@ -280,9 +276,10 @@ const Index = () => {
 
       {/* 9. Why Starlink: brand story + key numbers in one block */}
       <section className="section">
-        <div className="container-wide grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
+        {/* Desktop: a smaller portrait photo beside wider copy; phones keep the full-width photo on top. */}
+        <div className="container-wide grid items-center gap-10 lg:grid-cols-[minmax(0,440px)_1fr] lg:gap-16 xl:gap-24">
           <Reveal>
-            <div className="aspect-[4/3] overflow-hidden rounded-[2rem] lg:aspect-[4/5]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] lg:aspect-[4/5]">
               <img
                 src={craftEarrings}
                 alt="Diamond earrings handcrafted by Starlink Jewels in Surat"
@@ -290,6 +287,9 @@ const Index = () => {
                 loading="lazy"
                 decoding="async"
               />
+              <span className="absolute bottom-4 left-4 hidden rounded-full border border-white/40 bg-white/80 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-md lg:inline-flex">
+                Handcrafted in Surat · since 2011
+              </span>
             </div>
           </Reveal>
           <Reveal delay={120}>
@@ -300,7 +300,7 @@ const Index = () => {
             <p className="mt-5 text-base leading-relaxed text-muted-foreground md:text-lg">
               Every piece is designed in-house, set by master artisans, certified by IGI or GIA and shipped insured to your door.
             </p>
-            <dl className="mt-8 grid grid-cols-2 gap-3">
+            <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
               {BRAND.stats.map((stat) => (
                 <div key={stat.label} className="flex flex-col-reverse gap-1 rounded-2xl bg-secondary p-4 md:p-5">
                   <dt className="text-xs text-muted-foreground md:text-sm">{stat.label}</dt>

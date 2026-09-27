@@ -1,6 +1,6 @@
 import { useEffect, useState, memo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles, ShieldCheck, Gem, Rotate3d, Plane } from 'lucide-react';
 import { Banner } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import KineticHeading from '@/components/site/KineticHeading';
@@ -25,10 +25,11 @@ const readCachedFallback = () => {
   }
 };
 
-const heroStats = [
-  { value: 'IGI · GIA', label: 'Certified diamonds' },
-  { value: '30+', label: 'Countries served' },
-  { value: '2011', label: 'Crafting since' },
+// What sets Starlink apart, kept distinct from the "Why Starlink" numbers further down the page.
+const heroHighlights = [
+  { icon: Gem, label: 'Lab-grown & natural' },
+  { icon: Rotate3d, label: '360° product view' },
+  { icon: Plane, label: 'Insured worldwide delivery' },
 ];
 
 // Split hero: kinetic headline on a soft panel + rounded media carousel (admin banners).
@@ -94,13 +95,14 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-500 duration-1000 md:text-lg">
               Certified jewelry, handcrafted in Surat and delivered insured to clients in over 30 countries.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3 animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-700 duration-1000">
-              <Button asChild size="xl" className="group">
+            {/* Phones: both buttons share one row; larger screens keep the roomy pill buttons. */}
+            <div className="mt-8 grid grid-cols-2 gap-2.5 animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-700 duration-1000 sm:flex sm:flex-wrap sm:gap-3">
+              <Button asChild size="xl" className="group px-3 text-[13px] sm:px-7 sm:text-[15px]">
                 <Link to="/categories">
                   Shop collections <ArrowRight className="transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
-              <Button asChild size="xl" variant="outline" className="bg-transparent">
+              <Button asChild size="xl" variant="outline" className="bg-transparent px-3 text-[13px] sm:px-7 sm:text-[15px]">
                 <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
                   Design your ring <ArrowUpRight />
                 </a>
@@ -108,14 +110,17 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             </div>
           </div>
 
-          <dl className="relative mt-12 grid grid-cols-3 gap-4 border-t border-foreground/10 pt-6 animate-in fade-in fill-mode-both delay-1000 duration-1000">
-            {heroStats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="text-[11px] text-muted-foreground sm:text-xs">{stat.label}</dt>
-                <dd className="mt-1 font-display text-lg font-semibold tracking-tight sm:text-2xl">{stat.value}</dd>
-              </div>
+          {/* Phones: one compact row of three (icon above label). Larger screens: pill chips. */}
+          <ul className="relative mt-7 grid grid-cols-3 gap-2 border-t border-foreground/10 pt-5 animate-in fade-in fill-mode-both delay-1000 duration-1000 sm:flex sm:flex-wrap sm:pt-6 lg:mt-12">
+            {heroHighlights.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-semibold leading-tight sm:flex-row sm:gap-2 sm:rounded-full sm:border sm:border-foreground/10 sm:bg-background/70 sm:py-1.5 sm:pl-1.5 sm:pr-3.5 sm:text-left sm:text-xs sm:backdrop-blur">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-light text-brand">
+                  <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+                </span>
+                {label}
+              </li>
             ))}
-          </dl>
+          </ul>
         </div>
 
         {/* Media panel */}
