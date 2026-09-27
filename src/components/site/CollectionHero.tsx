@@ -110,7 +110,8 @@ const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, imag
             </nav>
           )}
 
-          {eyebrow && <p className="eyebrow mb-4 md:mb-5">{eyebrow}</p>}
+          {/* Eyebrow, chips and CTAs are desktop-only; on phones the hero stays short: title, text, photos. */}
+          {eyebrow && <p className="eyebrow mb-5 hidden md:flex">{eyebrow}</p>}
           <KineticHeading
             className={cn(isLong ? "heading-lg" : "heading-xl", "text-balance break-words")}
             parts={[{ text: title }, ...(accent ? [{ text: accent, accent: true, breakBefore: true }] : [])]}
@@ -122,7 +123,7 @@ const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, imag
           )}
 
           {chips && chips.length > 0 && (
-            <ul className="mt-6 flex flex-wrap gap-2 animate-in fade-in fill-mode-both delay-700 duration-1000 md:mt-8">
+            <ul className="mt-8 hidden flex-wrap gap-2 animate-in fade-in fill-mode-both delay-700 duration-1000 md:flex">
               {chips.map((chip) => (
                 <li key={chip} className="rounded-full border border-foreground/10 bg-background/70 px-3.5 py-1.5 text-[11px] font-semibold backdrop-blur md:px-4 md:py-2 md:text-xs">
                   {chip}
@@ -131,7 +132,7 @@ const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, imag
             </ul>
           )}
 
-          {children && <div className="mt-7 animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-1000 duration-1000 md:mt-8">{children}</div>}
+          {children && <div className="mt-8 hidden animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-1000 duration-1000 md:block">{children}</div>}
         </div>
 
         {/* Floating collage */}
