@@ -181,9 +181,10 @@ const CategoryProducts = () => {
         images={heroImages}
       />
 
-      {/* Category pills for quick switching */}
+      {/* Category pills for quick switching. Hidden from lg up, where the header already shows the
+          category row; phones and tablets have no category row in the header, so they keep the pills. */}
       {categories.length > 1 && (
-        <div className="border-b">
+        <div className="border-b lg:hidden">
           <div className="container-wide scrollbar-hide flex gap-2 overflow-x-auto py-4">
             {categories.map((c) => (
               <Link
