@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ShieldCheck, Truck, PencilRuler, Video, Share2, RotateCcw } from 'lucide-react';
+import { ShieldCheck, Truck, PencilRuler, Video, Share2, RotateCcw, Check } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -21,6 +21,47 @@ const highlights = [
   { icon: PencilRuler, title: 'Made to order', text: 'Custom size & metal' },
   { icon: RotateCcw, title: 'Lifetime', text: 'Authenticity guarantee' },
 ];
+
+// Reassurance sections under the description. Only promises the business already makes elsewhere
+// on the site (no return windows or delivery times that haven't been confirmed).
+const PROMISES = [
+  {
+    value: 'certification',
+    icon: ShieldCheck,
+    title: 'Certified & verified',
+    lead: 'Know exactly what you are buying, before it ships.',
+    points: [
+      'Diamonds graded by IGI or GIA, the labs trusted by jewellers worldwide',
+      'Certificate shared before dispatch, so you can check the report number yourself',
+      'Lab-grown or natural: the type of every stone is stated clearly',
+    ],
+    cta: { label: 'Ask for this piece’s certificate', message: (name: string) => `Hi Starlink Jewels! Could you share the diamond certificate details for "${name}"?` },
+  },
+  {
+    value: 'shipping',
+    icon: Truck,
+    title: 'Insured worldwide delivery',
+    lead: 'From our Surat workshop to your door, protected all the way.',
+    points: [
+      'Complimentary insured shipping worldwide on orders over $500',
+      'Fully tracked, in secure packaging',
+      'Made to order: your delivery date is confirmed on WhatsApp before we begin',
+    ],
+    cta: { label: 'Check delivery time to my country', message: (name: string) => `Hi Starlink Jewels! How long would delivery of "${name}" take to my country?` },
+  },
+  {
+    value: 'custom',
+    icon: PencilRuler,
+    title: 'Make it yours',
+    lead: 'Every piece is crafted for you, not pulled from a shelf.',
+    points: [
+      'Choose 14K or 18K gold or platinum, in white, yellow or rose',
+      'Your size, your stone: change the shape, carat or setting',
+      'Approve a detailed CAD render before crafting begins, with no surprises',
+    ],
+    cta: { label: 'Customise this design', message: (name: string) => `Hi Starlink Jewels! I'd like to customise "${name}" (metal, size or stone).` },
+  },
+] as const;
 
 interface ProductInfoProps {
   product: Product;
@@ -98,25 +139,39 @@ const ProductInfo = ({ product, descriptionOpen = true }: ProductInfoProps) => {
             </AccordionContent>
           </AccordionItem>
         )}
-        <AccordionItem value="certification">
-          <AccordionTrigger className="text-sm font-semibold uppercase tracking-[0.14em] hover:no-underline">Certification</AccordionTrigger>
-          <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-            Diamonds are certified by IGI or GIA where applicable. Certificates are shared before dispatch so you can verify every stone.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="shipping">
-          <AccordionTrigger className="text-sm font-semibold uppercase tracking-[0.14em] hover:no-underline">Shipping &amp; delivery</AccordionTrigger>
-          <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-            Each piece is made to order and shipped fully insured with tracking. Complimentary worldwide shipping on orders over $500.
-            Delivery timelines depend on your design and region; our team confirms them on WhatsApp.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="custom">
-          <AccordionTrigger className="text-sm font-semibold uppercase tracking-[0.14em] hover:no-underline">Customisation</AccordionTrigger>
-          <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-            Choose your metal (14K/18K gold or platinum), size and stone. We share CAD renders for approval before crafting begins.
-          </AccordionContent>
-        </AccordionItem>
+        {PROMISES.map(({ value, icon: Icon, title, lead, points, cta }) => (
+          <AccordionItem key={value} value={value}>
+            <AccordionTrigger className="gap-3 text-sm font-semibold uppercase tracking-[0.14em] hover:no-underline">
+              <span className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand">
+                  <Icon className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+                {title}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pl-11 text-sm leading-relaxed text-muted-foreground">
+              <p className="font-medium text-foreground">{lead}</p>
+              <ul className="mt-3 space-y-2">
+                {points.map((point) => (
+                  <li key={point} className="flex gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+              {cta && (
+                <a
+                  href={whatsappLink(cta.message(product.name), contactInfo?.whatsapp)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline-offset-4 hover:underline"
+                >
+                  <FaWhatsapp className="h-4 w-4" /> {cta.label}
+                </a>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
       </Accordion>
     </div>
   );
