@@ -185,11 +185,15 @@ const Header = () => {
               {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
             </Button>
             <DesignToolsMenu className="hidden md:block" />
-            <Button asChild variant="ghost" size="icon" className="-mr-2 md:hidden" aria-label="Chat on WhatsApp">
-              <a href={consultLink} target="_blank" rel="noopener noreferrer">
-                <FaWhatsapp className="h-5 w-5 text-whatsapp" />
-              </a>
-            </Button>
+            <a
+              href={consultLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Chat on WhatsApp"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]/10 text-[#1faa53] ring-1 ring-[#25D366]/25 transition-colors hover:bg-[#25D366] hover:text-white md:hidden"
+            >
+              <FaWhatsapp className="h-[19px] w-[19px]" />
+            </a>
           </div>
         </div>
 

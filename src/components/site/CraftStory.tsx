@@ -21,22 +21,34 @@ interface CraftStoryProps {
 const CraftStory = ({ consultHref }: CraftStoryProps) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const [time, setTime] = useState(0);
-  const [duration, setDuration] = useState(22.9);
+  const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const fillRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const durationRef = useRef(22.9);
+  const userPausedRef = useRef(false);
+  const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
   const [loadVideo, setLoadVideo] = useState(false);
 
-  const active = STEP_STARTS.reduce((acc, start, i) => (time >= start ? i : acc), 0);
-  const stepEnd = (i: number) => STEP_STARTS[i + 1] ?? duration;
-  const stepProgress = (i: number) => {
-    if (i < active) return 1;
-    if (i > active) return 0;
-    const start = STEP_STARTS[i];
-    return Math.min(1, Math.max(0, (time - start) / (stepEnd(i) - start)));
+  const stepAt = (t: number) => STEP_STARTS.reduce((acc, start, i) => (t >= start ? i : acc), 0);
+
+  // Paints every step's progress for time t directly on the DOM (called every frame while playing).
+  const paint = (t: number) => {
+    const current = stepAt(t);
+    STEP_STARTS.forEach((start, i) => {
+      const end = STEP_STARTS[i + 1] ?? durationRef.current;
+      const p = i < current ? 1 : i > current ? 0 : Math.min(1, Math.max(0, (t - start) / (end - start)));
+      const transform = `scaleX(${p})`;
+      const bar = barRefs.current[i];
+      const fill = fillRefs.current[i];
+      if (bar) bar.style.transform = transform;
+      if (fill) fill.style.transform = transform;
+    });
+    setActive((prev) => (prev === current ? prev : current));
   };
 
-  // Load the film only when the section is close, and play it only while it is on screen.
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  // Attach the film well before the section scrolls in, so it has buffered by the time it is seen.
   useEffect(() => {
     const node = cardRef.current;
     if (!node || typeof IntersectionObserver === "undefined") {
@@ -45,52 +57,69 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
     }
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const video = videoRef.current;
         if (entry.isIntersecting) {
           setLoadVideo(true);
-          const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-          if (video && !userPaused && !reduceMotion) video.play().catch(() => {});
-        } else if (video && !video.paused) {
-          video.pause();
+          observer.disconnect();
         }
       },
-      { rootMargin: "200px 0px", threshold: 0.25 }
+      { rootMargin: "1000px 0px" }
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [userPaused, loadVideo]);
+  }, []);
 
-  // Smooth progress while playing (timeupdate alone only fires ~4 times a second).
+  // Play while on screen, pause when scrolled away (saves battery and data).
+  useEffect(() => {
+    const node = cardRef.current;
+    if (!node || !loadVideo || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (entry.isIntersecting) {
+          if (!userPausedRef.current && !reduceMotion && video.paused) video.play().catch(() => {});
+        } else if (!video.paused) {
+          video.pause();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadVideo, reduceMotion]);
+
+  // Smooth progress while playing, without re-rendering the section each frame.
   useEffect(() => {
     if (!playing) return;
     let frame = 0;
     const tick = () => {
       const video = videoRef.current;
-      if (video) setTime(video.currentTime);
+      if (video) paint(video.currentTime);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      setUserPaused(false);
+      userPausedRef.current = false;
       video.play().catch(() => {});
     } else {
-      setUserPaused(true);
+      userPausedRef.current = true;
       video.pause();
     }
   };
 
   const jumpTo = (i: number) => {
     const video = videoRef.current;
-    setTime(STEP_STARTS[i]);
+    paint(STEP_STARTS[i]);
     if (!video) return;
     video.currentTime = STEP_STARTS[i] + 0.05;
-    if (video.paused && !userPaused) video.play().catch(() => {});
+    if (video.paused && !userPausedRef.current) video.play().catch(() => {});
   };
 
   return (
@@ -146,13 +175,17 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
                   muted
                   loop
                   playsInline
-                  preload="none"
+                  autoPlay={!reduceMotion}
+                  preload={loadVideo ? "auto" : "none"}
+                  disablePictureInPicture
                   className="h-full w-full object-cover"
                   aria-label="Inside the Starlink Jewels workshop: sketching, CAD, casting, stone setting and finishing"
                   onPlay={() => setPlaying(true)}
                   onPause={() => setPlaying(false)}
-                  onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 22.9)}
-                  onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+                  onLoadedMetadata={(e) => {
+                    durationRef.current = e.currentTarget.duration || 22.9;
+                  }}
+                  onSeeked={(e) => paint(e.currentTarget.currentTime)}
                 />
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 to-transparent" />
@@ -167,7 +200,11 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
                       className="h-1 flex-1 overflow-hidden rounded-full bg-white/25"
                       aria-label={`Jump to step ${i + 1}: ${BRAND.process[i]?.title}`}
                     >
-                      <span className="block h-full origin-left rounded-full bg-white" style={{ transform: `scaleX(${stepProgress(i)})` }} />
+                      <span
+                        ref={(el) => (barRefs.current[i] = el)}
+                        className="block h-full origin-left rounded-full bg-white will-change-transform"
+                        style={{ transform: "scaleX(0)" }}
+                      />
                     </button>
                   ))}
                 </div>
@@ -215,7 +252,11 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
                     >
                       {/* progress fill along the bottom edge */}
                       <span className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10">
-                        <span className="block h-full origin-left bg-white/80" style={{ transform: `scaleX(${stepProgress(i)})` }} />
+                        <span
+                          ref={(el) => (fillRefs.current[i] = el)}
+                          className="block h-full origin-left bg-white/80 will-change-transform"
+                          style={{ transform: "scaleX(0)" }}
+                        />
                       </span>
                       <span className="flex items-center gap-3">
                         <span

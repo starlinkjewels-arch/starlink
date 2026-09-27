@@ -181,27 +181,6 @@ const CategoryProducts = () => {
         images={heroImages}
       />
 
-      {/* Category pills for quick switching. Hidden from lg up, where the header already shows the
-          category row; phones and tablets have no category row in the header, so they keep the pills. */}
-      {categories.length > 1 && (
-        <div className="border-b lg:hidden">
-          <div className="container-wide scrollbar-hide flex gap-2 overflow-x-auto py-4">
-            {categories.map((c) => (
-              <Link
-                key={c.id}
-                to={categoryPath(c)}
-                className={cn(
-                  'shrink-0 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] transition-colors',
-                  c.id === id ? 'border-foreground bg-foreground text-background' : 'hover:border-foreground'
-                )}
-              >
-                {c.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
       <section className="container-wide py-10 md:py-14">
         <div className="mb-8 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
