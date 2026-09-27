@@ -212,13 +212,16 @@ const Footer = () => {
         <div className="border-t border-border">
           <div className="container-wide flex flex-col items-center gap-5 py-6 md:flex-row md:justify-between">
             <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Starlink Jewels. All rights reserved.</p>
-            <ul className="flex flex-wrap items-center justify-center gap-2" aria-label="Accepted payment methods">
-              {paymentMethods.map((m) => (
-                <li key={m.name} className="flex h-8 w-14 items-center justify-center rounded bg-white px-1.5">
-                  <img src={m.logo} alt={m.name} title={m.name} className="max-h-6 w-auto object-contain" loading="lazy" decoding="async" />
-                </li>
-              ))}
-            </ul>
+            <div className="flex flex-col items-center gap-2.5 md:items-end">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">We accept</p>
+              <ul className="flex flex-wrap items-center justify-center gap-2.5 md:justify-end" aria-label="Accepted payment methods">
+                {paymentMethods.map((m) => (
+                  <li key={m.name} className="flex h-12 w-[92px] items-center justify-center rounded-xl border bg-white px-3 shadow-sm md:h-14 md:w-28">
+                    <img src={m.logo} alt={m.name} title={m.name} className="max-h-7 w-auto max-w-full object-contain md:max-h-8" loading="lazy" decoding="async" />
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>

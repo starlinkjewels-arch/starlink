@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Gem, Truck, PencilRuler, ShieldCheck, Star, Quote } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Gem, Truck, PencilRuler, ShieldCheck, Star, Quote, Rotate3d } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import SectionHeading from '@/components/site/SectionHeading';
@@ -13,11 +14,25 @@ import CdnImage from '@/components/site/CdnImage';
 import Marquee from '@/components/site/Marquee';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { loadProducts, selectGlobalData, selectProductsLoaded, selectProductsStatus } from '@/store/contentSlice';
+import {
+  loadBlogs,
+  loadProducts,
+  selectBlogsLoaded,
+  selectBlogsStatus,
+  selectGlobalData,
+  selectProductsLoaded,
+  selectProductsStatus,
+} from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst, getProductCategoryIds } from '@/lib/storage';
 import { getProductTime } from '@/lib/media';
 import { BRAND } from '@/lib/brand';
+import { SITE, stripHtml } from '@/lib/seo';
+import { whatsappLink } from '@/lib/whatsapp';
+import { DIAMOND_SHAPES } from '@/lib/search';
+import DiamondShapeIcon from '@/components/site/DiamondShapeIcon';
 import craftEarrings from '@/assets/craft/craft-1.jpg';
+import craftBracelet from '@/assets/craft/craft-2.jpg';
+import craftBand from '@/assets/craft/craft-3.jpg';
 
 const promiseIcons = [ShieldCheck, Truck, PencilRuler, Gem];
 
@@ -36,13 +51,16 @@ const faqItems = [
   },
 ];
 
-// The home page is deliberately short: hero, ribbon, collections, products, videos, brand, reviews, trust.
-// Gallery, journal and buying guides live on their own pages (linked from the header and footer).
+// Home page: each section earns its place by helping a visitor shop, design, learn or trust.
+// Hero > collections > shapes > new arrivals > design your own > videos > lab vs natural >
+// why Starlink > reviews > journal > trust bar. Gallery and guides live on their own pages.
 const Index = () => {
   const dispatch = useAppDispatch();
-  const { banners, categories, products, videos, testimonials, contactInfo } = useAppSelector(selectGlobalData);
+  const { banners, categories, products, videos, testimonials, blogs, contactInfo } = useAppSelector(selectGlobalData);
   const productsLoaded = useAppSelector(selectProductsLoaded);
   const productsStatus = useAppSelector(selectProductsStatus);
+  const blogsLoaded = useAppSelector(selectBlogsLoaded);
+  const blogsStatus = useAppSelector(selectBlogsStatus);
 
   // Products load after first paint so the hero stays fast.
   useEffect(() => {
@@ -51,12 +69,23 @@ const Index = () => {
     return () => window.clearTimeout(id);
   }, [dispatch, productsLoaded, productsStatus]);
 
+  useEffect(() => {
+    if (blogsLoaded || blogsStatus !== 'idle') return;
+    const id = window.setTimeout(() => dispatch(loadBlogs()), 1800);
+    return () => window.clearTimeout(id);
+  }, [blogsLoaded, blogsStatus, dispatch]);
+
   const orderedCategories = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
   const categoryNameById = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
   const newArrivals = useMemo(
     () => [...products].sort((a, b) => getProductTime(b) - getProductTime(a)).slice(0, 8),
     [products]
   );
+  const latestBlogs = useMemo(
+    () => [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3),
+    [blogs]
+  );
+  const consultHref = whatsappLink("Hi Starlink Jewels! I'd like to design a custom piece.", contactInfo?.whatsapp);
 
   return (
     <SiteLayout>
@@ -120,7 +149,26 @@ const Index = () => {
         </section>
       )}
 
-      {/* 4. New arrivals */}
+      {/* 4. Shop by shape */}
+      <section className="pb-16 md:pb-24">
+        <div className="container-wide">
+          <SectionHeading eyebrow="Shop by shape" title={<>Every cut, <em className="accent">perfected</em></>} />
+          <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-5 sm:px-0 lg:grid-cols-10">
+            {DIAMOND_SHAPES.map((shape) => (
+              <Link
+                key={shape}
+                to={`/search?q=${encodeURIComponent(shape)}`}
+                className="group flex w-[88px] shrink-0 snap-start flex-col items-center gap-2.5 rounded-2xl border bg-background px-2 py-4 transition-colors hover:border-brand hover:bg-brand-light sm:w-auto md:py-5"
+              >
+                <DiamondShapeIcon shape={shape} className="h-9 w-9 text-brand transition-transform duration-500 group-hover:scale-110 md:h-10 md:w-10" />
+                <span className="text-xs font-semibold">{shape}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. New arrivals */}
       {newArrivals.length > 0 && (
         <section className="section bg-secondary">
           <div className="container-wide">
@@ -140,7 +188,54 @@ const Index = () => {
         </section>
       )}
 
-      {/* 5. Shoppable video reels */}
+      {/* 6. Design your own: ring builder, 360° viewer and bespoke consultation */}
+      <section className="section">
+        <div className="container-wide">
+          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#0f1f3d] via-[#17305f] to-brand px-6 py-10 text-white md:px-14 md:py-16">
+            <div className="pattern-lattice pointer-events-none absolute inset-0 -z-10 opacity-20" />
+            <div className="pointer-events-none absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+            <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+              <div>
+                <p className="mb-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/70" /> Bespoke
+                </p>
+                <h2 className="heading-lg text-balance">
+                  Design a ring that&rsquo;s <em className="accent text-white">only yours</em>
+                </h2>
+                <p className="mt-5 max-w-lg text-base leading-relaxed text-white/75 md:text-lg">
+                  Choose your diamond, setting and metal in our Ring Builder, inspect every angle in 360°, or share an idea and our designers will create it.
+                </p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button asChild variant="light" size="xl">
+                    <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
+                      <Gem /> {SITE.ringBuilder.label}
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline-light" size="xl">
+                    <a href={SITE.viewer360.url} target="_blank" rel="noopener" title={SITE.viewer360.title}>
+                      <Rotate3d /> {SITE.viewer360.label}
+                    </a>
+                  </Button>
+                </div>
+                <a href={consultHref} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white/85 underline-offset-4 hover:text-white hover:underline">
+                  <FaWhatsapp className="h-4 w-4 text-[#6ee7a0]" /> Or talk to a designer on WhatsApp
+                </a>
+              </div>
+              <ol className="grid grid-cols-2 gap-3">
+                {BRAND.process.map((step) => (
+                  <li key={step.step} className="rounded-2xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur md:p-5">
+                    <span className="font-display text-sm font-semibold text-white/60">{step.step}</span>
+                    <h3 className="mt-2 font-sans text-sm font-semibold md:text-base">{step.title}</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-white/65 md:text-[13px]">{step.text}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Shoppable video reels */}
       {videos.length > 0 && (
         <section className="section overflow-hidden">
           <div className="container-wide">
@@ -150,8 +245,40 @@ const Index = () => {
         </section>
       )}
 
-      {/* 6. Why Starlink: brand story + key numbers in one block */}
+      {/* 8. Lab-grown vs natural */}
       <section className="section bg-secondary">
+        <div className="container-wide">
+          <SectionHeading
+            eyebrow="Know your diamond"
+            title={<>Lab-grown or natural? <em className="accent">Both, beautifully.</em></>}
+            action={{ label: 'Buying guide', to: '/buying-guide' }}
+          />
+          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+            {[
+              { title: 'Lab-grown diamonds', image: craftBracelet, points: ['Identical fire & brilliance', 'IGI certified', 'Larger stones for your budget', 'Lower environmental footprint'] },
+              { title: 'Natural diamonds', image: craftBand, points: ['Formed over billions of years', 'GIA / IGI certified', 'Rare & heirloom value', 'Responsibly sourced'] },
+            ].map((card) => (
+              <div key={card.title} className="grid grid-cols-[112px_1fr] overflow-hidden rounded-3xl border bg-card sm:grid-cols-[1fr_1.2fr]">
+                <img src={card.image} alt={card.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                <div className="p-5 md:p-8">
+                  <h3 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{card.title}</h3>
+                  <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground md:mt-4 md:space-y-2">
+                    {card.points.map((point) => (
+                      <li key={point} className="flex items-center gap-2.5">
+                        <span className="h-1 w-1 shrink-0 rounded-full bg-brand" />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. Why Starlink: brand story + key numbers in one block */}
+      <section className="section">
         <div className="container-wide grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
           <Reveal>
             <div className="aspect-[4/3] overflow-hidden rounded-[2rem] lg:aspect-[4/5]">
@@ -174,7 +301,7 @@ const Index = () => {
             </p>
             <dl className="mt-8 grid grid-cols-2 gap-3">
               {BRAND.stats.map((stat) => (
-                <div key={stat.label} className="flex flex-col-reverse gap-1 rounded-2xl bg-background p-4 md:p-5">
+                <div key={stat.label} className="flex flex-col-reverse gap-1 rounded-2xl bg-secondary p-4 md:p-5">
                   <dt className="text-xs text-muted-foreground md:text-sm">{stat.label}</dt>
                   <dd className="whitespace-nowrap font-display text-2xl font-semibold tracking-tight md:text-3xl">
                     <CountUp value={stat.value} />
@@ -182,7 +309,7 @@ const Index = () => {
                 </div>
               ))}
             </dl>
-            <Button asChild size="lg" variant="outline" className="mt-8 rounded-full bg-background">
+            <Button asChild size="lg" variant="outline" className="mt-8 rounded-full">
               <Link to="/about">
                 Our story <ArrowRight />
               </Link>
@@ -191,9 +318,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 7. Testimonials */}
+      {/* 10. Testimonials */}
       {testimonials.length > 0 && (
-        <section className="section !pb-0">
+        <section className="section bg-secondary">
           <div className="container-wide">
             <SectionHeading eyebrow="Client love" title={<>Worn and loved <em className="accent">worldwide</em></>} align="center" />
             <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:gap-5 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0">
@@ -221,7 +348,37 @@ const Index = () => {
           </div>
         </section>
       )}
-      {/* 8. Trust bar — closes the page just above the footer */}
+      {/* 11. Journal */}
+      {latestBlogs.length > 0 && (
+        <section className="section !pb-0">
+          <div className="container-wide">
+            <SectionHeading eyebrow="The journal" title={<>Guides &amp; <em className="accent">stories</em></>} action={{ label: 'Read the journal', to: '/blog' }} />
+            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:px-6 md:mx-0 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:px-0">
+              {latestBlogs.map((blog) => (
+                <Link key={blog.id} to={`/blog/${blog.id}`} className="group block w-[78vw] max-w-[340px] shrink-0 snap-start md:w-auto md:max-w-none">
+                  <div className="aspect-[16/10] overflow-hidden rounded-3xl bg-muted">
+                    <CdnImage
+                      src={blog.thumbnail || blog.image}
+                      cdn={{ width: 700, quality: 82 }}
+                      alt={blog.title}
+                      className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <time dateTime={blog.date} className="mt-4 block text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    {new Date(blog.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </time>
+                  <h3 className="mt-2 line-clamp-2 font-display text-lg leading-snug transition-colors group-hover:text-brand md:text-xl">{blog.title}</h3>
+                  <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{stripHtml(blog.content)}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 12. Trust bar — closes the page just above the footer */}
       <section className="container-wide pb-16 pt-10 md:pb-24 md:pt-16">
         <ul className="grid grid-cols-2 divide-border rounded-3xl border lg:grid-cols-4 lg:divide-x">
           {BRAND.promises.map((item, i) => {
