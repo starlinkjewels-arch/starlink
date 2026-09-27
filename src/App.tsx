@@ -22,21 +22,54 @@ import { requestLocationAndLog } from '@/lib/locationPermission';
 import { preloadCritical, preloadImages } from "@/lib/preload";
 import GlobalLoader from "@/components/GlobalLoader";
 import AdPopup from "@/components/AdPopup";
+import { SiteShell } from "@/components/site/SiteLayout";
 
-// Home stays in the main bundle for the fastest first paint; everything else loads on demand.
-const About = lazy(() => import("./pages/About"));
-const Categories = lazy(() => import("./pages/Categories"));
-const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
-const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const Gallery = lazy(() => import("./pages/Gallery"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogDetail = lazy(() => import("./pages/BlogDetail"));
-const Contact = lazy(() => import("./pages/Contact"));
+// Home stays in the main bundle for the fastest first paint; everything else loads on demand,
+// and public pages are also prefetched in the background once the site is idle (see below), so
+// tapping a menu link doesn't wait on a download.
+const pageLoaders = {
+  about: () => import("./pages/About"),
+  categories: () => import("./pages/Categories"),
+  categoryProducts: () => import("./pages/CategoryProducts"),
+  productDetail: () => import("./pages/ProductDetail"),
+  gallery: () => import("./pages/Gallery"),
+  blog: () => import("./pages/Blog"),
+  blogDetail: () => import("./pages/BlogDetail"),
+  contact: () => import("./pages/Contact"),
+  buyingGuide: () => import("./pages/BuyingGuide"),
+  countryLanding: () => import("./pages/CountryLanding"),
+  search: () => import("./pages/Search"),
+  notFound: () => import("./pages/NotFound"),
+};
+
+const About = lazy(pageLoaders.about);
+const Categories = lazy(pageLoaders.categories);
+const CategoryProducts = lazy(pageLoaders.categoryProducts);
+const ProductDetail = lazy(pageLoaders.productDetail);
+const Gallery = lazy(pageLoaders.gallery);
+const Blog = lazy(pageLoaders.blog);
+const BlogDetail = lazy(pageLoaders.blogDetail);
+const Contact = lazy(pageLoaders.contact);
 const Admin = lazy(() => import("./pages/Admin"));
-const BuyingGuidePage = lazy(() => import("./pages/BuyingGuide"));
-const CountryLanding = lazy(() => import("./pages/CountryLanding"));
-const SearchPage = lazy(() => import("./pages/Search"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const BuyingGuidePage = lazy(pageLoaders.buyingGuide);
+const CountryLanding = lazy(pageLoaders.countryLanding);
+const SearchPage = lazy(pageLoaders.search);
+const NotFound = lazy(pageLoaders.notFound);
+
+// Fetch the page bundles one at a time while the browser is idle (skipped on data-saver connections).
+const prefetchPages = () => {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? "")) return;
+  const queue = Object.values(pageLoaders);
+  const idle = (cb: () => void) =>
+    typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(cb, { timeout: 3000 }) : window.setTimeout(cb, 300);
+  const next = () => {
+    const load = queue.shift();
+    if (!load) return;
+    load().catch(() => {}).finally(() => idle(next));
+  };
+  idle(next);
+};
 
 const queryClient = new QueryClient();
 const DEFERRED_LOAD_DELAY_MS = 1200;
@@ -104,6 +137,13 @@ const AppContent = () => {
     };
   }, [deferredLoaded, deferredStatus, dispatch, hydrated, isAdminRoute, status]);
 
+  useEffect(() => {
+    if (isAdminRoute) return;
+    const id = window.setTimeout(prefetchPages, 3500);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const showLoader = !isAdminRoute && !isHomePage && status === "loading" && !hydrated;
 
 
@@ -151,33 +191,42 @@ const AppContent = () => {
     }
   }, [assetUrls, data.banners, hydrated, status]);
 
+  const routes = (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/categories" element={<Categories />} />
+      <Route path="/category/:id" element={<CategoryProducts />} />
+      <Route path="/product/:id" element={<ProductDetail />} />
+      <Route path="/gallery" element={<Gallery />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:id" element={<BlogDetail />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/search" element={<SearchPage />} />
+      <Route path={ADMIN_PATH} element={<Admin />} />
+      <Route path="/buying-guide" element={<BuyingGuidePage />} />
+      <Route path="/buying-guide/:slug" element={<BuyingGuidePage />} />
+      <Route path="/usa" element={<CountryLanding />} />
+      <Route path="/canada" element={<CountryLanding />} />
+      <Route path="/australia" element={<CountryLanding />} />
+      <Route path="/germany" element={<CountryLanding />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+
   return (
     <>
       <GlobalLoader isLoading={showLoader} />
       {!isAdminRoute && <AdPopup />}
       <ScrollToTop />
-      <Suspense fallback={<div className="min-h-screen bg-background" />}>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/category/:id" element={<CategoryProducts />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<BlogDetail />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path={ADMIN_PATH} element={<Admin />} />
-        <Route path="/buying-guide" element={<BuyingGuidePage />} />
-        <Route path="/buying-guide/:slug" element={<BuyingGuidePage />} />
-        <Route path="/usa" element={<CountryLanding />} />
-        <Route path="/canada" element={<CountryLanding />} />
-        <Route path="/australia" element={<CountryLanding />} />
-        <Route path="/germany" element={<CountryLanding />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      </Suspense>
+      {isAdminRoute ? (
+        <Suspense fallback={<div className="min-h-screen bg-background" />}>{routes}</Suspense>
+      ) : (
+        // Header, footer and floating buttons stay mounted; only the page content swaps.
+        <SiteShell>
+          <Suspense fallback={<div className="min-h-[70vh]" />}>{routes}</Suspense>
+        </SiteShell>
+      )}
     </>
   );
 };

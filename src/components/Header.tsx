@@ -77,11 +77,28 @@ const Header = () => {
   const consultLink = whatsappLink("Hi Starlink Jewels! I'd like to book a consultation.", contactInfo?.whatsapp);
   const isDark = resolvedTheme === "dark";
 
+  // At most one scroll read per frame; state only changes when crossing the threshold.
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 40);
-    onScroll();
+    let frame = 0;
+    let last: boolean | null = null;
+    const update = () => {
+      frame = 0;
+      const next = window.scrollY > 40;
+      if (next !== last) {
+        last = next;
+        setIsScrolled(next);
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    // First read after paint, so mounting never forces a synchronous layout of the new page.
+    frame = requestAnimationFrame(update);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -158,7 +175,8 @@ const Header = () => {
         onMouseLeave={() => setActiveMenu(null)}
       >
         {/* Tier 2: search · logo · actions */}
-        <div className={cn("container-wide grid grid-cols-[1fr_auto_1fr] items-center gap-4 transition-[height] duration-300", isScrolled ? "h-16" : "h-20")}>
+        {/* Fixed height: animating height re-lays-out the whole page every frame (froze phones on navigation). */}
+        <div className="container-wide grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-4 md:h-20">
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" aria-label="Open menu" onClick={() => setMobileOpen(true)}>
               <Menu className="h-5 w-5" />
@@ -173,7 +191,7 @@ const Header = () => {
             <img
               src={logo}
               alt="Starlink Jewels - Lab Grown & Natural Diamond Jewelry"
-              className={cn("w-auto transition-all duration-300 dark:brightness-150", isScrolled ? "h-9" : "h-10 md:h-12")}
+              className={cn("h-10 w-auto origin-center transition-transform duration-300 dark:brightness-150 md:h-12", isScrolled && "md:scale-90")}
               loading="eager"
               decoding="async"
               fetchPriority="high"

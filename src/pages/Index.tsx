@@ -26,7 +26,7 @@ import {
 import { orderCategoriesWithCustomFirst, getProductCategoryIds } from '@/lib/storage';
 import { getProductTime } from '@/lib/media';
 import { BRAND } from '@/lib/brand';
-import { stripHtml } from '@/lib/seo';
+import { excerpt } from '@/lib/seo';
 import { whatsappLink } from '@/lib/whatsapp';
 import { DIAMOND_SHAPES } from '@/lib/search';
 import DiamondShapeIcon from '@/components/site/DiamondShapeIcon';
@@ -331,7 +331,7 @@ const Index = () => {
                     {new Date(blog.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </time>
                   <h3 className="mt-2 line-clamp-2 font-display text-lg leading-snug transition-colors group-hover:text-brand md:text-xl">{blog.title}</h3>
-                  <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{stripHtml(blog.content)}</p>
+                  <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{excerpt(blog.content, 180)}</p>
                 </Link>
               ))}
             </div>

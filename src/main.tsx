@@ -23,3 +23,11 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </Provider>
 );
+
+// Fade out the boot splash once the first real frame has painted, then drop it from the DOM.
+requestAnimationFrame(() =>
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add("app-ready");
+    window.setTimeout(() => document.getElementById("boot-splash")?.remove(), 600);
+  })
+);

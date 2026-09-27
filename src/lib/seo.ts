@@ -99,8 +99,21 @@ const decodeEntities = (value: string) =>
     .replace(/&gt;/gi, ">")
     .replace(/&amp;/gi, "&");
 
+// Parsing full article HTML is expensive and pages call this on every render, so results are cached.
+const stripCache = new Map<string, string>();
+const STRIP_CACHE_MAX = 400;
+
 export const stripHtml = (html: string) => {
   if (!html) return "";
+  const cached = stripCache.get(html);
+  if (cached !== undefined) return cached;
+  const result = stripHtmlUncached(html);
+  if (stripCache.size >= STRIP_CACHE_MAX) stripCache.delete(stripCache.keys().next().value as string);
+  stripCache.set(html, result);
+  return result;
+};
+
+const stripHtmlUncached = (html: string) => {
   let text = html;
   if (typeof DOMParser !== "undefined") {
     // Let the browser parse real markup, then strip any escaped markup that was pasted as text.
@@ -137,6 +150,12 @@ export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
 };
 
 // Title/description builders are mirrored in scripts/seo-data.mjs (pre-rendered pages); keep them in sync.
+/**
+ * Short plain-text preview for cards. Never render the whole stripped article inside a line-clamp:
+ * the browser still lays out every hidden word (a Journal visit froze phones for seconds).
+ */
+export const excerpt = (html: string, max = 220) => buildMetaDescriptionFromHtml(html, max);
+
 export const buildMetaTitleForCategory = (categoryName: string) => {
   return `Buy ${categoryName} Online – Certified Lab-Grown & Natural Diamonds`;
 };

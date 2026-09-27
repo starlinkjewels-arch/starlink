@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -13,10 +13,20 @@ const FloatingWhatsApp = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 400);
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setVisible(window.scrollY > 400);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (
@@ -43,6 +53,31 @@ const FloatingWhatsApp = () => {
   );
 };
 
+// The shell (header, footer, floating buttons) is mounted once in App and persists across pages.
+// Rebuilding it on every navigation froze phones for seconds and could leave the page locked when
+// the mobile menu was torn down mid-close. Pages still wrap themselves in <SiteLayout>, which now only
+// renders their content and passes page options up to the shell.
+interface ShellOptions {
+  hideFloatingWhatsApp: boolean;
+}
+
+const ShellContext = createContext<(options: ShellOptions) => void>(() => {});
+
+export const SiteShell = ({ children }: { children: ReactNode }) => {
+  const [options, setOptions] = useState<ShellOptions>({ hideFloatingWhatsApp: false });
+  return (
+    <ShellContext.Provider value={setOptions}>
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        {!options.hideFloatingWhatsApp && <FloatingWhatsApp />}
+        <AccessibilityWidget raised={options.hideFloatingWhatsApp} />
+      </div>
+    </ShellContext.Provider>
+  );
+};
+
 interface SiteLayoutProps {
   children: ReactNode;
   className?: string;
@@ -50,14 +85,13 @@ interface SiteLayoutProps {
   hideFloatingWhatsApp?: boolean;
 }
 
-const SiteLayout = ({ children, className, hideFloatingWhatsApp = false }: SiteLayoutProps) => (
-  <div className="flex min-h-screen flex-col bg-background">
-    <Header />
-    <main className={cn("flex-1", className)}>{children}</main>
-    <Footer />
-    {!hideFloatingWhatsApp && <FloatingWhatsApp />}
-    <AccessibilityWidget raised={hideFloatingWhatsApp} />
-  </div>
-);
+const SiteLayout = ({ children, className, hideFloatingWhatsApp = false }: SiteLayoutProps) => {
+  const setOptions = useContext(ShellContext);
+  useLayoutEffect(() => {
+    setOptions({ hideFloatingWhatsApp });
+    return () => setOptions({ hideFloatingWhatsApp: false });
+  }, [hideFloatingWhatsApp, setOptions]);
+  return className ? <div className={className}>{children}</div> : <>{children}</>;
+};
 
 export default SiteLayout;

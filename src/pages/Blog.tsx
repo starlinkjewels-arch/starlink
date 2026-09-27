@@ -8,7 +8,7 @@ import Reveal from '@/components/site/Reveal';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from '@/store/contentSlice';
 import { BlogPost } from '@/lib/storage';
-import { SITE, buildMetaDescriptionForBlog, stripHtml } from '@/lib/seo';
+import { SITE, buildMetaDescriptionForBlog, excerpt } from '@/lib/seo';
 import CdnImage from '@/components/site/CdnImage';
 import { categoryPath } from '@/lib/urls';
 
@@ -38,7 +38,7 @@ const BlogCard = ({ blog }: { blog: BlogPost }) => (
       {formatDate(blog.date)}
     </time>
     <h2 className="mt-2 font-display text-2xl leading-snug transition-colors group-hover:text-brand">{blog.title}</h2>
-    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{stripHtml(blog.content)}</p>
+    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{excerpt(blog.content, 180)}</p>
   </Link>
 );
 
@@ -134,7 +134,7 @@ const Blog = () => {
                     <div>
                       <p className="eyebrow mb-4">Latest article</p>
                       <h2 className="heading-lg text-balance transition-colors group-hover:text-brand">{featured.title}</h2>
-                      <p className="mt-5 line-clamp-3 leading-relaxed text-muted-foreground">{stripHtml(featured.content)}</p>
+                      <p className="mt-5 line-clamp-3 leading-relaxed text-muted-foreground">{excerpt(featured.content, 260)}</p>
                       <p className="mt-6 text-xs uppercase tracking-[0.16em] text-muted-foreground">{formatDate(featured.date)}</p>
                       <span className="link-underline mt-6">
                         Read article <ArrowRight className="h-4 w-4" />
