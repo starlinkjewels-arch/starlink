@@ -21,6 +21,7 @@ import {
 } from '@/lib/seo';
 import { whatsappLink } from '@/lib/whatsapp';
 import CdnImage from '@/components/site/CdnImage';
+import { enquiry } from '@/lib/enquiry';
 
 const formatDate = (date: string, month: 'long' | 'short' = 'long') =>
   new Date(date).toLocaleDateString('en-US', { year: 'numeric', month, day: 'numeric' });
@@ -213,7 +214,7 @@ const BlogDetail = () => {
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Button asChild variant="whatsapp" size="lg">
                 <a
-                  href={whatsappLink(`Hi Starlink Jewels! I read "${blog.title}" and I'd like to learn more.`, contactInfo?.whatsapp)}
+                  href={whatsappLink(enquiry.article(blog), contactInfo?.whatsapp)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -16,6 +16,7 @@ import { selectGlobalData } from '@/store/contentSlice';
 import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
 import { SITE } from '@/lib/seo';
 import CdnImage from '@/components/site/CdnImage';
+import { enquiry } from '@/lib/enquiry';
 
 const topics = ['Custom design', 'Product enquiry', 'Engagement ring', 'Wholesale / B2B', 'Order support', 'Other'];
 
@@ -121,7 +122,7 @@ const Contact = () => {
                 Send photos, ask for prices or request a live video viewing of any piece.
               </p>
               <Button asChild variant="whatsapp" size="xl" className="mt-6 w-full sm:w-auto">
-                <a href={whatsappLink('Hi Starlink Jewels! I have a question.', contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+                <a href={whatsappLink(enquiry.general(), contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
                   Chat on WhatsApp
                 </a>
               </Button>

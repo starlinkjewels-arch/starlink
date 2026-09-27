@@ -1,15 +1,19 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { FaWhatsapp } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AccessibilityWidget from "@/components/site/AccessibilityWidget";
 import { useAppSelector } from "@/store/hooks";
 import { selectGlobalData } from "@/store/contentSlice";
 import { whatsappLink } from "@/lib/whatsapp";
+import { SITE } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { enquiry } from "@/lib/enquiry";
 
 const FloatingWhatsApp = () => {
   const { contactInfo } = useAppSelector(selectGlobalData);
+  const { pathname } = useLocation();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -31,7 +35,7 @@ const FloatingWhatsApp = () => {
 
   return (
     <a
-      href={whatsappLink("Hi Starlink Jewels! I'm browsing your website and have a question.", contactInfo?.whatsapp)}
+      href={whatsappLink(enquiry.general(`${SITE.url}${pathname === "/" ? "" : pathname}`), contactInfo?.whatsapp)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"

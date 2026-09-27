@@ -20,6 +20,7 @@ import { SITE } from "@/lib/seo";
 import { whatsappLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 import { categoryPath, productPath } from "@/lib/urls";
+import { enquiry } from "@/lib/enquiry";
 
 const DEFAULT_ANNOUNCEMENTS = [
   "Complimentary insured worldwide shipping on orders over $500",
@@ -74,7 +75,7 @@ const Header = () => {
   );
   const phone = contactInfo?.phone || SITE.phonePrimary;
   const email = contactInfo?.email || SITE.email;
-  const consultLink = whatsappLink("Hi Starlink Jewels! I'd like to book a consultation.", contactInfo?.whatsapp);
+  const consultLink = whatsappLink(enquiry.consultation(), contactInfo?.whatsapp);
   const isDark = resolvedTheme === "dark";
 
   // At most one scroll read per frame; state only changes when crossing the threshold.

@@ -13,6 +13,7 @@ import { whatsappLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
 import RichText from '@/components/site/RichText';
 import CdnImage from '@/components/site/CdnImage';
+import { enquiry } from '@/lib/enquiry';
 
 const defaultFaqItems = [
   {
@@ -104,7 +105,7 @@ const BuyingGuidePage = () => {
             <p className="mt-4 font-display text-2xl">Guides are coming soon</p>
             <p className="mt-2 text-muted-foreground">In the meantime, our experts are happy to answer your questions.</p>
             <Button asChild variant="whatsapp" size="xl" className="mt-8">
-              <a href={whatsappLink('Hi Starlink Jewels! I need help choosing a diamond.', contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <a href={whatsappLink(enquiry.diamondAdvice(), contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
                 Ask an expert
               </a>
             </Button>

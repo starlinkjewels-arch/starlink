@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import type { Product } from '@/lib/storage';
-import { cleanRichTextHtml, SITE } from '@/lib/seo';
+import { cleanRichTextHtml } from '@/lib/seo';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
 import { buildProductEnquiry } from '@/components/WhatsAppButton';
@@ -14,6 +14,7 @@ import { selectGlobalData } from '@/store/contentSlice';
 import GIA from '@/assets/paylogo/GIA_Logo.png';
 import IGI from '@/assets/paylogo/igi logo.webp';
 import { productUrl } from '@/lib/urls';
+import { enquiry } from '@/lib/enquiry';
 
 const highlights = [
   { icon: ShieldCheck, title: 'Certified', text: 'IGI / GIA graded' },
@@ -35,7 +36,7 @@ const PROMISES = [
       'Certificate shared before dispatch, so you can check the report number yourself',
       'Lab-grown or natural: the type of every stone is stated clearly',
     ],
-    cta: { label: 'Ask for this piece’s certificate', message: (name: string) => `Hi Starlink Jewels! Could you share the diamond certificate details for "${name}"?` },
+    cta: { label: 'Ask for this piece’s certificate', message: enquiry.certificate },
   },
   {
     value: 'shipping',
@@ -47,7 +48,7 @@ const PROMISES = [
       'Fully tracked, in secure packaging',
       'Made to order: your delivery date is confirmed on WhatsApp before we begin',
     ],
-    cta: { label: 'Check delivery time to my country', message: (name: string) => `Hi Starlink Jewels! How long would delivery of "${name}" take to my country?` },
+    cta: { label: 'Check delivery time to my country', message: enquiry.delivery },
   },
   {
     value: 'custom',
@@ -59,7 +60,7 @@ const PROMISES = [
       'Your size, your stone: change the shape, carat or setting',
       'Approve a detailed CAD render before crafting begins, with no surprises',
     ],
-    cta: { label: 'Customise this design', message: (name: string) => `Hi Starlink Jewels! I'd like to customise "${name}" (metal, size or stone).` },
+    cta: { label: 'Customise this design', message: enquiry.customise },
   },
 ] as const;
 
@@ -77,16 +78,13 @@ const ProductInfo = ({ product, descriptionOpen = true }: ProductInfoProps) => {
     () => sanitizeHtml(cleanRichTextHtml(product.description || ''), { stripInlineStyles: true }),
     [product.description]
   );
-  const videoCallHref = whatsappLink(
-    `Hi Starlink Jewels! I'd like a live video call to see "${product.name}" before ordering.`,
-    contactInfo?.whatsapp
-  );
+  const videoCallHref = whatsappLink(enquiry.videoCall(product), contactInfo?.whatsapp);
   const shareUrl = productUrl(product);
 
   const share = async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ title: product.name, url: shareUrl });
+        await navigator.share({ title: product.name, text: `${product.name} · certified diamond jewelry by Starlink Jewels`, url: shareUrl });
         return;
       }
       await navigator.clipboard.writeText(shareUrl);
@@ -161,7 +159,7 @@ const ProductInfo = ({ product, descriptionOpen = true }: ProductInfoProps) => {
               </ul>
               {cta && (
                 <a
-                  href={whatsappLink(cta.message(product.name), contactInfo?.whatsapp)}
+                  href={whatsappLink(cta.message(product), contactInfo?.whatsapp)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline-offset-4 hover:underline"

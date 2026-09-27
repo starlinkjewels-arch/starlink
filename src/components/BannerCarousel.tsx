@@ -88,14 +88,14 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-500 duration-1000 md:text-lg">
               Certified jewelry, handcrafted in Surat and delivered insured to clients in over 30 countries.
             </p>
-            {/* Phones: both buttons share one row; larger screens keep the roomy pill buttons. */}
-            <div className="mt-8 grid grid-cols-2 gap-2.5 animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-700 duration-1000 sm:flex sm:flex-wrap sm:gap-3">
-              <Button asChild size="xl" className="group px-3 text-[13px] sm:px-7 sm:text-[15px]">
+            {/* Both buttons always share one row (equal widths), on every screen size. */}
+            <div className="mt-8 grid max-w-md grid-cols-2 gap-2.5 animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-700 duration-1000 sm:gap-3">
+              <Button asChild size="xl" className="group whitespace-nowrap px-3 text-[13px] sm:px-5 sm:text-[15px]">
                 <Link to="/categories">
                   Shop collections <ArrowRight className="transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
-              <Button asChild size="xl" variant="outline" className="bg-transparent px-3 text-[13px] sm:px-7 sm:text-[15px]">
+              <Button asChild size="xl" variant="outline" className="whitespace-nowrap bg-transparent px-3 text-[13px] sm:px-5 sm:text-[15px]">
                 <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
                   Design your ring <ArrowUpRight />
                 </a>

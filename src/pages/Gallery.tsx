@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, Expand } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
@@ -12,6 +13,7 @@ import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
 import { isVideoUrl } from '@/lib/media';
 import { FaWhatsapp } from 'react-icons/fa';
 import CdnImage from '@/components/site/CdnImage';
+import { enquiry } from '@/lib/enquiry';
 
 const faqItems = [
   {
@@ -55,6 +57,31 @@ const Gallery = () => {
   }, [selected, go]);
 
   const current = selected !== null ? galleryItems[selected] : null;
+
+  // Shareable links: /gallery?piece=<id> opens that photo (used in WhatsApp enquiries), and the open
+  // photo is mirrored into the URL so it can be copied or shared.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pieceParam = searchParams.get('piece');
+  useEffect(() => {
+    if (!pieceParam || selected !== null || count === 0) return;
+    const index = galleryItems.findIndex((item) => item.id === pieceParam);
+    if (index >= 0) setSelected(index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pieceParam, count]);
+  const shownId = useRef<string | null>(null);
+  useEffect(() => {
+    const id = current?.id ?? null;
+    const wasOpen = shownId.current !== null;
+    shownId.current = id;
+    // Before any photo has been shown, leave an incoming ?piece= alone (the effect above opens it).
+    if (!id && !wasOpen) return;
+    if (id === pieceParam) return;
+    const next = new URLSearchParams(searchParams);
+    if (id) next.set('piece', id);
+    else next.delete('piece');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id]);
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -137,7 +164,7 @@ const Gallery = () => {
           <p className="eyebrow">Bespoke</p>
           <h2 className="heading-lg max-w-2xl text-balance">Seen something you love? Let's make it yours.</h2>
           <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink("Hi Starlink Jewels! I saw a piece in your gallery and I'd like to know more.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+            <a href={whatsappLink(enquiry.gallery(), contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
               <FaWhatsapp /> Chat with our designers
             </a>
           </Button>
@@ -180,7 +207,7 @@ const Gallery = () => {
                 variant="whatsapp"
                 size="xl"
                 onClick={() =>
-                  openWhatsApp(`Hi Starlink Jewels! I'm interested in this piece from your gallery:\n\n${current.image}`, contactInfo?.whatsapp)
+                  openWhatsApp(enquiry.galleryPiece(current), contactInfo?.whatsapp)
                 }
               >
                 <FaWhatsapp /> Enquire about this piece

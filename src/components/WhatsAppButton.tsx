@@ -1,11 +1,10 @@
 import { MessageCircle } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Product } from '@/lib/storage';
-import { SITE } from '@/lib/seo';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
-import { productUrl } from '@/lib/urls';
+import { enquiry } from '@/lib/enquiry';
 
 interface WhatsAppButtonProps {
   product: Product;
@@ -15,19 +14,7 @@ interface WhatsAppButtonProps {
   size?: ButtonProps['size'];
 }
 
-export const buildProductEnquiry = (product: Product) =>
-  `Hello Starlink Jewels! 👋
-
-I am interested in the following product and would like more details:
-
-🏷️ ${product.name}
-
-🔗 View Product:
-${productUrl(product)}
-
-Could you please share availability, customisation options, and delivery details?
-
-Thank you!`;
+export const buildProductEnquiry = (product: Product) => enquiry.product(product);
 
 
 

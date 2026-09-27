@@ -34,6 +34,7 @@ import craftEarrings from '@/assets/craft/craft-1.jpg';
 import craftBracelet from '@/assets/craft/craft-2.jpg';
 import craftBand from '@/assets/craft/craft-3.jpg';
 import { categoryPath } from '@/lib/urls';
+import { enquiry } from '@/lib/enquiry';
 
 const promiseIcons = [ShieldCheck, Truck, PencilRuler, Gem];
 
@@ -86,7 +87,7 @@ const Index = () => {
     () => [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3),
     [blogs]
   );
-  const consultHref = whatsappLink("Hi Starlink Jewels! I'd like to design a custom piece.", contactInfo?.whatsapp);
+  const consultHref = whatsappLink(enquiry.customDesign(), contactInfo?.whatsapp);
 
   return (
     <SiteLayout>

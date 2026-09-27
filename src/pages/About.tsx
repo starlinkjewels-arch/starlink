@@ -13,6 +13,7 @@ import craftEarrings from '@/assets/craft/craft-1.jpg';
 import craftBracelet from '@/assets/craft/craft-2.jpg';
 import craftBand from '@/assets/craft/craft-3.jpg';
 import craftFancy from '@/assets/craft/craft-4.jpg';
+import { enquiry } from '@/lib/enquiry';
 
 const values = [
   { title: 'Excellence', text: 'We never compromise on quality, ensuring every piece meets our exacting standards.' },
@@ -217,7 +218,7 @@ const About = () => {
               <Link to="/categories">Browse collections</Link>
             </Button>
             <Button asChild variant="outline" size="xl">
-              <a href={whatsappLink("Hi Starlink Jewels! I'd like to schedule a consultation.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
+              <a href={whatsappLink(enquiry.consultation(), contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
                 Schedule a consultation
               </a>
             </Button>

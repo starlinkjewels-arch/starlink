@@ -19,6 +19,7 @@ import Rapaport from "@/assets/paylogo/Rapaport-header-20250120083212-2025021009
 import SDA from "@/assets/paylogo/sda-web.png";
 import Bourse from "@/assets/paylogo/sdb-web.png";
 import { categoryPath } from "@/lib/urls";
+import { enquiry } from "@/lib/enquiry";
 
 const paymentMethods = [
   { name: "Visa", logo: Visa },
@@ -55,7 +56,7 @@ const Footer = () => {
     { href: contactInfo?.twitter, label: "Twitter", icon: Twitter },
   ].filter((s) => Boolean(s.href));
 
-  const consultHref = whatsappLink("Hi Starlink Jewels! I'd like to book a consultation.", contactInfo?.whatsapp);
+  const consultHref = whatsappLink(enquiry.consultation(), contactInfo?.whatsapp);
 
   return (
     <footer className="mt-auto">
