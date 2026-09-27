@@ -1,14 +1,13 @@
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BookOpen, ArrowRight, ArrowLeft, ArrowUpRight } from 'lucide-react';
+import { BookOpen, ArrowRight, ArrowLeft } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/store/hooks';
 import { selectDeferredLoaded, selectDeferredStatus, selectGlobalData } from '@/store/contentSlice';
-import { SITE, buildMetaDescriptionFromHtml } from '@/lib/seo';
+import { buildMetaDescriptionFromHtml } from '@/lib/seo';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { whatsappLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
@@ -90,21 +89,7 @@ const BuyingGuidePage = () => {
         description="Everything you need to know about diamonds, settings and certification, explained simply."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Buying Guide' }]}
         images={guides.map((g) => g.image).filter(Boolean).slice(0, 3) as string[]}
-        chips={[...(guides.length > 1 ? [`${guides.length} guides`] : []), 'The 4Cs explained', 'GIA & IGI certification']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink('Hi Starlink Jewels! I need help choosing a diamond.', contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Ask an expert
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="xl" className="bg-background/60">
-            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
-              Design your ring <ArrowUpRight />
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       <section className="container-wide py-12 md:py-16">
         {loading ? (

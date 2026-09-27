@@ -108,21 +108,7 @@ const Contact = () => {
         description="Questions about a piece, a custom design or wholesale? Our team replies personally on WhatsApp, phone or email."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Contact' }]}
         images={categories.map((c) => c.image).slice(1, 4)}
-        chips={['Personal replies', 'Live video viewing', offices.length > 1 ? `${offices.length} offices worldwide` : 'Worldwide delivery']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink("Hi Starlink Jewels! I have a question.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Chat on WhatsApp
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="xl" className="bg-background/60">
-            <a href={`tel:${contactInfo?.phone || SITE.phonePrimary}`}>
-              <Phone /> Call us
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       <section className="section">
         <div className="container-wide grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-20">

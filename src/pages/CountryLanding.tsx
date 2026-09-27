@@ -4,13 +4,10 @@ import { ArrowUpRight, ShieldCheck, Truck, PencilRuler, MessageCircle } from 'lu
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import { FaWhatsapp } from 'react-icons/fa';
 import Reveal from '@/components/site/Reveal';
-import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
-import { whatsappLink } from '@/lib/whatsapp';
 import NotFound from './NotFound';
 
 type CountryConfig = {
@@ -66,7 +63,7 @@ const CountryLanding = () => {
   const { pathname } = useLocation();
   const slug = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   const config = COUNTRIES.find((c) => c.slug === slug);
-  const { categories, contactInfo } = useAppSelector(selectGlobalData);
+  const { categories } = useAppSelector(selectGlobalData);
   const ordered = useMemo(() => orderCategoriesWithCustomFirst(categories).slice(0, 4), [categories]);
 
   if (!config) return <NotFound />;
@@ -97,19 +94,7 @@ const CountryLanding = () => {
         description={config.description}
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: config.name }]}
         images={ordered.map((c) => c.image).slice(0, 3)}
-        chips={[`Insured delivery to ${config.name}`, 'IGI & GIA certified', 'Made to order']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="xl">
-            <Link to="/categories">Shop collections <ArrowUpRight /></Link>
-          </Button>
-          <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink(`Hi Starlink Jewels! I'm in ${config.name} and would like to know more.`, contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Talk to an expert
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       <section className="section">
         <div className="container-wide grid grid-cols-2 gap-x-5 gap-y-9 sm:gap-10 lg:grid-cols-4">

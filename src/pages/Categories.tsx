@@ -4,14 +4,10 @@ import { ArrowUpRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import { Button } from '@/components/ui/button';
-import { FaWhatsapp } from 'react-icons/fa';
 import Reveal from '@/components/site/Reveal';
 import { useAppSelector } from '@/store/hooks';
 import { selectContentHydrated, selectGlobalData } from '@/store/contentSlice';
 import { orderCategoriesWithCustomFirst } from '@/lib/storage';
-import { whatsappLink } from '@/lib/whatsapp';
-import { SITE } from '@/lib/seo';
 
 const faqItems = [
   {
@@ -29,7 +25,7 @@ const faqItems = [
 ];
 
 const Categories = () => {
-  const { categories, contactInfo } = useAppSelector(selectGlobalData);
+  const { categories } = useAppSelector(selectGlobalData);
   const hydrated = useAppSelector(selectContentHydrated);
   const ordered = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
 
@@ -75,21 +71,7 @@ const Categories = () => {
         description="From everyday diamonds to one-of-a-kind statement pieces, explore our curated categories of fine jewelry."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Collections' }]}
         images={ordered.map((c) => c.image).slice(0, 3)}
-        chips={[...(ordered.length > 0 ? [`${ordered.length} collections`] : []), 'IGI & GIA certified', 'Insured worldwide shipping']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink("Hi Starlink Jewels! I'd like help choosing a piece from your collections.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Ask an expert
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="xl" className="bg-background/60">
-            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
-              Design your ring <ArrowUpRight />
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       <section className="section">
         <div className="container-wide">

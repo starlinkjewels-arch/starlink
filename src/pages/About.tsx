@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import { FaWhatsapp } from 'react-icons/fa';
 import SectionHeading from '@/components/site/SectionHeading';
 import Reveal from '@/components/site/Reveal';
 import { Button } from '@/components/ui/button';
@@ -87,19 +86,7 @@ const About = () => {
         description="For over a decade, Starlink Jewels has transformed precious metals and diamonds into timeless pieces that celebrate life's most precious moments."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'About' }]}
         images={categories.map((c) => c.image).slice(0, 3)}
-        chips={[`Since ${BRAND.founded}`, 'Handcrafted in Surat', 'IGI & GIA certified']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="xl">
-            <Link to="/categories">Explore collections</Link>
-          </Button>
-          <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink("Hi Starlink Jewels! I'd like to know more about your work.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Talk to us
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       {/* Story */}
       <section className="section">

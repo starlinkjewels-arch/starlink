@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, LayoutGrid, Grid3X3 } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
+import { ArrowRight, LayoutGrid, Grid3X3 } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
@@ -14,7 +13,6 @@ import {
   buildOffer,
   buildMetaDescriptionForCategory,
   buildMetaTitleForCategory,
-  SITE,
 } from '@/lib/seo';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -27,7 +25,6 @@ import {
 } from '@/store/contentSlice';
 import { productHasCategory } from '@/lib/storage';
 import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
-import { whatsappLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
 
 type SortOption = 'newest' | 'oldest' | 'name';
@@ -47,7 +44,7 @@ const ProductGridSkeleton = () => (
 const CategoryProducts = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
-  const { categories, products, contactInfo } = useAppSelector(selectGlobalData);
+  const { categories, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
   const hydrated = useAppSelector(selectContentHydrated);
   const productsLoaded = useAppSelector(selectProductsLoaded);
@@ -172,21 +169,7 @@ const CategoryProducts = () => {
         description={category.description}
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Collections', to: '/categories' }, { name: category.name }]}
         images={heroImages}
-        chips={[...(productsReady ? [`${sortedProducts.length} ${sortedProducts.length === 1 ? 'piece' : 'pieces'}`] : []), 'IGI & GIA certified', 'Made to order']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="xl">
-            <a href={whatsappLink(`Hi Starlink Jewels! I'm interested in your ${category.name} collection.`, contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Ask an expert
-            </a>
-          </Button>
-          <Button asChild size="xl" variant="outline" className="bg-background/60">
-            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
-              Design your own <ArrowUpRight />
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       {/* Category pills for quick switching */}
       {categories.length > 1 && (

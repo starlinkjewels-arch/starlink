@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUpRight, ChevronLeft, ChevronRight, X, Expand } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Expand } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
@@ -10,7 +10,6 @@ import { useAppSelector } from '@/store/hooks';
 import { selectDeferredLoaded, selectGlobalData } from '@/store/contentSlice';
 import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
 import { isVideoUrl } from '@/lib/media';
-import { SITE } from '@/lib/seo';
 import { FaWhatsapp } from 'react-icons/fa';
 
 const faqItems = [
@@ -90,21 +89,7 @@ const Gallery = () => {
         description="A look at pieces we've designed and handcrafted. See something you love? We can create it for you."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Gallery' }]}
         images={galleryItems.map((item) => item.image).filter((src) => !isVideoUrl(src)).slice(0, 3)}
-        chips={[...(count > 0 ? [`${count} pieces`] : []), 'Handcrafted in Surat', 'Custom made']}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="whatsapp" size="xl">
-            <a href={whatsappLink("Hi Starlink Jewels! I saw a piece in your gallery and would like something similar.", contactInfo?.whatsapp)} target="_blank" rel="noopener noreferrer">
-              <FaWhatsapp /> Recreate a piece
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="xl" className="bg-background/60">
-            <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title}>
-              Design your ring <ArrowUpRight />
-            </a>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       <section className="section">
         <div className="container-wide">

@@ -23,8 +23,6 @@ interface CollectionHeroProps {
   breadcrumbs?: Crumb[];
   /** Up to 3 image URLs shown as a floating collage; gaps are filled with atelier photography. */
   images?: string[];
-  chips?: string[];
-  children?: ReactNode;
 }
 
 const FALLBACK_IMAGES = [craft2, craft1, craft4, craft3];
@@ -72,7 +70,7 @@ const DiamondOutline = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, images = [], chips, children }: CollectionHeroProps) => {
+const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, images = [] }: CollectionHeroProps) => {
   // Images that fail to load (deleted uploads, bad URLs) drop out and a fallback photo takes their slot.
   const [failed, setFailed] = useState<string[]>([]);
   const markFailed = (src: string) => setFailed((prev) => (prev.includes(src) ? prev : [...prev, src]));
@@ -110,7 +108,7 @@ const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, imag
             </nav>
           )}
 
-          {/* Eyebrow, chips and CTAs are desktop-only; on phones the hero stays short: title, text, photos. */}
+          {/* The eyebrow is desktop-only; on phones the hero stays short: title, text, photos. */}
           {eyebrow && <p className="eyebrow mb-5 hidden md:flex">{eyebrow}</p>}
           <KineticHeading
             className={cn(isLong ? "heading-lg" : "heading-xl", "text-balance break-words")}
@@ -121,18 +119,6 @@ const CollectionHero = ({ eyebrow, title, accent, description, breadcrumbs, imag
               {description}
             </p>
           )}
-
-          {chips && chips.length > 0 && (
-            <ul className="mt-8 hidden flex-wrap gap-2 animate-in fade-in fill-mode-both delay-700 duration-1000 md:flex">
-              {chips.map((chip) => (
-                <li key={chip} className="rounded-full border border-foreground/10 bg-background/70 px-3.5 py-1.5 text-[11px] font-semibold backdrop-blur md:px-4 md:py-2 md:text-xs">
-                  {chip}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {children && <div className="mt-8 hidden animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-1000 duration-1000 md:block">{children}</div>}
         </div>
 
         {/* Floating collage */}

@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import { Button } from '@/components/ui/button';
 import Reveal from '@/components/site/Reveal';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadBlogs, selectBlogsLoaded, selectBlogsStatus, selectGlobalData } from '@/store/contentSlice';
@@ -105,23 +104,7 @@ const Blog = () => {
         description="Expert advice on diamonds, craftsmanship and styling from the Starlink Jewels team."
         breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Journal' }]}
         images={sortedBlogs.map((b) => b.thumbnail || b.image).slice(0, 3)}
-        chips={[...(sortedBlogs.length > 0 ? [`${sortedBlogs.length} articles`] : []), 'Diamond education', 'Styling & trends']}
-      >
-        <div className="flex flex-wrap gap-3">
-          {featured && (
-            <Button asChild size="xl">
-              <Link to={`/blog/${featured.id}`}>
-                Read the latest <ArrowRight />
-              </Link>
-            </Button>
-          )}
-          <Button asChild variant="outline" size="xl" className="bg-background/60">
-            <Link to="/buying-guide">
-              <BookOpen /> Buying guide
-            </Link>
-          </Button>
-        </div>
-      </CollectionHero>
+      />
 
       <section className="section">
         <div className="container-wide">
