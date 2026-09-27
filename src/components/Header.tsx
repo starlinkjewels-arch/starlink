@@ -173,18 +173,6 @@ const Header = () => {
           </Link>
 
           <div className="flex items-center justify-end gap-1 lg:gap-3">
-            <a
-              href={consultLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden items-center gap-2.5 rounded-full px-3 py-1.5 transition-colors hover:bg-secondary xl:flex"
-            >
-              <FaWhatsapp className="h-6 w-6 text-whatsapp" />
-              <span className="leading-tight">
-                <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Need help?</span>
-                <span className="block text-sm font-semibold">Chat with an expert</span>
-              </span>
-            </a>
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode" className="hidden sm:inline-flex">
               {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
             </Button>
