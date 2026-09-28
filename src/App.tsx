@@ -42,6 +42,9 @@ const pageLoaders = {
   notFound: () => import("./pages/NotFound"),
   designTool: () => import("./pages/DesignToolPage"),
   privacy: () => import("./pages/PrivacyPolicy"),
+  wishlist: () => import("./pages/Wishlist"),
+  policy: () => import("./pages/PolicyPage"),
+  ringSize: () => import("./pages/RingSizeGuide"),
 };
 
 const About = lazy(pageLoaders.about);
@@ -59,6 +62,9 @@ const SearchPage = lazy(pageLoaders.search);
 const NotFound = lazy(pageLoaders.notFound);
 const DesignToolPage = lazy(pageLoaders.designTool);
 const PrivacyPolicy = lazy(pageLoaders.privacy);
+const Wishlist = lazy(pageLoaders.wishlist);
+const PolicyPage = lazy(pageLoaders.policy);
+const RingSizeGuide = lazy(pageLoaders.ringSize);
 
 // Fetch the page bundles one at a time while the browser is idle (skipped on data-saver connections).
 const prefetchPages = () => {
@@ -214,6 +220,12 @@ const AppContent = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/search" element={<SearchPage />} />
     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+    <Route path="/wishlist" element={<Wishlist />} />
+    <Route path="/ring-size-guide" element={<RingSizeGuide />} />
+    <Route path="/shipping-policy" element={<PolicyPage policy="shipping" />} />
+    <Route path="/returns-policy" element={<PolicyPage policy="returns" />} />
+    <Route path="/warranty" element={<PolicyPage policy="warranty" />} />
+    <Route path="/terms-and-conditions" element={<PolicyPage policy="terms" />} />
     <Route path="/ring-builder" element={<DesignToolPage tool="ringBuilder" />} />
     <Route path="/3d-jewelry-viewer" element={<DesignToolPage tool="viewer" />} />
       <Route path={ADMIN_PATH} element={<Admin />} />

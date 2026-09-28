@@ -1,0 +1,69 @@
+{
+  "shipping": {
+    "path": "/shipping-policy",
+    "navLabel": "Shipping & delivery",
+    "metaTitle": "Shipping & Delivery – Insured Worldwide Shipping",
+    "metaDescription": "How Starlink Jewels ships: fully insured, tracked worldwide delivery, complimentary on orders over $500, with your delivery date confirmed before your piece is made.",
+    "title": "Shipping & delivery",
+    "intro": "Every Starlink piece travels fully insured and tracked, from our Surat workshop to your door, anywhere in the world.",
+    "highlights": ["Insured & tracked", "Complimentary over $500", "Worldwide delivery"],
+    "sections": [
+      { "title": "Where we ship", "paragraphs": ["We deliver worldwide, including the United States, Canada, the United Kingdom, Germany and the rest of Europe, Australia and India. If you are unsure whether we deliver to your address, ask us before ordering."] },
+      { "title": "Shipping cost", "paragraphs": ["Shipping is complimentary on orders over $500. For smaller orders, the shipping cost is included in your quote before you pay."] },
+      { "title": "When your order arrives", "paragraphs": ["Every piece is made to order after you approve its CAD design, so delivery time depends on the design and on your location. We confirm your expected delivery date on WhatsApp or by email before crafting begins, and let you know if anything changes."] },
+      { "title": "Insurance, tracking and packaging", "list": ["Each shipment is fully insured for its value until it is delivered.", "You receive tracking details as soon as your piece is dispatched.", "Your jewelry arrives in secure packaging, together with its diamond certificate where applicable."] },
+      { "title": "Customs, duties and taxes", "paragraphs": ["International deliveries may be subject to import duties or taxes in your country. We will tell you before you order whether they are likely to apply to your delivery and how they are handled."] },
+      { "title": "Receiving your parcel", "paragraphs": ["Because of its value, your parcel may need a signature on delivery. Please check the package when it arrives and contact us straight away if it is damaged or looks tampered with, keeping all packaging."] }
+    ]
+  },
+  "returns": {
+    "path": "/returns-policy",
+    "navLabel": "Returns & exchanges",
+    "metaTitle": "Returns & Exchanges",
+    "metaDescription": "Returns, exchanges and resizing at Starlink Jewels: made-to-order pieces approved in CAD before crafting, with the terms for your order confirmed in writing before you pay.",
+    "title": "Returns & exchanges",
+    "intro": "Our pieces are made to order to your specifications, so we make sure you are completely happy with the design before anything is crafted.",
+    "highlights": ["CAD approval before crafting", "Terms confirmed before you pay", "Help if something is wrong"],
+    "sections": [
+      { "title": "Made to order, approved by you", "paragraphs": ["Before we begin, we send detailed CAD renders of your piece, together with the certified stone options, and make changes until you approve the design. Your size is confirmed at this stage too; see our ring size guide if you are unsure."] },
+      { "title": "Returns, exchanges and resizing", "paragraphs": ["Because every piece is made for you, the return, exchange and resizing terms that apply to your order are set out in writing in your quote, before you pay. Please read them and ask us about anything that is unclear before confirming your order."] },
+      { "title": "If something is not right", "paragraphs": ["If your piece arrives damaged, or is different from the design you approved, contact us as soon as possible after delivery with your order details and clear photos, and keep all the original packaging and documents. We will review it with you and let you know the next steps."] },
+      { "title": "How to contact us", "paragraphs": ["Email info@starlinkjewels.com or message us on WhatsApp at +1 (201) 554-4824, quoting your order details."] }
+    ]
+  },
+  "warranty": {
+    "path": "/warranty",
+    "navLabel": "Warranty & care",
+    "metaTitle": "Authenticity Guarantee, Certification & Jewelry Care",
+    "metaDescription": "The Starlink Jewels authenticity guarantee, IGI and GIA diamond certificates, and how to care for your fine jewelry so it keeps its sparkle.",
+    "title": "Warranty & care",
+    "intro": "Every Starlink piece comes with our guarantee of authenticity, and with the care of the artisans who made it.",
+    "highlights": ["Authenticity guaranteed", "IGI / GIA certified diamonds", "Care advice for life"],
+    "sections": [
+      { "title": "Our authenticity guarantee", "paragraphs": ["We guarantee that your jewelry is exactly what we describe: the metal and karat, and the type of every diamond, lab-grown or natural. Lab-grown and natural diamonds are always disclosed clearly and never mixed without telling you."] },
+      { "title": "Diamond certificates", "paragraphs": ["Diamonds are graded by IGI or GIA where applicable, and the certificate is shared with you before dispatch so you can check the report number with the laboratory yourself."] },
+      { "title": "Caring for your jewelry", "list": ["Put your jewelry on after lotions, perfume and hairspray, and take it off for swimming, cleaning, the gym and heavy work.", "Clean it gently with warm water, a drop of mild soap and a soft brush, then rinse and pat dry.", "Store each piece separately in a soft pouch or lined box so diamonds don't scratch other pieces.", "Have prongs and settings checked by a jeweller once a year, especially on rings you wear every day."] },
+      { "title": "Repairs and questions", "paragraphs": ["If you have a question about your piece or it needs attention, contact us at info@starlinkjewels.com or on WhatsApp with photos and your order details, and we will advise you."] }
+    ]
+  },
+  "terms": {
+    "path": "/terms-and-conditions",
+    "navLabel": "Terms & conditions",
+    "metaTitle": "Terms & Conditions",
+    "metaDescription": "The terms that apply when you use the Starlink Jewels website, design tools and place a made-to-order jewelry order.",
+    "title": "Terms & conditions",
+    "intro": "These terms apply when you use starlinkjewels.com, our Ring Builder and 3D viewer, and when you order from Starlink Jewels. Please read them together with our privacy policy.",
+    "highlights": [],
+    "sections": [
+      { "title": "About us", "paragraphs": ["Starlink Jewels designs and manufactures fine jewelry in Surat, Gujarat, India, with an office at 55 John St, East Rutherford, NJ 07073, USA. Contact us at info@starlinkjewels.com."] },
+      { "title": "Product information", "list": ["We describe each piece as accurately as we can. Colours and sparkle can look slightly different on screens, and handcrafted pieces may vary slightly from the photos.", "Carat weights, dimensions and diamond details on the website are indicative; the exact specification for your order is the one in your quote and diamond certificate.", "Renders in the Ring Builder and 3D viewer are visualisations to help you choose; your approved CAD design is the reference for your piece."] },
+      { "title": "Quotes and orders", "list": ["Prices are given on request. A quote is valid for the period stated in it.", "Your order is confirmed once you have approved the CAD design and the agreed payment has been received.", "The return, exchange and resizing terms for your order are the ones stated in your quote."] },
+      { "title": "Payment", "paragraphs": ["We accept the payment methods shown on our website and in your quote, including card payments, Zelle, Venmo, Google Pay and bank wire. We never ask for your card details on WhatsApp."] },
+      { "title": "Delivery", "paragraphs": ["Delivery is covered in our shipping policy. Risk in the piece passes to you on delivery."] },
+      { "title": "Intellectual property", "paragraphs": ["The website content, photographs, videos, 3D models and our designs belong to Starlink Jewels or our licensors and may not be copied or used commercially without our written permission."] },
+      { "title": "Using the website", "paragraphs": ["Please use the website lawfully and do not try to disrupt it or access areas that are not meant for the public. We may update or suspend parts of the website at any time."] },
+      { "title": "Liability", "paragraphs": ["Nothing in these terms limits your rights as a consumer under the law that applies to you. Otherwise, we are not responsible for indirect losses, and our responsibility for an order is limited to the amount you paid for it."] },
+      { "title": "Changes to these terms", "paragraphs": ["We may update these terms from time to time. The version on this page when you place your order applies to that order."] }
+    ]
+  }
+}

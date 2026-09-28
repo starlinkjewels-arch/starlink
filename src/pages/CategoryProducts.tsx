@@ -6,6 +6,8 @@ import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
 import Reveal from '@/components/site/Reveal';
 import ProductCard from '@/components/ProductCard';
+import ProductFilters from '@/components/site/ProductFilters';
+import { EMPTY_FILTERS, filtersFromParams, matchesFilters, writeFiltersToParams, type ProductFilterState } from '@/lib/productAttributes';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -57,7 +59,7 @@ const CategoryProducts = () => {
 
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [dense, setDense] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // The URL segment is a slug (/category/eternity-bands) or a legacy id (/category/1764824647332).
@@ -74,6 +76,11 @@ const CategoryProducts = () => {
     if (sortBy === 'name') return list.sort((a, b) => a.name.localeCompare(b.name));
     return list.sort((a, b) => (sortBy === 'oldest' ? getProductTime(a) - getProductTime(b) : getProductTime(b) - getProductTime(a)));
   }, [products, id, sortBy]);
+
+  // Filters live in the URL (?shape=oval&metal=rose) so a filtered view can be shared.
+  const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
+  const setFilters = (next: ProductFilterState) => setSearchParams(writeFiltersToParams(searchParams, next), { replace: true });
+  const visibleProducts = useMemo(() => sortedProducts.filter((p) => matchesFilters(p, filters)), [sortedProducts, filters]);
 
   useEffect(() => {
     if (!productsLoaded && productsStatus === 'idle') dispatch(loadProducts());
@@ -182,43 +189,48 @@ const CategoryProducts = () => {
       />
 
       <section className="container-wide py-10 md:py-14">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            {productsReady ? `${sortedProducts.length} ${sortedProducts.length === 1 ? 'piece' : 'pieces'}` : 'Loading pieces…'}
-          </p>
-          <div className="flex items-center gap-2">
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-              <SelectTrigger className="h-10 w-[160px] text-sm" aria-label="Sort products">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest first</SelectItem>
-                <SelectItem value="oldest">Oldest first</SelectItem>
-                <SelectItem value="name">Name A–Z</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="hidden overflow-hidden rounded-md border lg:flex">
-              <button
-                type="button"
-                onClick={() => setDense(false)}
-                className={cn('flex h-10 w-10 items-center justify-center', !dense && 'bg-foreground text-background')}
-                aria-label="Larger grid"
-                aria-pressed={!dense}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setDense(true)}
-                className={cn('flex h-10 w-10 items-center justify-center', dense && 'bg-foreground text-background')}
-                aria-label="Compact grid"
-                aria-pressed={dense}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+        {productsReady && sortedProducts.length > 0 && (
+          <ProductFilters
+            products={sortedProducts}
+            value={filters}
+            onChange={setFilters}
+            resultCount={visibleProducts.length}
+            trailing={
+              <>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                  <SelectTrigger className="h-10 w-[150px] rounded-full text-sm" aria-label="Sort products">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest first</SelectItem>
+                    <SelectItem value="oldest">Oldest first</SelectItem>
+                    <SelectItem value="name">Name A–Z</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="hidden overflow-hidden rounded-full border lg:flex">
+                  <button
+                    type="button"
+                    onClick={() => setDense(false)}
+                    className={cn('flex h-10 w-10 items-center justify-center', !dense && 'bg-foreground text-background')}
+                    aria-label="Larger grid"
+                    aria-pressed={!dense}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDense(true)}
+                    className={cn('flex h-10 w-10 items-center justify-center', dense && 'bg-foreground text-background')}
+                    aria-label="Compact grid"
+                    aria-pressed={dense}
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            }
+          />
+        )}
 
         {!productsReady ? (
           <ProductGridSkeleton />
@@ -227,9 +239,17 @@ const CategoryProducts = () => {
             <p className="font-display text-2xl">New pieces are on their way</p>
             <p className="mt-2 text-sm text-muted-foreground">Check back soon, or ask us about custom designs in this style.</p>
           </div>
+        ) : visibleProducts.length === 0 ? (
+          <div className="rounded-3xl border border-dashed py-20 text-center">
+            <p className="font-display text-2xl">No pieces match these filters</p>
+            <p className="mt-2 text-sm text-muted-foreground">Try removing a filter, or ask us to make this exact combination for you.</p>
+            <Button variant="outline" className="mt-6" onClick={() => setFilters(EMPTY_FILTERS)}>
+              Clear filters
+            </Button>
+          </div>
         ) : (
           <div className={cn('grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-6 lg:gap-y-14', dense ? 'lg:grid-cols-4 xl:grid-cols-5' : 'lg:grid-cols-3 xl:grid-cols-4')}>
-            {sortedProducts.map((product, i) => (
+            {visibleProducts.map((product, i) => (
               <Reveal key={product.id} delay={(i % 4) * 60}>
                 <ProductCard product={product} priority={i < 4} />
               </Reveal>

@@ -14,6 +14,8 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPriceRounded } from '@/lib/utils';
 import { stripHtml } from '@/lib/seo';
+import { DIAMOND_SHAPES } from '@/lib/search';
+import { DIAMOND_TYPE_LABELS, METAL_LABELS, getProductAttributes, type DiamondType, type MetalColour } from '@/lib/productAttributes';
 
 
 // The product name is what shoppers see on the website. Short codes like "RR" or "EA" look broken there.
@@ -144,6 +146,11 @@ const AdminProducts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNeedsName, setShowNeedsName] = useState(false);
   const [metaTitle, setMetaTitle] = useState('');
+  // Filter attributes: empty = detected automatically from the name/description.
+  const [attrShapes, setAttrShapes] = useState<string[]>([]);
+  const [attrTypes, setAttrTypes] = useState<DiamondType[]>([]);
+  const [attrMetals, setAttrMetals] = useState<MetalColour[]>([]);
+  const [attrCarat, setAttrCarat] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [seoFaq, setSeoFaq] = useState<{ question: string; answer: string }[]>([]);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
@@ -246,6 +253,10 @@ const AdminProducts = () => {
     setMetaTitle('');
     setMetaDescription('');
     setSeoFaq([]);
+    setAttrShapes([]);
+    setAttrTypes([]);
+    setAttrMetals([]);
+    setAttrCarat('');
   };
 
   const handleOpenAdd = () => {
@@ -263,6 +274,10 @@ const AdminProducts = () => {
     setMetaTitle(product.metaTitle || '');
     setMetaDescription(product.metaDescription || '');
     setSeoFaq(product.seoFaq || []);
+    setAttrShapes(product.shapes || []);
+    setAttrTypes(product.diamondTypes || []);
+    setAttrMetals(product.metals || []);
+    setAttrCarat(product.caratWeight ? String(product.caratWeight) : '');
     const existingUrls = product.images || [product.image];
     setMediaItems(existingUrls.map((url, index) => ({ id: `existing-${index}-${url}`, url, type: getMediaTypeFromUrl(url), source: 'existing' as const })));
     setDialogOpen(true);
@@ -308,6 +323,10 @@ const AdminProducts = () => {
         metaTitle: metaTitle || undefined,
         metaDescription: metaDescription || undefined,
         seoFaq: seoFaq.length > 0 ? seoFaq : undefined,
+        shapes: attrShapes.length ? attrShapes : undefined,
+        diamondTypes: attrTypes.length ? attrTypes : undefined,
+        metals: attrMetals.length ? attrMetals : undefined,
+        caratWeight: parseFloat(attrCarat) > 0 ? Math.round(parseFloat(attrCarat) * 100) / 100 : undefined,
       };
       await saveProduct(productData);
       const updated = await getProducts();
@@ -617,6 +636,46 @@ const AdminProducts = () => {
               <Label>Description</Label>
               <RichTextEditor value={description} onChange={setDescription} placeholder="Enter product description with rich formatting (bold, italic, lists, etc.)" />
             </div>
+
+            {/* Filter attributes */}
+            {(() => {
+              const detected = getProductAttributes({ id: 'preview', name, description, image: '', price: '' } as Product);
+              const chip = (active: boolean, onClick: () => void, label: string) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={onClick}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${active ? 'border-gray-900 bg-gray-900 text-white' : 'hover:border-gray-400'}`}
+                >
+                  {label}
+                </button>
+              );
+              const toggle = <T extends string>(list: T[], set: (v: T[]) => void, v: T) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+              return (
+                <div className="space-y-4 rounded-xl border p-4">
+                  <div>
+                    <Label>Filter details</Label>
+                    <p className="mt-1 text-xs text-muted-foreground">Used by the collection filters. Leave a group empty to use what is detected from the name and description.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium">Diamond shape <span className="font-normal text-muted-foreground">· auto: {detected.shapes.join(', ') || 'none found'}</span></p>
+                    <div className="flex flex-wrap gap-1.5">{DIAMOND_SHAPES.map((sh) => chip(attrShapes.includes(sh), () => toggle(attrShapes, setAttrShapes, sh), sh))}</div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium">Diamond <span className="font-normal text-muted-foreground">· auto: {detected.diamondTypes.map((t) => DIAMOND_TYPE_LABELS[t]).join(', ') || 'none found'}</span></p>
+                    <div className="flex flex-wrap gap-1.5">{(Object.keys(DIAMOND_TYPE_LABELS) as DiamondType[]).map((t) => chip(attrTypes.includes(t), () => toggle(attrTypes, setAttrTypes, t), DIAMOND_TYPE_LABELS[t]))}</div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium">Metal <span className="font-normal text-muted-foreground">· auto: {detected.metals.map((m) => METAL_LABELS[m]).join(', ') || 'none found'}</span></p>
+                    <div className="flex flex-wrap gap-1.5">{(Object.keys(METAL_LABELS) as MetalColour[]).map((m) => chip(attrMetals.includes(m), () => toggle(attrMetals, setAttrMetals, m), METAL_LABELS[m]))}</div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="product-carat" className="text-xs">Total carat weight <span className="font-normal text-muted-foreground">· auto: {detected.carat ?? 'none found'}</span></Label>
+                    <Input id="product-carat" type="number" step="0.01" min="0" value={attrCarat} onChange={(e) => setAttrCarat(e.target.value)} placeholder="e.g. 2.10" className="max-w-[160px]" />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* SEO */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

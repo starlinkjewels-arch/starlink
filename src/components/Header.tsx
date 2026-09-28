@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Moon, Sun, ChevronDown, ArrowRight, Search, Phone, Mail, Gem, Sparkles, Rotate3d } from "lucide-react";
+import { Menu, Moon, Sun, ChevronDown, ArrowRight, Search, Phone, Mail, Gem, Sparkles, Rotate3d, Heart } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import CdnImage from "@/components/site/CdnImage";
+import { useWishlist } from "@/lib/wishlist";
 import { Button } from "@/components/ui/button";
 import HeaderSearch from "@/components/site/HeaderSearch";
 import DiamondShapeIcon from "@/components/site/DiamondShapeIcon";
@@ -66,6 +67,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const savedCount = useWishlist().length;
   const [searchOpen, setSearchOpen] = useState(false);
 
   const orderedCategories = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
@@ -203,6 +205,18 @@ const Header = () => {
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode" className="hidden sm:inline-flex">
               {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
             </Button>
+            <Link
+              to="/wishlist"
+              aria-label={savedCount ? `Wishlist, ${savedCount} saved` : "Wishlist"}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-secondary"
+            >
+              <Heart className="h-[19px] w-[19px]" />
+              {savedCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+                  {savedCount > 99 ? "99+" : savedCount}
+                </span>
+              )}
+            </Link>
             <DesignToolsMenu className="hidden md:block" />
             <a
               href={consultLink}
@@ -395,7 +409,7 @@ const Header = () => {
                 <Icon className="h-4 w-4" /> {label}
               </a>
             ))}
-            {[{ name: "Home", path: "/" }, { name: "Diamond Guide", path: "/buying-guide" }, ...utilityLinks].map((link) => (
+            {[{ name: "Home", path: "/" }, { name: "Diamond Guide", path: "/buying-guide" }, { name: "Wishlist", path: "/wishlist" }, { name: "Ring size guide", path: "/ring-size-guide" }, ...utilityLinks].map((link) => (
               <Link key={link.path} to={link.path} onClick={closeMenuNow} className="rounded-md bg-secondary/70 px-3 py-2.5 text-sm font-medium">
                 {link.name}
               </Link>

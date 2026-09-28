@@ -11,6 +11,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
+import SaveButton from '@/components/site/SaveButton';
 import { productPath } from '@/lib/urls';
 
 // 600px WebP covers a 2-column phone grid at 3x and desktop cards at 2x.
@@ -186,6 +187,8 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
         )}
 
         {primaryAction}
+
+        <SaveButton productId={product.id} productName={product.name} className="absolute right-3 top-3 z-20" />
 
         <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5">
           {isNew && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">New</span>}

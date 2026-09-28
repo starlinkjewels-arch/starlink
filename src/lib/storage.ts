@@ -56,6 +56,12 @@ export interface Product {
   description: string;
   price: string;
   createdAt?: number | string | { seconds: number; nanoseconds?: number };
+  // Optional filter attributes set in the admin; when empty they are read from name/description
+  // (see src/lib/productAttributes.ts).
+  shapes?: string[];
+  diamondTypes?: ("lab" | "natural")[];
+  metals?: ("white" | "yellow" | "rose" | "platinum")[];
+  caratWeight?: number;
   metaTitle?: string;
   metaDescription?: string;
   seoFaq?: { question: string; answer: string }[];

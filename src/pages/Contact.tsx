@@ -1,24 +1,18 @@
-import { useMemo, useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Flag, Send } from 'lucide-react';
+import { useMemo } from 'react';
+import { MapPin, Phone, Mail, Clock, Flag } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
+import EnquiryForm from '@/components/site/EnquiryForm';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
 import Reveal from '@/components/site/Reveal';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
-import { openWhatsApp, whatsappLink } from '@/lib/whatsapp';
+import { whatsappLink } from '@/lib/whatsapp';
 import { SITE } from '@/lib/seo';
 import CdnImage from '@/components/site/CdnImage';
 import { enquiry } from '@/lib/enquiry';
-
-const topics = ['Custom design', 'Product enquiry', 'Engagement ring', 'Wholesale / B2B', 'Order support', 'Other'];
 
 const faqItems = [
   {
@@ -37,26 +31,9 @@ const faqItems = [
 
 const Contact = () => {
   const { contactInfo, offices, categories } = useAppSelector(selectGlobalData);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [topic, setTopic] = useState(topics[0]);
-  const [message, setMessage] = useState('');
 
   const sortedOffices = useMemo(() => [...offices].sort((a, b) => Number(Boolean(b.isHeadquarters)) - Number(Boolean(a.isHeadquarters))), [offices]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) {
-      toast.error('Please fill in your name, email and message');
-      return;
-    }
-    const text = `*New enquiry from the website*\n\n*Name:* ${name.trim()}\n*Email:* ${email.trim()}\n*Topic:* ${topic}\n\n${message.trim()}`;
-    openWhatsApp(text, contactInfo?.whatsapp);
-    setName('');
-    setEmail('');
-    setMessage('');
-    toast.success('Opening WhatsApp to send your message');
-  };
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -150,48 +127,7 @@ const Contact = () => {
           <Reveal delay={120}>
             <p className="eyebrow mb-3">Send a message</p>
             <h2 className="heading-md">Tell us what you're looking for</h2>
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Your name</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="h-12" autoComplete="name" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12" autoComplete="email" required />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>I'm interested in</Label>
-                <Select value={topic} onValueChange={setTopic}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {topics.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={6}
-                  placeholder="Share details like stone shape, carat, metal, ring size or budget."
-                  required
-                />
-              </div>
-              <Button type="submit" size="xl" className="w-full">
-                <Send /> Send via WhatsApp
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">Your message opens in WhatsApp so you can review it before sending.</p>
-            </form>
+            <EnquiryForm defaultType="Other question" className="mt-8" />
           </Reveal>
         </div>
       </section>

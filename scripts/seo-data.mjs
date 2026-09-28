@@ -5,12 +5,22 @@
 // Keep slugify / paths / meta builders in sync with src/lib/urls.ts and src/lib/seo.ts.
 
 import { initializeApp } from "firebase/app";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import { readFileSync } from "node:fs";
 
 // Design-tool landing page copy, shared with src/pages/DesignToolPage.tsx.
 const DESIGN_TOOLS = JSON.parse(readFileSync(new URL("../src/content/designTools.json", import.meta.url), "utf8"));
 const PRIVACY = JSON.parse(readFileSync(new URL("../src/content/privacyPolicy.json", import.meta.url), "utf8"));
+const POLICIES = JSON.parse(readFileSync(new URL("../src/content/policies.json", import.meta.url), "utf8"));
+const RING_GUIDE = JSON.parse(readFileSync(new URL("../src/content/ringSizeGuide.json", import.meta.url), "utf8"));
+
+// Mirrors src/lib/ringSizes.ts.
+const UK_LETTERS = ["F½", "G½", "H½", "I½", "J½", "K½", "L½", "M½", "N½", "O½", "P½", "Q½", "R½", "S½", "T½", "U½", "V½", "W½", "X½", "Y½", "Z½"];
+const RING_SIZES = UK_LETTERS.map((uk, i) => {
+  const us = 3 + i * 0.5;
+  const c = 2.55 * us + 36.5;
+  return { us, uk, eu: Math.round(c), india: Math.max(1, Math.round(c - 40)), diameter: (0.8128 * us + 11.63).toFixed(1), circumference: c.toFixed(1) };
+});
 
 const firebaseConfig = {
   apiKey: "AIzaSyBse5vfsARbl8k6ub9Mir6qs-CsPdaNuGU",
@@ -33,17 +43,21 @@ export const fetchCatalog = async () => {
     const snap = await getDocs(collection(db, name));
     return snap.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
   };
-  const [categories, products, blogs, buyingGuides] = await Promise.all([
+  const [categories, products, blogs, buyingGuides, reviews] = await Promise.all([
     read("categories"),
     read("products"),
     read("blogs"),
     read("buying-guides"),
+    getDocs(query(collection(db, "reviews"), where("status", "==", "approved")))
+      .then((snap) => snap.docs.map((d) => ({ ...d.data(), id: d.id })))
+      .catch(() => []),
   ]);
   return {
     categories: categories.sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999)),
     products,
     blogs: blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     buyingGuides: buyingGuides.filter((g) => g.published && g.slug).sort((a, b) => (a.order || 0) - (b.order || 0)),
+    reviews,
   };
 };
 
@@ -154,7 +168,7 @@ const pageShell = ({ categories, crumbs, body }) => `
   <main>${body}</main>
   <footer class="pr-footer">
     <p>${esc(SITE_NAME)} — certified lab-grown and natural diamond jewelry, handcrafted in Surat, India. Insured worldwide delivery.</p>
-    <nav><a href="/privacy-policy">Privacy &amp; cookie policy</a><a href="/ring-builder">3D Ring Builder</a><a href="/3d-jewelry-viewer">3D Jewelry Viewer</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/gallery">Gallery</a><a href="/usa">USA</a><a href="/canada">Canada</a><a href="/australia">Australia</a><a href="/germany">Germany</a></nav>
+    <nav><a href="/shipping-policy">Shipping</a><a href="/returns-policy">Returns</a><a href="/warranty">Warranty</a><a href="/ring-size-guide">Ring size guide</a><a href="/terms-and-conditions">Terms</a><a href="/privacy-policy">Privacy &amp; cookie policy</a><a href="/ring-builder">3D Ring Builder</a><a href="/3d-jewelry-viewer">3D Jewelry Viewer</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/gallery">Gallery</a><a href="/usa">USA</a><a href="/canada">Canada</a><a href="/australia">Australia</a><a href="/germany">Germany</a></nav>
   </footer>
 </div>`;
 
@@ -174,7 +188,7 @@ const productList = (products, categoriesById) =>
  * { path, title, description, ogImage, ogType, jsonLd: object[], body, lastmod, changefreq, priority, images: [{loc,title}] }
  */
 export const buildRoutes = (data) => {
-  const { categories, products, blogs, buyingGuides } = data;
+  const { categories, products, blogs, buyingGuides, reviews = [] } = data;
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
   const newest = [...products].sort((a, b) => createdAt(b) - createdAt(a));
   const productsIn = (id) => newest.filter((p) => categoryIdsOf(p).includes(id));
@@ -250,6 +264,51 @@ ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0,
               }`
           )
           .join("")}</article>`
+      ),
+    });
+  }
+
+  // Customer-care policies
+  for (const pol of Object.values(POLICIES)) {
+    const url = `${SITE_URL}${pol.path}`;
+    const crumbs = [home, { name: pol.title, url }];
+    routes.push({
+      path: pol.path,
+      title: pol.metaTitle,
+      description: pol.metaDescription,
+      priority: "0.4",
+      changefreq: "yearly",
+      jsonLd: [breadcrumbLd(crumbs)],
+      body: shell(
+        crumbs,
+        `<article><h1>${esc(pol.title)}</h1><p>${esc(pol.intro)}</p>${pol.sections
+          .map((sec) => `<h2>${esc(sec.title)}</h2>${(sec.paragraphs || []).map((x) => `<p>${esc(x)}</p>`).join("")}${sec.list ? `<ul>${sec.list.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}`)
+          .join("")}</article>`
+      ),
+    });
+  }
+
+  // Ring size guide
+  {
+    const url = `${SITE_URL}${RING_GUIDE.path}`;
+    const crumbs = [home, { name: "Ring Size Guide", url }];
+    routes.push({
+      path: RING_GUIDE.path,
+      title: RING_GUIDE.metaTitle,
+      description: RING_GUIDE.metaDescription,
+      priority: "0.8",
+      changefreq: "yearly",
+      jsonLd: [
+        breadcrumbLd(crumbs),
+        { "@type": "FAQPage", mainEntity: RING_GUIDE.faq.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })) },
+      ],
+      body: shell(
+        crumbs,
+        `<article><h1>${esc(RING_GUIDE.title)}</h1><p>${esc(RING_GUIDE.intro)}</p>
+<h2>International ring size chart</h2><table><tr><th>US / Canada</th><th>UK / Australia</th><th>EU / ISO</th><th>India / Japan</th><th>Diameter (mm)</th><th>Circumference (mm)</th></tr>${RING_SIZES.map((r) => `<tr><td>${r.us}</td><td>${esc(r.uk)}</td><td>${r.eu}</td><td>${r.india}</td><td>${r.diameter}</td><td>${r.circumference}</td></tr>`).join("")}</table>
+${RING_GUIDE.methods.map((m) => `<h2>${esc(m.title)}</h2><ol>${m.steps.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`).join("")}
+<h2>Tips for a perfect fit</h2><ul>${RING_GUIDE.tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+<h2>Frequently asked questions</h2>${RING_GUIDE.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join("")}</article>`
       ),
     });
   }
@@ -376,6 +435,15 @@ ${t.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join(""
           category: cat?.name,
           brand: { "@type": "Brand", name: SITE_NAME },
           manufacturer: { "@id": `${SITE_URL}/#jewelry-store` },
+          ...(() => {
+            const own = reviews.filter((r) => r.productId === p.id && typeof r.rating === "number");
+            if (!own.length) return {};
+            const avg = own.reduce((n, r) => n + r.rating, 0) / own.length;
+            return {
+              aggregateRating: { "@type": "AggregateRating", ratingValue: avg.toFixed(1), reviewCount: own.length, bestRating: 5, worstRating: 1 },
+              review: own.slice(0, 5).map((r) => ({ "@type": "Review", reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 }, author: { "@type": "Person", name: r.name }, reviewBody: r.text, ...(r.title ? { name: r.title } : {}) })),
+            };
+          })(),
         },
         breadcrumbLd(crumbs),
       ],

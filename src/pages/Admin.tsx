@@ -15,7 +15,7 @@ import {
   LogOut, LayoutDashboard, Image, Tag, Package, Sparkles, Newspaper,
   Film, Phone, Building2, Users, Megaphone, MessageSquareQuote,
   BookOpen, Menu, X, ChevronRight, Diamond, RectangleHorizontal,
-  Loader2, Eye, EyeOff,
+  Loader2, Eye, EyeOff, Inbox, Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,6 +33,8 @@ const AdminPromoHeader     = lazy(() => import('@/components/admin/AdminPromoHea
 const AdminTestimonials    = lazy(() => import('@/components/admin/AdminTestimonials'));
 const AdminBuyingGuides    = lazy(() => import('@/components/admin/AdminBuyingGuides'));
 const AdminAds             = lazy(() => import('@/components/admin/AdminAds'));
+const AdminLeads           = lazy(() => import('@/components/admin/AdminLeads'));
+const AdminReviews         = lazy(() => import('@/components/admin/AdminReviews'));
 
 // The admin panel must never appear in search results (noindex instead of listing the path in robots.txt).
 const AdminHead = () => (
@@ -75,6 +77,7 @@ const NAV: NavGroup[] = [
   {
     group: 'Engage',
     items: [
+      { key: 'reviews',        label: 'Reviews',        icon: <Star className="h-4 w-4" /> },
       { key: 'testimonials',   label: 'Testimonials',   icon: <MessageSquareQuote className="h-4 w-4" /> },
       { key: 'blogs',          label: 'Blogs',          icon: <Newspaper className="h-4 w-4" /> },
       { key: 'videos',         label: 'Videos',         icon: <Film className="h-4 w-4" /> },
@@ -84,6 +87,7 @@ const NAV: NavGroup[] = [
   {
     group: 'Business',
     items: [
+      { key: 'leads',    label: 'Leads',        icon: <Inbox className="h-4 w-4" /> },
       { key: 'contact',  label: 'Contact Info', icon: <Phone className="h-4 w-4" /> },
       { key: 'offices',  label: 'Offices',      icon: <Building2 className="h-4 w-4" /> },
       { key: 'visitors', label: 'Visitors',     icon: <Users className="h-4 w-4" /> },
@@ -99,6 +103,8 @@ const SECTION_MAP: Record<string, ReactNode> = {
   products:       <AdminProducts />,
   gallery:        <AdminGallery />,
   featured:       <AdminFeaturedCollection />,
+  reviews:        <AdminReviews />,
+  leads:          <AdminLeads />,
   testimonials:   <AdminTestimonials />,
   blogs:          <AdminBlogs />,
   videos:         <AdminVideos />,

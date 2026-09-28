@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronRight, Ruler } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import Reveal from '@/components/site/Reveal';
@@ -22,6 +22,9 @@ import { SITE, buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitl
 import { getProductCategoryIds, productHasCategory } from '@/lib/storage';
 import { getProductTime, isVideoUrl } from '@/lib/media';
 import { trackProductView } from '@/lib/analytics';
+import { recordRecentlyViewed, useRecentlyViewed } from '@/lib/wishlist';
+import { useProductReviews } from '@/lib/reviews';
+import ProductReviews, { Stars } from '@/components/product/ProductReviews';
 import { categoryPath, categoryUrl, findProductByParam, productPath, productUrl } from '@/lib/urls';
 
 const ProductDetail = () => {
@@ -64,8 +67,19 @@ const ProductDetail = () => {
   const pageUrl = product ? productUrl(product) : `${SITE.url}/product/${id}`;
 
   useEffect(() => {
-    if (product) trackProductView(product.name);
+    if (!product) return;
+    trackProductView(product.name);
+    recordRecentlyViewed(product.id);
   }, [product]);
+
+  const { reviews, average, count: reviewCount } = useProductReviews(product?.id);
+
+  // "Recently viewed" row: other pieces this visitor opened (stored in this browser only).
+  const recentIds = useRecentlyViewed();
+  const recentlyViewed = useMemo(
+    () => recentIds.filter((rid) => rid !== product?.id).map((rid) => products.find((p) => p.id === rid)).filter((p): p is (typeof products)[number] => Boolean(p)).slice(0, 4),
+    [recentIds, products, product?.id]
+  );
 
   if (!product) {
     const loading = !isReady || !productsReady;
@@ -111,6 +125,20 @@ const ProductDetail = () => {
     manufacturer: { '@id': `${SITE.url}/#jewelry-store` },
     // No Offer/price: the page shows "Price on request" and Google requires structured data to match
     // what visitors see. Add an Offer here only if prices become visible on the page.
+    // Ratings only from approved customer reviews shown on this page.
+    ...(reviewCount > 0
+      ? {
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: average.toFixed(1), reviewCount, bestRating: 5, worstRating: 1 },
+          review: reviews.slice(0, 5).map((r) => ({
+            '@type': 'Review',
+            reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+            author: { '@type': 'Person', name: r.name },
+            ...(r.createdAt?.toDate ? { datePublished: r.createdAt.toDate().toISOString().slice(0, 10) } : {}),
+            ...(r.title ? { name: r.title } : {}),
+            reviewBody: r.text,
+          })),
+        }
+      : {}),
   };
 
   return (
@@ -154,9 +182,19 @@ const ProductDetail = () => {
           <div className="min-w-0">
             {category && <p className="eyebrow mb-3">{category.name}</p>}
             <h1 className="font-display text-[1.75rem] leading-tight text-balance break-words sm:text-3xl lg:text-[40px]">{product.name}</h1>
+            {reviewCount > 0 && (
+              <a href="#reviews" className="mt-2 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <Stars value={average} /> {average.toFixed(1)} · {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}
+              </a>
+            )}
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-b pb-6">
               <span className="text-lg font-semibold text-brand">Price on request</span>
               <span className="text-xs text-muted-foreground">Made to order · Certified diamonds · Insured delivery</span>
+              {category && /ring|band/i.test(category.name) && (
+                <Link to="/ring-size-guide" className="flex items-center gap-1.5 text-xs font-semibold text-brand underline-offset-4 hover:underline">
+                  <Ruler className="h-3.5 w-3.5" /> Find your ring size
+                </Link>
+              )}
             </div>
             <div className="mt-6">
               <ProductInfo product={product} />
@@ -164,6 +202,8 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      <ProductReviews productId={product.id} productName={product.name} reviews={reviews} average={average} />
 
       {related.length > 0 && category && (
         <section className="border-t bg-secondary/40 py-16 md:py-20">
@@ -182,6 +222,27 @@ const ProductDetail = () => {
                 <Reveal key={p.id} delay={i * 70}>
                   <ProductCard product={p} />
                 </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {recentlyViewed.length > 0 && (
+        <section className="py-16 md:py-20">
+          <div className="container-wide">
+            <div className="mb-10 flex items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow mb-3">Your history</p>
+                <h2 className="heading-md">Recently viewed</h2>
+              </div>
+              <Link to="/wishlist" className="link-underline shrink-0">
+                Wishlist <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
+              {recentlyViewed.map((p) => (
+                <ProductCard key={p.id} product={p} />
               ))}
             </div>
           </div>

@@ -46,6 +46,15 @@ const companyLinks = [
   { name: "Contact", to: "/contact" },
 ];
 
+const careLinks = [
+  { name: "Shipping & delivery", to: "/shipping-policy" },
+  { name: "Returns & exchanges", to: "/returns-policy" },
+  { name: "Warranty & care", to: "/warranty" },
+  { name: "Ring size guide", to: "/ring-size-guide" },
+  { name: "Wishlist", to: "/wishlist" },
+  { name: "Terms & conditions", to: "/terms-and-conditions" },
+];
+
 const Footer = () => {
   const { contactInfo, categories } = useAppSelector(selectGlobalData);
   const collections = useMemo(() => orderCategoriesWithCustomFirst(categories).slice(0, 7), [categories]);
@@ -100,8 +109,8 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="container-wide grid gap-12 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
-          <div className="space-y-5">
+        <div className="container-wide grid grid-cols-2 gap-x-6 gap-y-12 py-14 md:grid-cols-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.2fr]">
+          <div className="col-span-2 space-y-5 md:col-span-3 lg:col-span-1">
             <img src={logo} alt="Starlink Jewels" className="h-20 w-auto dark:brightness-150" loading="lazy" decoding="async" />
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               Lab-grown and natural diamond jewelry, designed and handcrafted in Surat since 2011 and delivered insured worldwide.
@@ -171,6 +180,19 @@ const Footer = () => {
           </div>
 
           <div>
+            <h3 className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-foreground">Customer care</h3>
+            <ul className="space-y-3 text-sm">
+              {careLinks.map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to} className="text-muted-foreground transition-colors hover:text-foreground">
+                    {l.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="col-span-2 md:col-span-1">
             <h3 className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-foreground">Get in touch</h3>
             <ul className="space-y-4 text-sm text-muted-foreground">
               {contactInfo?.address && (

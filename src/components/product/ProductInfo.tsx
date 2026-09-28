@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { ShieldCheck, Truck, PencilRuler, Video, Share2, RotateCcw, Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ShieldCheck, Truck, PencilRuler, Video, Share2, RotateCcw, Check, Mail } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -14,6 +14,9 @@ import { selectGlobalData } from '@/store/contentSlice';
 import GIA from '@/assets/paylogo/GIA_Logo.png';
 import IGI from '@/assets/paylogo/igi logo.webp';
 import { productUrl } from '@/lib/urls';
+import SaveButton from '@/components/site/SaveButton';
+import EnquiryForm from '@/components/site/EnquiryForm';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { enquiry } from '@/lib/enquiry';
 
 const highlights = [
@@ -80,6 +83,7 @@ const ProductInfo = ({ product, descriptionOpen = true }: ProductInfoProps) => {
   );
   const videoCallHref = whatsappLink(enquiry.videoCall(product), contactInfo?.whatsapp);
   const shareUrl = productUrl(product);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   const share = async () => {
     try {
@@ -106,10 +110,25 @@ const ProductInfo = ({ product, descriptionOpen = true }: ProductInfoProps) => {
               <Video /> Live video viewing
             </a>
           </Button>
+          <SaveButton productId={product.id} productName={product.name} variant="outline" />
           <Button variant="outline" size="xl" className="px-4" onClick={share} aria-label="Share this piece">
             <Share2 />
           </Button>
         </div>
+        <button
+          type="button"
+          onClick={() => setQuoteOpen(true)}
+          className="mt-3 flex w-full items-center justify-center gap-2 text-sm font-semibold text-brand underline-offset-4 hover:underline"
+        >
+          <Mail className="h-4 w-4" /> Prefer email? Request a quote or book a video consultation
+        </button>
+        <Sheet open={quoteOpen} onOpenChange={setQuoteOpen}>
+          <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+            <SheetTitle className="font-display text-2xl">Request a quote</SheetTitle>
+            <p className="mt-1 text-sm text-muted-foreground">Our experts reply with the price, certified stone options and delivery details.</p>
+            <EnquiryForm product={{ id: product.id, name: product.name, url: shareUrl }} className="mt-6" onDone={() => setQuoteOpen(false)} />
+          </SheetContent>
+        </Sheet>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

@@ -66,6 +66,7 @@ const CookieBanner = () => {
 
   return (
     <div
+      id="cookie-banner"
       role="dialog"
       aria-modal="false"
       aria-labelledby="cookie-title"

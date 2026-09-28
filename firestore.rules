@@ -73,6 +73,60 @@ service cloud.firestore {
         && request.resource.data.timestamp == request.time;
     }
 
+    // ---- Quote / consultation requests (website forms → Admin → Leads) ----
+    match /leads/{docId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isValidLead(request.resource.data);
+    }
+
+    function isValidLead(d) {
+      return d.keys().hasOnly([
+          'type', 'name', 'email', 'phone', 'country', 'city', 'contactMethod', 'preferredTime',
+          'message', 'status', 'page', 'referrer', 'createdAt', 'productId', 'productName', 'productUrl'
+        ])
+        && d.keys().hasAll(['type', 'name', 'email', 'country', 'contactMethod', 'status', 'createdAt'])
+        && d.status == 'new'
+        && d.createdAt == request.time
+        && d.type is string && d.type.size() <= 40
+        && d.contactMethod is string && d.contactMethod.size() <= 20
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.email is string && d.email.size() <= 120 && d.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && d.country is string && d.country.size() > 0 && d.country.size() <= 60
+        && (!('phone' in d) || (d.phone is string && d.phone.size() <= 40))
+        && (!('city' in d) || (d.city is string && d.city.size() <= 80))
+        && (!('preferredTime' in d) || (d.preferredTime is string && d.preferredTime.size() <= 40))
+        && (!('message' in d) || (d.message is string && d.message.size() <= 2000))
+        && (!('page' in d) || (d.page is string && d.page.size() <= 300))
+        && (!('referrer' in d) || d.referrer == null || (d.referrer is string && d.referrer.size() <= 300))
+        && (!('productId' in d) || (d.productId is string && d.productId.size() <= 60))
+        && (!('productName' in d) || (d.productName is string && d.productName.size() <= 160))
+        && (!('productUrl' in d) || (d.productUrl is string && d.productUrl.size() <= 300));
+    }
+
+    // ---- Product reviews (moderated in Admin → Reviews) ----
+    // Anyone may submit a pending, unverified review; only approved ones are public.
+    match /reviews/{docId} {
+      allow read: if resource.data.status == 'approved' || isAdmin();
+      allow update, delete: if isAdmin();
+      allow create: if isValidReview(request.resource.data);
+    }
+
+    function isValidReview(d) {
+      return d.keys().hasOnly(['productId', 'productName', 'rating', 'title', 'text', 'name', 'email', 'country', 'status', 'verified', 'createdAt'])
+        && d.keys().hasAll(['productId', 'rating', 'text', 'name', 'email', 'status', 'verified', 'createdAt'])
+        && d.status == 'pending'
+        && d.verified == false
+        && d.createdAt == request.time
+        && d.rating is int && d.rating >= 1 && d.rating <= 5
+        && d.productId is string && d.productId.size() > 0 && d.productId.size() <= 60
+        && (!('productName' in d) || (d.productName is string && d.productName.size() <= 160))
+        && (!('title' in d) || (d.title is string && d.title.size() <= 100))
+        && d.text is string && d.text.size() >= 10 && d.text.size() <= 2000
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.email is string && d.email.size() <= 120 && d.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && (!('country' in d) || (d.country is string && d.country.size() <= 60));
+    }
+
     // Only the browsing fields may change, arrays stay bounded, counters only go up.
     function isValidVisitUpdate(d, old) {
       return d.diff(old).affectedKeys().hasOnly(['pages', 'pageviews', 'products', 'whatsappClicks', 'lastSeen'])

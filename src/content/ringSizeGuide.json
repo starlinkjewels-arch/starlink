@@ -1,0 +1,48 @@
+{
+  "path": "/ring-size-guide",
+  "metaTitle": "Ring Size Guide – Size Chart, Converter & How to Measure at Home",
+  "metaDescription": "Find your ring size at home: US, UK, EU and India ring size chart in mm, a size converter, and three easy ways to measure your finger or an existing ring.",
+  "title": "Ring size guide",
+  "intro": "Find your size in two minutes. Measure a ring you already wear or your finger, convert between US, UK, EU and Indian sizes, and send it to us. Every Starlink ring is made to your exact size.",
+  "methods": [
+    {
+      "title": "Measure a ring that fits",
+      "steps": [
+        "Choose a ring that fits the finger you are buying for.",
+        "Place it on a ruler and measure the inside edge to edge, straight across the centre, in millimetres.",
+        "Enter the diameter in the calculator below to see your size."
+      ]
+    },
+    {
+      "title": "Measure your finger with string or paper",
+      "steps": [
+        "Wrap a thin strip of paper or non-stretch string around the base of your finger.",
+        "Mark where it overlaps, making sure it slides over your knuckle comfortably.",
+        "Lay it flat, measure the length in millimetres and enter it as the circumference below."
+      ]
+    },
+    {
+      "title": "Ask our experts",
+      "steps": [
+        "Not sure, or buying a surprise? Message us on WhatsApp.",
+        "We will help you work out the size from a photo of a ring on a ruler or from your usual sizes in other brands.",
+        "We confirm the size with you before your ring is crafted."
+      ]
+    }
+  ],
+  "tips": [
+    "Measure at the end of the day, when your fingers are warm. Fingers are smaller in the morning and in the cold.",
+    "The ring must pass over your knuckle. If your knuckle is wider than the base of your finger, size for the knuckle.",
+    "Wide bands (6 mm or more) fit more snugly, so consider going up a quarter to a half size.",
+    "Between two sizes? Choose the larger one.",
+    "Measure two or three times to be sure, and measure the right hand if the ring will be worn there. Your hands can differ."
+  ],
+  "faq": [
+    { "question": "How do I find my ring size at home?", "answer": "Measure the inside diameter of a ring that fits, or wrap string or paper around the base of your finger and measure its length. Enter either measurement in our calculator to get your US, UK, EU and Indian size." },
+    { "question": "What is the most common ring size?", "answer": "In the US, women's ring sizes are most often between 5 and 7, and men's between 8 and 11. Always measure rather than guess, because fingers vary a lot." },
+    { "question": "How do I convert US ring sizes to UK, EU or Indian sizes?", "answer": "Use the converter or the chart on this page. For example, a US size 7 is a UK N½, an EU 54 and about an Indian 14, with an inner diameter of 17.3 mm." },
+    { "question": "Should I size up for a wide band?", "answer": "Usually yes. Bands 6 mm wide or more sit more snugly, so most people go up a quarter to a half size." },
+    { "question": "What if I am buying a ring as a surprise?", "answer": "Borrow a ring they already wear on the right finger and measure its inside diameter, or ask a friend or family member. Our team on WhatsApp can help you estimate the size." },
+    { "question": "Do you confirm my size before making the ring?", "answer": "Yes. Every Starlink ring is made to order, so we confirm your size with you before crafting begins." }
+  ]
+}

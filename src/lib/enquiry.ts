@@ -36,6 +36,16 @@ export const enquiry = {
       THANKS
     ),
 
+  /** Wishlist page: ask about every saved piece at once. */
+  wishlist: (items: ProductLike[]) =>
+    compose(
+      GREETING,
+      `I've saved ${items.length === 1 ? "this piece" : `these ${items.length} pieces`} on your website and would like to know more:`,
+      items.slice(0, 15).map((p, i) => `${i + 1}. ${piece(p.name, productUrl(p))}`).join("\n\n"),
+      "Could you please share prices, availability and customisation options?",
+      THANKS
+    ),
+
   /** Product page: see the piece live before ordering. */
   videoCall: (p: ProductLike) =>
     compose(GREETING, "I'd like a live video call to see this piece before ordering:", piece(p.name, productUrl(p)), "When would be a good time?", THANKS),
