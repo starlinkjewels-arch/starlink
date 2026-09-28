@@ -21,8 +21,8 @@
       ],
       "list": [
         "Information you give us: when you contact us on WhatsApp, by phone or email, or send a quote or consultation request through our website form, we receive what you send, such as your name, email, phone number, country and city, your preferred time and way of contact, the pieces you are interested in and any design details. If you write a product review, we receive your rating, review, name, country and email address; your email is never shown publicly.",
-        "Analytics, only if you accept analytics cookies: your IP address and the approximate location it indicates (country, region, city, postcode, time zone), your device type, browser, operating system, language and screen size, the website that referred you and any campaign tags in the link, the pages and pieces you view, how many times you open WhatsApp from our site, and a random identifier stored in your browser. If you also allow your browser's location prompt, we record your device location and its accuracy.",
-        "Information needed to run the site: your cookie choice and your display settings (theme and accessibility options) are stored in your browser. Like every website, our hosting and image providers receive your IP address when they deliver pages and images.",
+        "Analytics, only if you accept analytics cookies: your IP address and the approximate location it indicates (country, region, city, postcode, time zone) and the name of your internet provider, your device type, browser, operating system, language and screen size, the website that referred you and any campaign tags in the link, the pages and pieces you view, how many times you open WhatsApp from our site, and a random identifier stored in your browser. If you also allow your browser's location prompt, we record your device location and its accuracy.",
+        "Information needed to run the site: your cookie choice and your display settings (theme and accessibility options) are stored in your browser. When you make a cookie choice we also keep a record of it as proof: the choice, the date, the page, a random consent ID, and your device type, browser, operating system, language and time zone (plus, if you accept analytics, the random identifier that links the choice to your visit log). Like every website, our hosting and image providers receive your IP address when they deliver pages and images.",
         "Information stored only in your browser: pieces you save to your wishlist and pieces you have recently viewed. This never leaves your device unless you choose to share your wishlist link."
       ]
     },
@@ -54,7 +54,7 @@
         {
           "name": "sj_consent",
           "type": "Strictly necessary",
-          "purpose": "Remembers your cookie choices.",
+          "purpose": "Remembers your cookie choices and a random consent ID.",
           "duration": "6 months"
         },
         {

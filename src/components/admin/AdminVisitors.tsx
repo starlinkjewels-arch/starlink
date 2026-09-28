@@ -18,68 +18,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, MapPinOff, Globe, Calendar, Clock, Monitor, ExternalLink, Trash2, RefreshCw, Download, MessageCircle, Eye, Cookie } from "lucide-react";
-
-interface Visitor {
-  id: string;
-  hostname?: string | null;
-  origin?: string | null;
-  referrer?: string | null;
-
-  ip: string;
-  country: string | null;
-  region: string | null;
-  city: string | null;
-  postal: string | null;
-  timezone: string | null;
-  userAgent: string;
-  browser: string;
-  device: string;
-  os: string;
-  page: string;
-  timestamp: { toDate(): Date };
-  grantedLocation: boolean;
-  latitude?: number;
-  longitude?: number;
-  accuracy?: number;
-  // Browsing activity (recorded after analytics consent)
-  pages?: string[];
-  pageviews?: number;
-  products?: string[];
-  whatsappClicks?: number;
-  utmSource?: string | null;
-  utmMedium?: string | null;
-  utmCampaign?: string | null;
-  language?: string | null;
-  visitorId?: string;
-}
-
-interface ConsentRecord {
-  analytics: boolean;
-  marketing: boolean;
-}
-
-// "Where did they come from": campaign tag first, then the referring site, else direct.
-const sourceOf = (v: Visitor) => {
-  if (v.utmSource) return v.utmSource + (v.utmMedium ? ` / ${v.utmMedium}` : "");
-  if (v.referrer) {
-    try {
-      const host = new URL(v.referrer).hostname.replace(/^www\./, "");
-      if (host && host !== window.location.hostname.replace(/^www\./, "")) return host;
-    } catch {
-      // ignore malformed referrers
-    }
-  }
-  return "Direct";
-};
+import { MapPin, MapPinOff, Globe, Calendar, Clock, Monitor, ExternalLink, Trash2, RefreshCw, Download, MessageCircle, Eye, Bot } from "lucide-react";
+import ConsentLog from "./ConsentLog";
+import VisitorDetailsDialog from "./VisitorDetailsDialog";
+import { dayOf, downloadCsv, isLikelyBot, sourceOf, type ConsentRecord, type Visitor } from "./visitorData";
 
 const topCounts = (values: string[], n = 6) => {
   const map = new Map<string, number>();
   values.filter(Boolean).forEach((v) => map.set(v, (map.get(v) || 0) + 1));
   return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
 };
-
-const csvCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
 
 const AdminVisitors = () => {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
@@ -91,6 +39,8 @@ const AdminVisitors = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [consents, setConsents] = useState<ConsentRecord[]>([]);
+  const [openVisitor, setOpenVisitor] = useState<Visitor | null>(null);
+  const [hideBots, setHideBots] = useState(false);
   const { toast } = useToast();
 
   const currentHost = useMemo(() => window.location.hostname, []);
@@ -114,7 +64,7 @@ const AdminVisitors = () => {
 
       try {
         const consentSnap = await getDocs(query(collection(db, "consents"), orderBy("timestamp", "desc"), limit(2000)));
-        setConsents(consentSnap.docs.map((d) => d.data() as ConsentRecord));
+        setConsents(consentSnap.docs.map((d) => ({ id: d.id, ...d.data() }) as ConsentRecord));
       } catch {
         setConsents([]);
       }
@@ -130,26 +80,32 @@ const AdminVisitors = () => {
     fetchVisitors();
   }, []);
 
-  const getVisitorDateValue = (visitor: Visitor) => {
-    if (!visitor.timestamp?.toDate) return "";
-    return format(visitor.timestamp.toDate(), "yyyy-MM-dd");
-  };
+  const inDateRange = useMemo(() => (day: string) => {
+    if (!day) return false;
+    if (filterMode === "single") return !singleDate || day === singleDate;
+    if (fromDate && day < fromDate) return false;
+    if (toDate && day > toDate) return false;
+    return true;
+  }, [filterMode, singleDate, fromDate, toDate]);
 
-  const filteredVisitors = useMemo(() => {
-    return visitors.filter((visitor) => {
-      const visitorDate = getVisitorDateValue(visitor);
-      if (!visitorDate) return false;
+  const botCount = useMemo(() => visitors.filter((v) => inDateRange(dayOf(v.timestamp)) && isLikelyBot(v)).length, [visitors, inDateRange]);
 
-      if (filterMode === "single") {
-        if (!singleDate) return true;
-        return visitorDate === singleDate;
-      }
+  const filteredVisitors = useMemo(
+    () => visitors.filter((v) => inDateRange(dayOf(v.timestamp)) && !(hideBots && isLikelyBot(v))),
+    [visitors, inDateRange, hideBots],
+  );
 
-      if (fromDate && visitorDate < fromDate) return false;
-      if (toDate && visitorDate > toDate) return false;
-      return true;
+  const filteredConsents = useMemo(() => consents.filter((c) => inDateRange(dayOf(c.timestamp))), [consents, inDateRange]);
+
+  // All visit records per browser (newest first): links consent entries and returning visits.
+  const visitsById = useMemo(() => {
+    const map = new Map<string, Visitor[]>();
+    visitors.forEach((v) => {
+      if (!v.visitorId) return;
+      map.set(v.visitorId, [...(map.get(v.visitorId) || []), v]);
     });
-  }, [visitors, filterMode, singleDate, fromDate, toDate]);
+    return map;
+  }, [visitors]);
 
   const total = filteredVisitors.length;
   const allowed = filteredVisitors.filter((v) => v.grantedLocation).length;
@@ -230,123 +186,6 @@ const AdminVisitors = () => {
         </Button>
       </div>
 
-      {/* Cookie consent */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg"><Cookie className="h-4 w-4" /> Cookie consent</CardTitle>
-          <CardDescription>Choices made in the cookie banner (last {consents.length} decisions). Visitor details below are only recorded for people who accepted analytics.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-3 gap-4">
-          <div>
-            <div className="text-2xl font-bold">{consents.length}</div>
-            <div className="text-xs text-muted-foreground">Decisions</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-green-600">
-              {consents.length ? Math.round((consents.filter((c) => c.analytics).length / consents.length) * 100) : 0}%
-            </div>
-            <div className="text-xs text-muted-foreground">Accepted analytics</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">
-              {consents.length ? Math.round((consents.filter((c) => c.marketing).length / consents.length) * 100) : 0}%
-            </div>
-            <div className="text-xs text-muted-foreground">Accepted marketing</div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Insights for the selected dates */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { title: "Top pages", rows: topCounts(filteredVisitors.flatMap((v) => v.pages?.length ? v.pages : [v.page])) },
-          { title: "Most viewed pieces", rows: topCounts(filteredVisitors.flatMap((v) => v.products || [])) },
-          { title: "Traffic sources", rows: topCounts(filteredVisitors.map(sourceOf)) },
-          { title: "Countries", rows: topCounts(filteredVisitors.map((v) => v.country || "Unknown")) },
-        ].map((box) => (
-          <Card key={box.title}>
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm">{box.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1.5 pb-4">
-              {box.rows.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No data yet</p>
-              ) : (
-                box.rows.map(([label, count]) => (
-                  <div key={label} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate" title={label}>{label}</span>
-                    <span className="shrink-0 font-semibold tabular-nums">{count}</span>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> {filteredVisitors.reduce((n, v) => n + (v.pageviews || 1), 0)} page views</span>
-        <span className="flex items-center gap-1.5"><MessageCircle className="h-4 w-4" /> {filteredVisitors.reduce((n, v) => n + (v.whatsappClicks || 0), 0)} WhatsApp enquiry clicks</span>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto"
-          onClick={() => {
-            const header = ["Date", "Country", "Region", "City", "Device", "Browser", "OS", "Language", "Source", "Landing page", "Pages viewed", "Page views", "Products viewed", "WhatsApp clicks", "Visitor ID"];
-            const rows = filteredVisitors.map((v) => [
-              v.timestamp?.toDate ? format(v.timestamp.toDate(), "yyyy-MM-dd HH:mm") : "",
-              v.country, v.region, v.city, v.device, v.browser, v.os, v.language, sourceOf(v), v.page,
-              (v.pages || []).join(" | "), v.pageviews ?? 1, (v.products || []).join(" | "), v.whatsappClicks ?? 0, v.visitorId,
-            ]);
-            const csv = [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
-            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `starlink-visitors-${format(new Date(), "yyyy-MM-dd")}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }}
-        >
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2 pt-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Total Visitors</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="text-2xl font-bold">{total}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
-          <CardHeader className="pb-2 pt-4">
-            <CardTitle className="text-xs font-medium text-green-600">Location Allowed</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="text-2xl font-bold text-green-600">{allowed}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
-          <CardHeader className="pb-2 pt-4">
-            <CardTitle className="text-xs font-medium text-red-600">Location Denied</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="text-2xl font-bold text-red-600">{total - allowed}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 pt-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Success Rate</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="text-2xl font-bold">{total > 0 ? Math.round((allowed / total) * 100) : 0}%</div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Date Filter</CardTitle>
@@ -409,10 +248,106 @@ const AdminVisitors = () => {
           )}
 
           <p className="text-sm text-muted-foreground">
-            Showing {filteredVisitors.length} of {visitors.length} visitors
+            Showing {filteredVisitors.length} of {visitors.length} visitors and {filteredConsents.length} of {consents.length} cookie choices
           </p>
+          {botCount > 0 && (
+            <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
+              <Checkbox checked={hideBots} onCheckedChange={(c) => setHideBots(Boolean(c))} />
+              Hide {botCount} likely bot / crawler visit{botCount === 1 ? "" : "s"} (cloud servers, automated browsers)
+            </label>
+          )}
         </CardContent>
       </Card>
+
+      <ConsentLog consents={filteredConsents} visitsById={visitsById} onOpenVisitor={setOpenVisitor} />
+
+      {/* Insights for the selected dates */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          { title: "Top pages", rows: topCounts(filteredVisitors.flatMap((v) => v.pages?.length ? v.pages : [v.page])) },
+          { title: "Most viewed pieces", rows: topCounts(filteredVisitors.flatMap((v) => v.products || [])) },
+          { title: "Traffic sources", rows: topCounts(filteredVisitors.map(sourceOf)) },
+          { title: "Countries", rows: topCounts(filteredVisitors.map((v) => v.country || "Unknown")) },
+        ].map((box) => (
+          <Card key={box.title}>
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm">{box.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5 pb-4">
+              {box.rows.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No data yet</p>
+              ) : (
+                box.rows.map(([label, count]) => (
+                  <div key={label} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="truncate" title={label}>{label}</span>
+                    <span className="shrink-0 font-semibold tabular-nums">{count}</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> {filteredVisitors.reduce((n, v) => n + (v.pageviews || 1), 0)} page views</span>
+        <span className="flex items-center gap-1.5"><MessageCircle className="h-4 w-4" /> {filteredVisitors.reduce((n, v) => n + (v.whatsappClicks || 0), 0)} WhatsApp enquiry clicks</span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => {
+            downloadCsv(
+              `starlink-visitors-${format(new Date(), "yyyy-MM-dd")}.csv`,
+              ["Date", "Country", "Region", "City", "ZIP", "Time zone", "IP", "Network", "Device", "Browser", "OS", "Screen", "Language", "Source", "Referrer", "Landing page", "Pages viewed", "Page views", "Products viewed", "WhatsApp clicks", "Marketing consent", "Visits from this browser", "Possible bot", "Visitor ID", "Consent ID"],
+              filteredVisitors.map((v) => [
+                v.timestamp?.toDate ? format(v.timestamp.toDate(), "yyyy-MM-dd HH:mm") : "",
+                v.country, v.region, v.city, v.postal, v.timezone, v.ip, v.org, v.device, v.browser, v.os, v.screen, v.language, sourceOf(v), v.referrer, v.page,
+                (v.pages || []).join(" | "), v.pageviews ?? 1, (v.products || []).join(" | "), v.whatsappClicks ?? 0,
+                v.consentMarketing ? "Yes" : "No", v.visitorId ? visitsById.get(v.visitorId)?.length ?? 1 : 1, isLikelyBot(v) ? "Yes" : "No", v.visitorId, v.consentId,
+              ]),
+            );
+          }}
+        >
+          <Download className="h-4 w-4 mr-2" /> Export visitors CSV
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2 pt-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Total Visitors</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-2xl font-bold">{total}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+          <CardHeader className="pb-2 pt-4">
+            <CardTitle className="text-xs font-medium text-green-600">Location Allowed</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-2xl font-bold text-green-600">{allowed}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
+          <CardHeader className="pb-2 pt-4">
+            <CardTitle className="text-xs font-medium text-red-600">Location Denied</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-2xl font-bold text-red-600">{total - allowed}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 pt-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Success Rate</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-2xl font-bold">{total > 0 ? Math.round((allowed / total) * 100) : 0}%</div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Actions Bar */}
       {selectedIds.length > 0 && (
@@ -437,7 +372,7 @@ const AdminVisitors = () => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Visitor Details</CardTitle>
-          <CardDescription>Complete information for each visitor</CardDescription>
+          <CardDescription>Visitors who accepted analytics cookies. Click a row for full details: pages, pieces viewed, device, other visits and cookie choices.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -456,7 +391,7 @@ const AdminVisitors = () => {
                   <TableHead className="min-w-[150px]">Device Info</TableHead>
                   <TableHead className="min-w-[200px]">Activity</TableHead>
                   <TableHead className="min-w-[120px] text-center">GPS Location</TableHead>
-                  <TableHead className="w-12">Action</TableHead>
+                  <TableHead className="w-20">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -468,8 +403,8 @@ const AdminVisitors = () => {
                   </TableRow>
                 ) : (
                   filteredVisitors.map((v) => (
-                    <TableRow key={v.id} className="hover:bg-muted/30">
-                      <TableCell>
+                    <TableRow key={v.id} className="cursor-pointer hover:bg-muted/30" onClick={() => setOpenVisitor(v)}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox 
                           checked={selectedIds.includes(v.id)}
                           onCheckedChange={(checked) => handleSelectOne(v.id, !!checked)}
@@ -487,6 +422,11 @@ const AdminVisitors = () => {
                             <Clock className="h-3 w-3" />
                             {v.timestamp?.toDate ? format(v.timestamp.toDate(), "hh:mm:ss a") : "—"}
                           </div>
+                          {v.visitorId && (visitsById.get(v.visitorId)?.length ?? 0) > 1 && (
+                            <Badge variant="outline" className="mt-1 border-blue-200 bg-blue-50 text-[10px] text-blue-700 dark:bg-blue-950/30">
+                              Returning · {visitsById.get(v.visitorId)!.length} visits
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
 
@@ -524,6 +464,11 @@ const AdminVisitors = () => {
                           <div className="text-xs text-muted-foreground pl-5">
                             {v.browser || "—"} • {v.os || "—"}
                           </div>
+                          {isLikelyBot(v) && (
+                            <Badge variant="outline" className="ml-5 mt-1 border-amber-200 bg-amber-50 text-[10px] text-amber-700 dark:bg-amber-950/30">
+                              <Bot className="mr-1 h-3 w-3" /> Likely bot
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
 
@@ -543,7 +488,7 @@ const AdminVisitors = () => {
                       </TableCell>
 
                       {/* GPS Location */}
-                      <TableCell className="text-center">
+                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                         {v.grantedLocation && v.latitude && v.longitude ? (
                           <Dialog>
                             <DialogTrigger asChild>
@@ -592,8 +537,12 @@ const AdminVisitors = () => {
                         )}
                       </TableCell>
 
-                      {/* Delete */}
-                      <TableCell>
+                      {/* Details / delete */}
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="View details" onClick={() => setOpenVisitor(v)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
@@ -602,6 +551,7 @@ const AdminVisitors = () => {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -611,6 +561,8 @@ const AdminVisitors = () => {
           </div>
         </CardContent>
       </Card>
+
+      <VisitorDetailsDialog visitor={openVisitor} visitors={visitors} consents={consents} onOpenChange={(open) => !open && setOpenVisitor(null)} />
     </div>
   );
 };

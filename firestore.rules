@@ -61,16 +61,33 @@ service cloud.firestore {
       allow update: if isValidVisitUpdate(request.resource.data, resource.data);
     }
 
-    // Consent choices from the cookie banner (proof of consent; no personal data).
+    // Consent log from the cookie banner (proof of consent): the choice, the button used,
+    // the consent id and the device/browser type. visitorId is only sent when analytics was
+    // accepted and links the entry to that browser's /visitors records.
     match /consents/{docId} {
       allow read, delete: if isAdmin();
       allow update: if false;
-      allow create: if request.resource.data.keys().hasOnly(['analytics', 'marketing', 'version', 'page', 'timestamp'])
-        && request.resource.data.analytics is bool
-        && request.resource.data.marketing is bool
-        && request.resource.data.version is string && request.resource.data.version.size() <= 20
-        && request.resource.data.page is string && request.resource.data.page.size() <= 300
-        && request.resource.data.timestamp == request.time;
+      allow create: if isValidConsent(request.resource.data);
+    }
+
+    function isValidConsent(d) {
+      return d.keys().hasOnly([
+          'analytics', 'marketing', 'version', 'page', 'timestamp',
+          'action', 'consentId', 'visitorId', 'browser', 'device', 'os', 'language', 'timezone'
+        ])
+        && d.analytics is bool
+        && d.marketing is bool
+        && d.version is string && d.version.size() <= 20
+        && d.page is string && d.page.size() <= 300
+        && d.timestamp == request.time
+        && (!('action' in d) || d.action in ['accept_all', 'reject_all', 'custom'])
+        && (!('consentId' in d) || (d.consentId is string && d.consentId.size() <= 40))
+        && (!('visitorId' in d) || (d.analytics == true && d.visitorId is string && d.visitorId.size() <= 40))
+        && (!('browser' in d) || (d.browser is string && d.browser.size() <= 30))
+        && (!('device' in d) || (d.device is string && d.device.size() <= 20))
+        && (!('os' in d) || (d.os is string && d.os.size() <= 20))
+        && (!('language' in d) || d.language == null || (d.language is string && d.language.size() <= 20))
+        && (!('timezone' in d) || d.timezone == null || (d.timezone is string && d.timezone.size() <= 60));
     }
 
     // ---- Quote / consultation requests (website forms → Admin → Leads) ----
@@ -144,7 +161,7 @@ service cloud.firestore {
           'hostname', 'origin', 'referrer',
           'ip', 'country', 'region', 'city', 'postal', 'timezone',
           'userAgent', 'browser', 'device', 'os', 'language', 'screen',
-          'visitorId', 'consentMarketing', 'utmSource', 'utmMedium', 'utmCampaign',
+          'visitorId', 'consentId', 'consentMarketing', 'org', 'utmSource', 'utmMedium', 'utmCampaign',
           'page', 'pages', 'pageviews', 'products', 'whatsappClicks',
           'timestamp', 'lastSeen', 'grantedLocation',
           'latitude', 'longitude', 'accuracy'
@@ -154,6 +171,8 @@ service cloud.firestore {
         && (!('pages' in d) || (d.pages is list && d.pages.size() <= 60))
         && (!('products' in d) || (d.products is list && d.products.size() <= 60))
         && (!('visitorId' in d) || (d.visitorId is string && d.visitorId.size() <= 40))
+        && (!('consentId' in d) || d.consentId == null || (d.consentId is string && d.consentId.size() <= 40))
+        && (!('org' in d) || d.org == null || (d.org is string && d.org.size() <= 120))
         && d.timestamp == request.time
         && d.grantedLocation is bool
         && d.page is string && d.page.size() <= 500

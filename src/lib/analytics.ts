@@ -49,6 +49,28 @@ const pending = { pages: [] as string[], products: [] as string[], whatsappClick
 
 const currentPage = () => (window.location.pathname + window.location.search).slice(0, 300);
 
+/** Browser family, device class and OS from the user agent (no fingerprinting). */
+const deviceInfo = () => {
+  const ua = navigator.userAgent;
+  const browser = /Edg\//.test(ua) ? 'Edge'
+    : /OPR\/|Opera/.test(ua) ? 'Opera'
+    : /SamsungBrowser/.test(ua) ? 'Samsung Internet'
+    : /Chrome|CriOS/.test(ua) ? 'Chrome'
+    : /Firefox|FxiOS/.test(ua) ? 'Firefox'
+    : /Safari/.test(ua) ? 'Safari'
+    : 'Other';
+  const device = /iPad|Tablet/.test(ua) ? 'Tablet' : /Mobile|Android|iPhone/.test(ua) ? 'Mobile' : 'Desktop';
+  // iPhone and Android user agents also mention "Mac OS X" / "Linux", so check them first.
+  const os = /Windows/.test(ua) ? 'Windows'
+    : /Android/.test(ua) ? 'Android'
+    : /iPhone|iPad|iPod/.test(ua) ? 'iOS'
+    : /Mac/.test(ua) ? 'MacOS'
+    : /CrOS/.test(ua) ? 'ChromeOS'
+    : /Linux/.test(ua) ? 'Linux'
+    : 'Other';
+  return { browser, device, os };
+};
+
 const trafficSource = () => {
   const params = new URLSearchParams(window.location.search);
   const pick = (k: string) => params.get(k)?.slice(0, 100) || null;
@@ -71,9 +93,7 @@ export const logVisitor = async (grantedLocation: boolean = false, coords?: Geol
     }
 
     const userAgent = navigator.userAgent;
-    const browser = userAgent.includes('Edg') ? 'Edge' : userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : 'Other';
-    const device = /Mobile|Android|iPhone|iPad/.test(userAgent) ? 'Mobile' : 'Desktop';
-    const os = userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'MacOS' : userAgent.includes('Android') ? 'Android' : /iPhone|iPad|iPod/.test(userAgent) ? 'iOS' : userAgent.includes('Linux') ? 'Linux' : 'Other';
+    const { browser, device, os } = deviceInfo();
     const consent = getConsent();
     const pages = Array.from(new Set([currentPage(), ...pending.pages])).slice(0, MAX_PAGES);
 
@@ -87,6 +107,7 @@ export const logVisitor = async (grantedLocation: boolean = false, coords?: Geol
       region: ipData.region || null,
       city: ipData.city || null,
       postal: ipData.postal || null,
+      org: ipData.org?.slice(0, 120) || null,
       timezone: ipData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || null,
 
       userAgent,
@@ -97,6 +118,7 @@ export const logVisitor = async (grantedLocation: boolean = false, coords?: Geol
       screen: `${window.screen.width}x${window.screen.height}`,
 
       visitorId: visitorId(),
+      consentId: consent?.id || null,
       consentMarketing: Boolean(consent?.marketing),
       ...trafficSource(),
 
@@ -116,7 +138,11 @@ export const logVisitor = async (grantedLocation: boolean = false, coords?: Geol
       logData.accuracy = coords.accuracy;
     }
 
-    const ref = await addDoc(collection(db, 'visitors'), logData);
+    // If the published rules predate org/consentId, retry without them rather than lose the visit.
+    const ref = await addDoc(collection(db, 'visitors'), logData).catch(() => {
+      const { org: _org, consentId: _consentId, ...legacy } = logData;
+      return addDoc(collection(db, 'visitors'), legacy);
+    });
     visitDocId = ref.id;
     store.set(visitKey(), ref.id);
     pending.pages = [];
@@ -170,17 +196,38 @@ export const trackWhatsAppClick = () => {
   void updateVisit({ whatsappClicks: increment(1) });
 };
 
-// ---- Consent records (proof of consent; totals shown in the admin) ----
-export const recordConsent = async (choice: { analytics: boolean; marketing: boolean; version: string }) => {
+// ---- Consent log (proof of consent; Admin → Visitors → Cookie consent) ----
+// Every choice is logged with its consent id, the button used and the device/browser type.
+// Only when analytics is accepted does the entry carry the visitor id that links it to the
+// visit record (location, pages, pieces viewed).
+export type ConsentAction = 'accept_all' | 'reject_all' | 'custom';
+
+export const recordConsent = async (choice: { analytics: boolean; marketing: boolean; version: string; id?: string; action: ConsentAction }) => {
   if (isAdminPath()) return;
   try {
-    await addDoc(collection(db, 'consents'), {
+    const entry: Record<string, unknown> = {
       analytics: choice.analytics,
       marketing: choice.marketing,
       version: choice.version,
+      action: choice.action,
       page: currentPage(),
+      ...deviceInfo(),
+      language: (navigator.language || '').slice(0, 20) || null,
+      timezone: (Intl.DateTimeFormat().resolvedOptions().timeZone || '').slice(0, 60) || null,
       timestamp: serverTimestamp(),
-    });
+    };
+    if (choice.id) entry.consentId = choice.id;
+    if (choice.analytics) entry.visitorId = visitorId();
+    await addDoc(collection(db, 'consents'), entry).catch(() =>
+      // Older published rules accept only the basic fields.
+      addDoc(collection(db, 'consents'), {
+        analytics: choice.analytics,
+        marketing: choice.marketing,
+        version: choice.version,
+        page: currentPage(),
+        timestamp: serverTimestamp(),
+      }),
+    );
   } catch (err) {
     if (import.meta.env.DEV) console.warn('Failed to record consent', err);
   }

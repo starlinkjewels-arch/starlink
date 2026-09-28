@@ -14,6 +14,8 @@ export interface ConsentState {
   marketing: boolean;
   version: string;
   updatedAt: number;
+  /** Random id for this browser's choice, kept when the choice changes (proof of consent). */
+  id?: string;
 }
 
 type Listener = (state: ConsentState | null) => void;
@@ -44,6 +46,19 @@ export const getConsent = (): ConsentState | null => {
   }
 };
 
+// Kept across policy versions, so one browser keeps one consent id.
+const storedConsentId = (): string | undefined => {
+  try {
+    const raw = readCookie() ?? window.localStorage.getItem(COOKIE);
+    const id = raw ? (JSON.parse(raw) as Partial<ConsentState>).id : undefined;
+    return typeof id === "string" && id.length <= 40 ? id : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const newId = () => (crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`).slice(0, 40);
+
 const applyToGoogle = (state: ConsentState) => {
   const grant = (on: boolean) => (on ? "granted" : "denied");
   window.gtag?.("consent", "update", {
@@ -55,7 +70,7 @@ const applyToGoogle = (state: ConsentState) => {
 };
 
 export const setConsent = (choice: Pick<ConsentState, "analytics" | "marketing">): ConsentState => {
-  const state: ConsentState = { ...choice, version: CONSENT_VERSION, updatedAt: Date.now() };
+  const state: ConsentState = { ...choice, version: CONSENT_VERSION, updatedAt: Date.now(), id: storedConsentId() ?? newId() };
   const value = JSON.stringify(state);
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${COOKIE}=${encodeURIComponent(value)}; Max-Age=${MAX_AGE_DAYS * 86400}; Path=/; SameSite=Lax${secure}`;

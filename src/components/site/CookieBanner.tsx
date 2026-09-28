@@ -4,7 +4,7 @@ import { Cookie, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { CONSENT_VERSION, getConsent, setConsent } from "@/lib/consent";
-import { recordConsent } from "@/lib/analytics";
+import { recordConsent, type ConsentAction } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -55,9 +55,9 @@ const CookieBanner = () => {
     };
   }, []);
 
-  const choose = (choice: { analytics: boolean; marketing: boolean }) => {
-    setConsent(choice);
-    void recordConsent({ ...choice, version: CONSENT_VERSION });
+  const choose = (choice: { analytics: boolean; marketing: boolean }, action: ConsentAction) => {
+    const saved = setConsent(choice);
+    void recordConsent({ ...choice, version: CONSENT_VERSION, id: saved.id, action });
     setOpen(false);
     setCustomising(false);
   };
@@ -125,17 +125,17 @@ const CookieBanner = () => {
       <div className={cn("mt-5 grid gap-2", customising ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
         {customising ? (
           <>
-            <Button variant="outline" onClick={() => choose({ analytics: false, marketing: false })}>
+            <Button variant="outline" onClick={() => choose({ analytics: false, marketing: false }, "reject_all")}>
               Reject all
             </Button>
-            <Button onClick={() => choose({ analytics, marketing })}>Save choices</Button>
+            <Button onClick={() => choose({ analytics, marketing }, "custom")}>Save choices</Button>
           </>
         ) : (
           <>
-            <Button variant="outline" onClick={() => choose({ analytics: false, marketing: false })}>
+            <Button variant="outline" onClick={() => choose({ analytics: false, marketing: false }, "reject_all")}>
               Reject all
             </Button>
-            <Button onClick={() => choose({ analytics: true, marketing: true })}>Accept all</Button>
+            <Button onClick={() => choose({ analytics: true, marketing: true }, "accept_all")}>Accept all</Button>
             <Button variant="ghost" className="col-span-2 sm:col-span-1" onClick={() => setCustomising(true)}>
               Customise
             </Button>
