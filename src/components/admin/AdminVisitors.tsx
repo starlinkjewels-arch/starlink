@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, limit } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, limit } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { format } from "date-fns";
 import {
@@ -18,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, MapPinOff, Globe, Calendar, Clock, Monitor, ExternalLink, Trash2, RefreshCw } from "lucide-react";
+import { MapPin, MapPinOff, Globe, Calendar, Clock, Monitor, ExternalLink, Trash2, RefreshCw, Download, MessageCircle, Eye, Cookie } from "lucide-react";
 
 interface Visitor {
   id: string;
@@ -42,7 +42,44 @@ interface Visitor {
   latitude?: number;
   longitude?: number;
   accuracy?: number;
+  // Browsing activity (recorded after analytics consent)
+  pages?: string[];
+  pageviews?: number;
+  products?: string[];
+  whatsappClicks?: number;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  language?: string | null;
+  visitorId?: string;
 }
+
+interface ConsentRecord {
+  analytics: boolean;
+  marketing: boolean;
+}
+
+// "Where did they come from": campaign tag first, then the referring site, else direct.
+const sourceOf = (v: Visitor) => {
+  if (v.utmSource) return v.utmSource + (v.utmMedium ? ` / ${v.utmMedium}` : "");
+  if (v.referrer) {
+    try {
+      const host = new URL(v.referrer).hostname.replace(/^www\./, "");
+      if (host && host !== window.location.hostname.replace(/^www\./, "")) return host;
+    } catch {
+      // ignore malformed referrers
+    }
+  }
+  return "Direct";
+};
+
+const topCounts = (values: string[], n = 6) => {
+  const map = new Map<string, number>();
+  values.filter(Boolean).forEach((v) => map.set(v, (map.get(v) || 0) + 1));
+  return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
+};
+
+const csvCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
 
 const AdminVisitors = () => {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
@@ -53,6 +90,7 @@ const AdminVisitors = () => {
   const [singleDate, setSingleDate] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [consents, setConsents] = useState<ConsentRecord[]>([]);
   const { toast } = useToast();
 
   const currentHost = useMemo(() => window.location.hostname, []);
@@ -73,6 +111,13 @@ const AdminVisitors = () => {
 
       setVisitors(filtered);
       setSelectedIds([]);
+
+      try {
+        const consentSnap = await getDocs(query(collection(db, "consents"), orderBy("timestamp", "desc"), limit(2000)));
+        setConsents(consentSnap.docs.map((d) => d.data() as ConsentRecord));
+      } catch {
+        setConsents([]);
+      }
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to fetch visitors", variant: "destructive" });
@@ -182,6 +227,87 @@ const AdminVisitors = () => {
         <Button variant="outline" size="sm" onClick={fetchVisitors}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
+        </Button>
+      </div>
+
+      {/* Cookie consent */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg"><Cookie className="h-4 w-4" /> Cookie consent</CardTitle>
+          <CardDescription>Choices made in the cookie banner (last {consents.length} decisions). Visitor details below are only recorded for people who accepted analytics.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-3 gap-4">
+          <div>
+            <div className="text-2xl font-bold">{consents.length}</div>
+            <div className="text-xs text-muted-foreground">Decisions</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-green-600">
+              {consents.length ? Math.round((consents.filter((c) => c.analytics).length / consents.length) * 100) : 0}%
+            </div>
+            <div className="text-xs text-muted-foreground">Accepted analytics</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold">
+              {consents.length ? Math.round((consents.filter((c) => c.marketing).length / consents.length) * 100) : 0}%
+            </div>
+            <div className="text-xs text-muted-foreground">Accepted marketing</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Insights for the selected dates */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          { title: "Top pages", rows: topCounts(filteredVisitors.flatMap((v) => v.pages?.length ? v.pages : [v.page])) },
+          { title: "Most viewed pieces", rows: topCounts(filteredVisitors.flatMap((v) => v.products || [])) },
+          { title: "Traffic sources", rows: topCounts(filteredVisitors.map(sourceOf)) },
+          { title: "Countries", rows: topCounts(filteredVisitors.map((v) => v.country || "Unknown")) },
+        ].map((box) => (
+          <Card key={box.title}>
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm">{box.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5 pb-4">
+              {box.rows.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No data yet</p>
+              ) : (
+                box.rows.map(([label, count]) => (
+                  <div key={label} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="truncate" title={label}>{label}</span>
+                    <span className="shrink-0 font-semibold tabular-nums">{count}</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> {filteredVisitors.reduce((n, v) => n + (v.pageviews || 1), 0)} page views</span>
+        <span className="flex items-center gap-1.5"><MessageCircle className="h-4 w-4" /> {filteredVisitors.reduce((n, v) => n + (v.whatsappClicks || 0), 0)} WhatsApp enquiry clicks</span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => {
+            const header = ["Date", "Country", "Region", "City", "Device", "Browser", "OS", "Language", "Source", "Landing page", "Pages viewed", "Page views", "Products viewed", "WhatsApp clicks", "Visitor ID"];
+            const rows = filteredVisitors.map((v) => [
+              v.timestamp?.toDate ? format(v.timestamp.toDate(), "yyyy-MM-dd HH:mm") : "",
+              v.country, v.region, v.city, v.device, v.browser, v.os, v.language, sourceOf(v), v.page,
+              (v.pages || []).join(" | "), v.pageviews ?? 1, (v.products || []).join(" | "), v.whatsappClicks ?? 0, v.visitorId,
+            ]);
+            const csv = [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
+            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `starlink-visitors-${format(new Date(), "yyyy-MM-dd")}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          <Download className="h-4 w-4 mr-2" /> Export CSV
         </Button>
       </div>
 
@@ -328,7 +454,7 @@ const AdminVisitors = () => {
                   <TableHead className="min-w-[180px]">Location</TableHead>
                   <TableHead className="min-w-[120px]">IP Address</TableHead>
                   <TableHead className="min-w-[150px]">Device Info</TableHead>
-                  <TableHead className="min-w-[100px]">Page</TableHead>
+                  <TableHead className="min-w-[200px]">Activity</TableHead>
                   <TableHead className="min-w-[120px] text-center">GPS Location</TableHead>
                   <TableHead className="w-12">Action</TableHead>
                 </TableRow>
@@ -401,9 +527,19 @@ const AdminVisitors = () => {
                         </div>
                       </TableCell>
 
-                      {/* Page */}
+                      {/* Activity */}
                       <TableCell>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">{v.page || "/"}</code>
+                        <div className="space-y-1 text-xs">
+                          <code className="bg-muted px-2 py-0.5 rounded">{v.page || "/"}</code>
+                          <div className="text-muted-foreground">
+                            {v.pageviews ?? 1} page{(v.pageviews ?? 1) === 1 ? "" : "s"} · {v.whatsappClicks ?? 0} WhatsApp · {sourceOf(v)}
+                          </div>
+                          {v.products && v.products.length > 0 && (
+                            <div className="max-w-[260px] truncate text-muted-foreground" title={v.products.join(", ")}>
+                              Viewed: {v.products.slice(0, 2).join(", ")}{v.products.length > 2 ? ` +${v.products.length - 2}` : ""}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
 
                       {/* GPS Location */}

@@ -4,6 +4,8 @@ import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AccessibilityWidget from "@/components/site/AccessibilityWidget";
+import CookieBanner from "@/components/site/CookieBanner";
+import { trackPageView, trackWhatsAppClick } from "@/lib/analytics";
 import { useAppSelector } from "@/store/hooks";
 import { selectGlobalData } from "@/store/contentSlice";
 import { whatsappLink } from "@/lib/whatsapp";
@@ -69,6 +71,23 @@ const ShellContext = createContext<(options: ShellOptions) => void>(() => {});
 
 export const SiteShell = ({ children }: { children: ReactNode }) => {
   const [options, setOptions] = useState<ShellOptions>({ hideFloatingWhatsApp: false });
+  const location = useLocation();
+
+  // Page views (only recorded with analytics consent; see src/lib/analytics.ts).
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location.pathname, location.search]);
+
+  // Any WhatsApp link click on the site counts as an enquiry.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const link = (e.target as Element | null)?.closest?.('a[href*="wa.me/"]');
+      if (link) trackWhatsAppClick();
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
   return (
     <ShellContext.Provider value={setOptions}>
       <div className="flex min-h-screen flex-col bg-background">
@@ -77,6 +96,7 @@ export const SiteShell = ({ children }: { children: ReactNode }) => {
         <Footer />
         {!options.hideFloatingWhatsApp && <FloatingWhatsApp />}
         <AccessibilityWidget raised={options.hideFloatingWhatsApp} />
+        <CookieBanner />
       </div>
     </ShellContext.Provider>
   );

@@ -1,5 +1,5 @@
 // lib/buyingGuides.ts
-import { collection, getDocs, getDoc, setDoc, deleteDoc, doc, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, getDoc, setDoc, deleteDoc, doc, orderBy, query } from 'firebase/firestore/lite';
 import { db } from './firebase';
 import { uploadImageToStorage } from './storage';
 

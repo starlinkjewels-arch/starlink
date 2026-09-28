@@ -1,3 +1,5 @@
+import { trackWhatsAppClick } from "@/lib/analytics";
+
 // wa.me only accepts the number as digits (country code included, no "+", spaces or brackets).
 export const DEFAULT_WHATSAPP = "12015544824";
 
@@ -12,5 +14,6 @@ export const whatsappLink = (message?: string, number?: string | null): string =
 };
 
 export const openWhatsApp = (message?: string, number?: string | null) => {
+  trackWhatsAppClick();
   window.open(whatsappLink(message, number), "_blank", "noopener,noreferrer");
 };

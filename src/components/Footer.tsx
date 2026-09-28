@@ -18,6 +18,7 @@ import Rapaport from "@/assets/paylogo/Rapaport-header-20250120083212-2025021009
 import SDA from "@/assets/paylogo/sda-web.png";
 import Bourse from "@/assets/paylogo/sdb-web.png";
 import { categoryPath } from "@/lib/urls";
+import { openCookieSettings } from "@/lib/consent";
 import { enquiry } from "@/lib/enquiry";
 
 const paymentMethods = [
@@ -200,7 +201,17 @@ const Footer = () => {
 
         <div className="border-t border-border">
           <div className="container-wide flex flex-col items-center gap-5 py-6 md:flex-row md:justify-between">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Starlink Jewels. All rights reserved.</p>
+            <div className="flex flex-col items-center gap-2 md:items-start">
+              <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Starlink Jewels. All rights reserved.</p>
+              <p className="flex items-center gap-4 text-xs">
+                <Link to="/privacy-policy" className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+                  Privacy &amp; cookie policy
+                </Link>
+                <button type="button" onClick={openCookieSettings} className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+                  Cookie settings
+                </button>
+              </p>
+            </div>
             <div className="flex flex-col items-center gap-2.5 md:items-end">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">We accept</p>
               <ul className="flex flex-wrap items-center justify-center gap-2.5 md:justify-end" aria-label="Accepted payment methods">

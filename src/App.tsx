@@ -2,7 +2,6 @@ import { Suspense, lazy, useEffect, useMemo, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
@@ -19,6 +18,7 @@ import {
 import Index from "./pages/Index";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
+import { getConsent, onConsentChange, type ConsentState } from '@/lib/consent';
 import { preloadCritical, preloadImages } from "@/lib/preload";
 import GlobalLoader from "@/components/GlobalLoader";
 import AdPopup from "@/components/AdPopup";
@@ -41,6 +41,7 @@ const pageLoaders = {
   search: () => import("./pages/Search"),
   notFound: () => import("./pages/NotFound"),
   designTool: () => import("./pages/DesignToolPage"),
+  privacy: () => import("./pages/PrivacyPolicy"),
 };
 
 const About = lazy(pageLoaders.about);
@@ -57,6 +58,7 @@ const CountryLanding = lazy(pageLoaders.countryLanding);
 const SearchPage = lazy(pageLoaders.search);
 const NotFound = lazy(pageLoaders.notFound);
 const DesignToolPage = lazy(pageLoaders.designTool);
+const PrivacyPolicy = lazy(pageLoaders.privacy);
 
 // Fetch the page bundles one at a time while the browser is idle (skipped on data-saver connections).
 const prefetchPages = () => {
@@ -73,7 +75,6 @@ const prefetchPages = () => {
   idle(next);
 };
 
-const queryClient = new QueryClient();
 const DEFERRED_LOAD_DELAY_MS = 1200;
 const MAX_LOAD_RETRIES = 3;
 
@@ -149,13 +150,20 @@ const AppContent = () => {
   const showLoader = !isAdminRoute && !isHomePage && status === "loading" && !hydrated;
 
 
+  // Visitor logging runs only with analytics consent (cookie banner), never on the admin panel.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Never log (or prompt) the admin panel.
-      if (window.location.pathname.startsWith(ADMIN_PATH)) return;
-      requestLocationAndLog();
-    }, 2500);
-    return () => clearTimeout(timer);
+    let timer = 0;
+    const start = (state: ConsentState | null) => {
+      if (!state?.analytics || window.location.pathname.startsWith(ADMIN_PATH)) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => requestLocationAndLog(), 1500);
+    };
+    start(getConsent());
+    const off = onConsentChange(start);
+    return () => {
+      off();
+      window.clearTimeout(timer);
+    };
   }, []);
 
   // Collect ALL critical images to preload so the service-worker cache is warm
@@ -205,6 +213,7 @@ const AppContent = () => {
       <Route path="/blog/:id" element={<BlogDetail />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/search" element={<SearchPage />} />
+    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
     <Route path="/ring-builder" element={<DesignToolPage tool="ringBuilder" />} />
     <Route path="/3d-jewelry-viewer" element={<DesignToolPage tool="viewer" />} />
       <Route path={ADMIN_PATH} element={<Admin />} />
@@ -238,7 +247,6 @@ const AppContent = () => {
 const App = () => {
   return (
     <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <TooltipProvider>
             <Toaster />
@@ -248,7 +256,6 @@ const App = () => {
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>
-      </QueryClientProvider>
     </HelmetProvider>
   );
 };

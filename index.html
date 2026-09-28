@@ -97,6 +97,23 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
+    // Consent Mode v2: everything denied until the visitor chooses in the cookie banner
+    // (src/lib/consent.ts). A saved choice (cookie "sj_consent", same version) applies immediately.
+    (function () {
+      var state = null;
+      try {
+        var m = document.cookie.match(/(?:^|; )sj_consent=([^;]*)/);
+        state = m ? JSON.parse(decodeURIComponent(m[1])) : null;
+        if (!state || state.version !== '2026-09') state = null;
+      } catch (e) { state = null; }
+      var a = state && state.analytics ? 'granted' : 'denied';
+      var ad = state && state.marketing ? 'granted' : 'denied';
+      gtag('consent', 'default', {
+        analytics_storage: a, ad_storage: ad, ad_user_data: ad, ad_personalization: ad,
+        functionality_storage: 'granted', security_storage: 'granted', wait_for_update: 500
+      });
+      gtag('set', 'ads_data_redaction', ad === 'denied');
+    })();
     gtag('js', new Date());
     gtag('config', 'G-2DR5L2HL09');
   </script>

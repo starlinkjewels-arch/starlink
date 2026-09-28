@@ -1,0 +1,105 @@
+{
+  "path": "/privacy-policy",
+  "metaTitle": "Privacy & Cookie Policy",
+  "metaDescription": "How Starlink Jewels collects, uses and protects your information, which cookies we use, and how to change your cookie choices or ask us to delete your data.",
+  "updated": "28 September 2026",
+  "intro": "This policy explains what information Starlink Jewels collects when you use starlinkjewels.com and our Ring Builder and 3D viewer, why we collect it, and the choices you have. We only use optional cookies and analytics after you agree to them in our cookie banner.",
+  "sections": [
+    {
+      "id": "who-we-are",
+      "title": "Who we are",
+      "paragraphs": [
+        "Starlink Jewels designs and manufactures certified lab-grown and natural diamond jewelry in Surat, Gujarat, India, with an office at 55 John St, East Rutherford, NJ 07073, USA. We are responsible for the personal information described in this policy.",
+        "Contact us about privacy at info@starlinkjewels.com or on WhatsApp at +1 (201) 554-4824."
+      ]
+    },
+    {
+      "id": "what-we-collect",
+      "title": "Information we collect",
+      "paragraphs": ["We collect information in three ways:"],
+      "list": [
+        "Information you give us: when you contact us on WhatsApp, by phone or email, or through a form, we receive what you send, such as your name, contact details, the pieces you are interested in and any design details or delivery address you share.",
+        "Analytics, only if you accept analytics cookies: your IP address and the approximate location it indicates (country, region, city, postcode, time zone), your device type, browser, operating system, language and screen size, the website that referred you and any campaign tags in the link, the pages and pieces you view, how many times you open WhatsApp from our site, and a random identifier stored in your browser. If you also allow your browser's location prompt, we record your device location and its accuracy.",
+        "Information needed to run the site: your cookie choice and your display settings (theme and accessibility options) are stored in your browser. Like every website, our hosting and image providers receive your IP address when they deliver pages and images."
+      ]
+    },
+    {
+      "id": "how-we-use",
+      "title": "How we use your information",
+      "list": [
+        "To answer your enquiries, prepare quotes, CAD renders and certified stone options, and make and deliver your order.",
+        "To understand which pages, collections and pieces interest visitors, where our visitors come from, and how to improve the website and our range (analytics, with your consent).",
+        "To measure and improve our advertising, including showing you relevant Starlink ads on other sites (marketing, with your consent).",
+        "To keep the website secure and working properly."
+      ]
+    },
+    {
+      "id": "legal-bases",
+      "title": "Legal bases (EU & UK visitors)",
+      "paragraphs": [
+        "We use analytics and marketing cookies, and record the related information, on the basis of your consent, which you can withdraw at any time in Cookie settings. We handle enquiries and orders to take steps at your request and to perform our contract with you, and keep the site secure on the basis of our legitimate interests."
+      ]
+    },
+    {
+      "id": "cookies",
+      "title": "Cookies and similar technologies",
+      "paragraphs": [
+        "Cookies and browser storage are small pieces of data saved on your device. Strictly necessary items are always on; the others are used only if you choose to allow them."
+      ],
+      "cookies": [
+        { "name": "sj_consent", "type": "Strictly necessary", "purpose": "Remembers your cookie choices.", "duration": "6 months" },
+        { "name": "starlink_a11y, theme", "type": "Strictly necessary", "purpose": "Remembers your accessibility and light/dark display settings (browser storage).", "duration": "Until you clear them" },
+        { "name": "starlink_global_data_v4", "type": "Strictly necessary", "purpose": "Short-lived copy of site content so pages load faster (session storage).", "duration": "Session" },
+        { "name": "_ga, _ga_*", "type": "Analytics", "purpose": "Google Analytics: counts visits and how the site is used.", "duration": "Up to 2 years" },
+        { "name": "sj_vid, sj_visit:*", "type": "Analytics", "purpose": "Our own visit log: a random browser identifier and today's visit record (browser storage).", "duration": "Until you clear them or withdraw consent" },
+        { "name": "Google advertising cookies", "type": "Marketing", "purpose": "Measure our ads and personalise the Starlink ads you see on other sites.", "duration": "Up to 2 years" }
+      ]
+    },
+    {
+      "id": "sharing",
+      "title": "Who we share information with",
+      "paragraphs": ["We do not sell your personal information. We share it only with service providers who help us run the business:"],
+      "list": [
+        "Google (Firebase and Google Cloud for our website database, Google Analytics, and Google advertising if you allow marketing cookies).",
+        "Vercel, which hosts the website, and wsrv.nl, which resizes and delivers our images.",
+        "ipapi.co, which turns an IP address into an approximate location for our visit log (only with analytics consent).",
+        "WhatsApp (Meta), when you choose to contact us there.",
+        "Couriers and insurers, to deliver and insure your order."
+      ]
+    },
+    {
+      "id": "international",
+      "title": "International transfers",
+      "paragraphs": [
+        "We work from India and the USA, and our service providers may process information in other countries. Where the law requires it, we rely on appropriate safeguards such as standard contractual clauses."
+      ]
+    },
+    {
+      "id": "retention",
+      "title": "How long we keep information",
+      "list": [
+        "Visit records from our analytics: up to 14 months.",
+        "Cookie consent records: up to 3 years, as proof of your choice.",
+        "Enquiry and order records: as long as needed to serve you and to meet our legal, tax and warranty obligations."
+      ]
+    },
+    {
+      "id": "your-rights",
+      "title": "Your rights and choices",
+      "paragraphs": [
+        "Depending on where you live (including under the GDPR in the EU, UK GDPR, the California Consumer Privacy Act, Canada's PIPEDA, Australia's Privacy Act and India's Digital Personal Data Protection Act), you can ask to access, correct or delete your personal information, object to or restrict certain uses, and withdraw your consent at any time. You can also complain to your local data protection authority.",
+        "To change your cookie choices, use the Cookie settings button on this page or in the website footer. To make any other request, email info@starlinkjewels.com. We will reply within 30 days."
+      ]
+    },
+    {
+      "id": "children",
+      "title": "Children",
+      "paragraphs": ["Our website is not directed at children under 16, and we do not knowingly collect their personal information."]
+    },
+    {
+      "id": "changes",
+      "title": "Changes to this policy",
+      "paragraphs": ["We will update this page if our practices change and show the new date at the top. If the changes affect the cookies you agreed to, we will ask for your choice again."]
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { auth } from '@/lib/firebaseAdmin';
 import { Button } from '@/components/ui/button';

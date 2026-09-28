@@ -7,8 +7,9 @@ rules_version = '2';
 //   * An "admin" is a signed-in Firebase Auth user who also has a document at
 //     admins/{uid}. Create that document by hand in the Firebase console
 //     (Firestore → admins → Document ID = the user's UID from Authentication).
-//   * Visitors may create one analytics record at a time in /visitors, with a
-//     fixed shape; only admins can read or delete those records.
+//   * After accepting analytics cookies, a visitor's browser creates one record
+//     per day in /visitors (fixed shape) and updates only its browsing fields;
+//     cookie choices are logged in /consents. Only admins can read or delete them.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -48,11 +49,38 @@ service cloud.firestore {
     // stay public (a "published only" rule would reject that query outright).
     match /buying-guides/{docId}       { allow read: if true; allow write: if isAdmin(); }
 
-    // ---- Visitor analytics ----------------------------------------------
+    // Popup ad shown on the public site (Admin → Popup Ad).
+    match /ads/{docId}                 { allow read: if true; allow write: if isAdmin(); }
+
+    // ---- Visitor analytics (only written after cookie consent) ----------
+    // One record per browser per day, created by src/lib/analytics.ts and then
+    // updated as the visitor browses (pages, products viewed, WhatsApp clicks).
     match /visitors/{docId} {
       allow read, delete: if isAdmin();
-      allow update: if false;
       allow create: if isValidVisitorLog(request.resource.data);
+      allow update: if isValidVisitUpdate(request.resource.data, resource.data);
+    }
+
+    // Consent choices from the cookie banner (proof of consent; no personal data).
+    match /consents/{docId} {
+      allow read, delete: if isAdmin();
+      allow update: if false;
+      allow create: if request.resource.data.keys().hasOnly(['analytics', 'marketing', 'version', 'page', 'timestamp'])
+        && request.resource.data.analytics is bool
+        && request.resource.data.marketing is bool
+        && request.resource.data.version is string && request.resource.data.version.size() <= 20
+        && request.resource.data.page is string && request.resource.data.page.size() <= 300
+        && request.resource.data.timestamp == request.time;
+    }
+
+    // Only the browsing fields may change, arrays stay bounded, counters only go up.
+    function isValidVisitUpdate(d, old) {
+      return d.diff(old).affectedKeys().hasOnly(['pages', 'pageviews', 'products', 'whatsappClicks', 'lastSeen'])
+        && d.lastSeen == request.time
+        && (!('pages' in d) || (d.pages is list && d.pages.size() <= 60))
+        && (!('products' in d) || (d.products is list && d.products.size() <= 60))
+        && (!('pageviews' in d) || (d.pageviews is int && d.pageviews <= 1000))
+        && (!('whatsappClicks' in d) || (d.whatsappClicks is int && d.whatsappClicks <= 200));
     }
 
     // Mirrors the record built in src/lib/analytics.ts. Anything else is rejected,
@@ -61,11 +89,17 @@ service cloud.firestore {
       return d.keys().hasOnly([
           'hostname', 'origin', 'referrer',
           'ip', 'country', 'region', 'city', 'postal', 'timezone',
-          'userAgent', 'browser', 'device', 'os',
-          'page', 'timestamp', 'grantedLocation',
+          'userAgent', 'browser', 'device', 'os', 'language', 'screen',
+          'visitorId', 'consentMarketing', 'utmSource', 'utmMedium', 'utmCampaign',
+          'page', 'pages', 'pageviews', 'products', 'whatsappClicks',
+          'timestamp', 'lastSeen', 'grantedLocation',
           'latitude', 'longitude', 'accuracy'
         ])
         && d.keys().hasAll(['page', 'timestamp', 'grantedLocation', 'userAgent'])
+        && (!('lastSeen' in d) || d.lastSeen == request.time)
+        && (!('pages' in d) || (d.pages is list && d.pages.size() <= 60))
+        && (!('products' in d) || (d.products is list && d.products.size() <= 60))
+        && (!('visitorId' in d) || (d.visitorId is string && d.visitorId.size() <= 40))
         && d.timestamp == request.time
         && d.grantedLocation is bool
         && d.page is string && d.page.size() <= 500

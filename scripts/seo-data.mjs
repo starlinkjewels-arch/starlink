@@ -10,6 +10,7 @@ import { readFileSync } from "node:fs";
 
 // Design-tool landing page copy, shared with src/pages/DesignToolPage.tsx.
 const DESIGN_TOOLS = JSON.parse(readFileSync(new URL("../src/content/designTools.json", import.meta.url), "utf8"));
+const PRIVACY = JSON.parse(readFileSync(new URL("../src/content/privacyPolicy.json", import.meta.url), "utf8"));
 
 const firebaseConfig = {
   apiKey: "AIzaSyBse5vfsARbl8k6ub9Mir6qs-CsPdaNuGU",
@@ -153,7 +154,7 @@ const pageShell = ({ categories, crumbs, body }) => `
   <main>${body}</main>
   <footer class="pr-footer">
     <p>${esc(SITE_NAME)} — certified lab-grown and natural diamond jewelry, handcrafted in Surat, India. Insured worldwide delivery.</p>
-    <nav><a href="/ring-builder">3D Ring Builder</a><a href="/3d-jewelry-viewer">3D Jewelry Viewer</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/gallery">Gallery</a><a href="/usa">USA</a><a href="/canada">Canada</a><a href="/australia">Australia</a><a href="/germany">Germany</a></nav>
+    <nav><a href="/privacy-policy">Privacy &amp; cookie policy</a><a href="/ring-builder">3D Ring Builder</a><a href="/3d-jewelry-viewer">3D Jewelry Viewer</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/gallery">Gallery</a><a href="/usa">USA</a><a href="/canada">Canada</a><a href="/australia">Australia</a><a href="/germany">Germany</a></nav>
   </footer>
 </div>`;
 
@@ -220,6 +221,37 @@ ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0,
   for (const [slug, name, headline, description] of countries) {
     const crumbs = [home, { name, url: `${SITE_URL}/${slug}` }];
     routes.push({ path: `/${slug}`, title: `Diamond Jewelry Shipping to ${name}`, description, priority: "0.6", changefreq: "monthly", jsonLd: [breadcrumbLd(crumbs)], body: shell(crumbs, `<h1>${esc(headline)}</h1><p>${esc(description)}</p>${categoryLinks}`) });
+  }
+
+  // Privacy & cookie policy
+  {
+    const url = `${SITE_URL}${PRIVACY.path}`;
+    const crumbs = [home, { name: "Privacy & Cookie Policy", url }];
+    routes.push({
+      path: PRIVACY.path,
+      title: PRIVACY.metaTitle,
+      description: PRIVACY.metaDescription,
+      priority: "0.3",
+      changefreq: "yearly",
+      jsonLd: [breadcrumbLd(crumbs)],
+      body: shell(
+        crumbs,
+        `<article><h1>Privacy &amp; cookie policy</h1><p>Last updated: ${esc(PRIVACY.updated)}</p><p>${esc(PRIVACY.intro)}</p>${PRIVACY.sections
+          .map(
+            (s) =>
+              `<h2 id="${esc(s.id)}">${esc(s.title)}</h2>${(s.paragraphs || []).map((p) => `<p>${esc(p)}</p>`).join("")}${
+                s.list ? `<ul>${s.list.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : ""
+              }${
+                s.cookies
+                  ? `<table><tr><th>Name</th><th>Type</th><th>Purpose</th><th>Duration</th></tr>${s.cookies
+                      .map((c) => `<tr><td>${esc(c.name)}</td><td>${esc(c.type)}</td><td>${esc(c.purpose)}</td><td>${esc(c.duration)}</td></tr>`)
+                      .join("")}</table>`
+                  : ""
+              }`
+          )
+          .join("")}</article>`
+      ),
+    });
   }
 
   // Design-tool landing pages (ring builder, 3D viewer)

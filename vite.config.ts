@@ -20,6 +20,19 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  build: {
+    rollupOptions: {
+      output: {
+        // Stable vendor chunks: they change rarely, so returning visitors keep them cached across deploys.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (/[\/]node_modules[\/](react|react-dom|scheduler|react-router|react-router-dom|@remix-run)[\/]/.test(id)) return "react-vendor";
+          // Only what the public site needs (app + Firestore Lite); Auth and Storage stay in admin-only chunks.
+          if (/[\/]node_modules[\/](@firebase[\/](app|firestore|util|logger|component)|firebase[\/](app|firestore))[\/]/.test(id)) return "firebase";
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

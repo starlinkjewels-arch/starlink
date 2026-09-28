@@ -21,6 +21,7 @@ import {
 import { SITE, buildFaqForProduct, buildMetaDescriptionForProduct, buildMetaTitleForProduct, sanitizeMetaField, stripHtml } from '@/lib/seo';
 import { getProductCategoryIds, productHasCategory } from '@/lib/storage';
 import { getProductTime, isVideoUrl } from '@/lib/media';
+import { trackProductView } from '@/lib/analytics';
 import { categoryPath, categoryUrl, findProductByParam, productPath, productUrl } from '@/lib/urls';
 
 const ProductDetail = () => {
@@ -61,6 +62,10 @@ const ProductDetail = () => {
   }, [canonicalPath, id, navigate]);
 
   const pageUrl = product ? productUrl(product) : `${SITE.url}/product/${id}`;
+
+  useEffect(() => {
+    if (product) trackProductView(product.name);
+  }, [product]);
 
   if (!product) {
     const loading = !isReady || !productsReady;
