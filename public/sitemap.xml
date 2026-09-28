@@ -68,6 +68,36 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://starlinkjewels.com/shipping-policy</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/returns-policy</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/warranty</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/terms-and-conditions</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/ring-size-guide</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://starlinkjewels.com/ring-builder</loc>
     <lastmod>2026-09-28</lastmod>
     <changefreq>monthly</changefreq>
