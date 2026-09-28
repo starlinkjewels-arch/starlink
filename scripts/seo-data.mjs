@@ -6,6 +6,10 @@
 
 import { initializeApp } from "firebase/app";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { readFileSync } from "node:fs";
+
+// Design-tool landing page copy, shared with src/pages/DesignToolPage.tsx.
+const DESIGN_TOOLS = JSON.parse(readFileSync(new URL("../src/content/designTools.json", import.meta.url), "utf8"));
 
 const firebaseConfig = {
   apiKey: "AIzaSyBse5vfsARbl8k6ub9Mir6qs-CsPdaNuGU",
@@ -149,7 +153,7 @@ const pageShell = ({ categories, crumbs, body }) => `
   <main>${body}</main>
   <footer class="pr-footer">
     <p>${esc(SITE_NAME)} — certified lab-grown and natural diamond jewelry, handcrafted in Surat, India. Insured worldwide delivery.</p>
-    <nav><a href="/about">About</a><a href="/contact">Contact</a><a href="/gallery">Gallery</a><a href="/usa">USA</a><a href="/canada">Canada</a><a href="/australia">Australia</a><a href="/germany">Germany</a></nav>
+    <nav><a href="/ring-builder">3D Ring Builder</a><a href="/3d-jewelry-viewer">3D Jewelry Viewer</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/gallery">Gallery</a><a href="/usa">USA</a><a href="/canada">Canada</a><a href="/australia">Australia</a><a href="/germany">Germany</a></nav>
   </footer>
 </div>`;
 
@@ -190,7 +194,7 @@ export const buildRoutes = (data) => {
 <p>Certified lab-grown and natural diamond jewelry, handcrafted in Surat — the diamond capital of the world — and delivered insured to clients in over 30 countries.</p>
 <h2>Shop by collection</h2>${categoryLinks}
 <h2>New arrivals</h2>${productList(newest.slice(0, 12), categoriesById)}
-<h2>Design your own ring</h2><p>Build a custom engagement ring with our <a href="https://ringbuilder.starlinkjewels.com/">Ring Builder</a> and inspect every angle in the <a href="https://360.starlinkjewels.com/">360° viewer</a>.</p>
+<h2>Design your own ring</h2><p>Build a custom engagement ring with our <a href="/ring-builder">3D Ring Builder</a> and inspect every angle in the <a href="/3d-jewelry-viewer">3D jewelry viewer</a>.</p>
 ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0, 3).map((b) => `<li><a href="/blog/${esc(b.id)}">${esc(b.title)}</a></li>`).join("")}</ul>` : ""}`),
   });
 
@@ -216,6 +220,59 @@ ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0,
   for (const [slug, name, headline, description] of countries) {
     const crumbs = [home, { name, url: `${SITE_URL}/${slug}` }];
     routes.push({ path: `/${slug}`, title: `Diamond Jewelry Shipping to ${name}`, description, priority: "0.6", changefreq: "monthly", jsonLd: [breadcrumbLd(crumbs)], body: shell(crumbs, `<h1>${esc(headline)}</h1><p>${esc(description)}</p>${categoryLinks}`) });
+  }
+
+  // Design-tool landing pages (ring builder, 3D viewer)
+  for (const [key, t] of Object.entries(DESIGN_TOOLS)) {
+    const url = `${SITE_URL}${t.path}`;
+    const crumbs = [home, { name: t.breadcrumb, url }];
+    const other = DESIGN_TOOLS[key === "ringBuilder" ? "viewer" : "ringBuilder"];
+    routes.push({
+      path: t.path,
+      title: t.metaTitle,
+      description: t.metaDescription,
+      priority: "0.9",
+      changefreq: "monthly",
+      jsonLd: [
+        {
+          "@type": "WebApplication",
+          "@id": `${t.toolUrl}#app`,
+          name: t.toolName,
+          url: t.toolUrl,
+          description: t.metaDescription,
+          applicationCategory: "DesignApplication",
+          operatingSystem: "Any (web browser)",
+          browserRequirements: "Requires JavaScript and WebGL",
+          isAccessibleForFree: true,
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          featureList: t.optionGroups.map((g) => `${g.label}: ${g.items.join(", ")}`),
+          publisher: { "@id": `${SITE_URL}/#jewelry-store` },
+          mainEntityOfPage: url,
+        },
+        { "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })) },
+        breadcrumbLd(crumbs),
+      ],
+      body: shell(
+        crumbs,
+        `<article>
+<p>${esc(t.eyebrow)}</p>
+<h1>${esc(t.title)} ${esc(t.accent)}</h1>
+<p>${esc(t.intro)}</p>
+<p><a href="${esc(t.toolUrl)}">${esc(t.cta)}</a> · ${t.trust.map(esc).join(" · ")}</p>
+<h2>${esc(t.stepsTitle)}</h2>
+<ol>${t.steps.map((st) => `<li><strong>${esc(st.title)}</strong> — ${esc(st.text)}</li>`).join("")}</ol>
+<h2>${esc(t.optionsTitle)}</h2>
+<dl>${t.optionGroups.map((g) => `<dt>${esc(g.label)}</dt><dd>${g.items.map(esc).join(", ")}</dd>`).join("")}</dl>
+<h2>${esc(t.featuresTitle)}</h2>
+<ul>${t.features.map((f) => `<li><strong>${esc(f.title)}</strong> — ${esc(f.text)}</li>`).join("")}</ul>
+<h2>Frequently asked questions</h2>
+${t.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join("")}
+<h2>${esc(t.finalTitle)}</h2>
+<p>${esc(t.finalText)} <a href="${esc(t.toolUrl)}">${esc(t.cta)}</a> · <a href="${other.path}">${esc(other.breadcrumb)}</a></p>
+</article>
+<h2>Shop the collections</h2>${categoryLinks}`
+      ),
+    });
   }
 
   // Collections
@@ -409,8 +466,8 @@ export const buildLlmsTxt = (data) => {
     ...categories.map((c) => `- [${c.name}](${SITE_URL}${categoryPath(c)})${c.description ? `: ${truncate(stripHtml(c.description), 140)}` : ""}`),
     "",
     "## Design tools",
-    "- [Ring Builder](https://ringbuilder.starlinkjewels.com/): design a custom engagement ring (diamond, setting, metal)",
-    "- [360° Viewer](https://360.starlinkjewels.com/): inspect jewelry from every angle",
+    `- [3D Ring Builder](${SITE_URL}/ring-builder): free online tool to design a custom engagement ring in real-time 3D (9 diamond shapes, 0.50–3.00 ct, 6 band styles, pavé/prong/channel, halo options, 14K/18K white, yellow or rose gold); app at https://ringbuilder.starlinkjewels.com/`,
+    `- [3D Jewelry Viewer](${SITE_URL}/3d-jewelry-viewer): real-time photorealistic jewelry rendering in the browser (360° turntable, gold/platinum/silver finishes, diamond refraction); app at https://360.starlinkjewels.com/`,
     "",
     ...(buyingGuides.length ? ["## Buying guides", ...buyingGuides.map((g) => `- [${g.title}](${SITE_URL}/buying-guide/${g.slug})`), ""] : []),
     ...(blogs.length ? ["## Journal", ...blogs.slice(0, 20).map((b) => `- [${b.title}](${SITE_URL}/blog/${b.id})`), ""] : []),

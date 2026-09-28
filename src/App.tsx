@@ -40,6 +40,7 @@ const pageLoaders = {
   countryLanding: () => import("./pages/CountryLanding"),
   search: () => import("./pages/Search"),
   notFound: () => import("./pages/NotFound"),
+  designTool: () => import("./pages/DesignToolPage"),
 };
 
 const About = lazy(pageLoaders.about);
@@ -55,6 +56,7 @@ const BuyingGuidePage = lazy(pageLoaders.buyingGuide);
 const CountryLanding = lazy(pageLoaders.countryLanding);
 const SearchPage = lazy(pageLoaders.search);
 const NotFound = lazy(pageLoaders.notFound);
+const DesignToolPage = lazy(pageLoaders.designTool);
 
 // Fetch the page bundles one at a time while the browser is idle (skipped on data-saver connections).
 const prefetchPages = () => {
@@ -203,6 +205,8 @@ const AppContent = () => {
       <Route path="/blog/:id" element={<BlogDetail />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/search" element={<SearchPage />} />
+    <Route path="/ring-builder" element={<DesignToolPage tool="ringBuilder" />} />
+    <Route path="/3d-jewelry-viewer" element={<DesignToolPage tool="viewer" />} />
       <Route path={ADMIN_PATH} element={<Admin />} />
       <Route path="/buying-guide" element={<BuyingGuidePage />} />
       <Route path="/buying-guide/:slug" element={<BuyingGuidePage />} />

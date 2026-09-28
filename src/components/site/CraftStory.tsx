@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Gem, Pause, Play, Rotate3d } from "lucide-react";
+import { ArrowRight, Gem, Pause, Play, Rotate3d } from "lucide-react";
+import { Link } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
@@ -294,6 +295,9 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
           >
             <FaWhatsapp className="h-4 w-4 text-[#6ee7a0]" /> Or talk to a designer on WhatsApp
           </a>
+          <Link to="/ring-builder" className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#a9c4f5] underline-offset-4 hover:text-white hover:underline">
+            How the 3D Ring Builder works <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </section>

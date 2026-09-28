@@ -1,0 +1,98 @@
+{
+  "ringBuilder": {
+    "path": "/ring-builder",
+    "metaTitle": "3D Ring Builder – Design Your Own Engagement Ring Online",
+    "metaDescription": "Design your own diamond engagement ring in 3D. Choose the shape, carat, setting and gold, rotate it 360° and get a quote. Certified diamonds, handcrafted in Surat.",
+    "keywords": "ring builder, 3D ring builder, design your own engagement ring, custom engagement ring builder, lab grown diamond ring builder, build your own ring online, custom diamond ring designer",
+    "breadcrumb": "Ring Builder",
+    "eyebrow": "3D Ring Builder",
+    "title": "Design your own",
+    "accent": "engagement ring",
+    "intro": "Build a one-of-a-kind diamond ring in real-time 3D. Pick the diamond shape, carat, band, setting and gold, turn it 360° from every angle, then send it to our team for a quote. Free to use, no sign-up.",
+    "toolName": "Starlink 3D Ring Builder",
+    "toolUrl": "https://ringbuilder.starlinkjewels.com/",
+    "cta": "Start designing your ring",
+    "trust": ["Free to use", "No sign-up", "Works on phone & desktop"],
+    "stepsTitle": "How the ring builder works",
+    "steps": [
+      { "title": "Choose your diamond", "text": "Start with the centre stone: nine shapes from round to marquise, from 0.50 to 3.00 carats." },
+      { "title": "Style the ring", "text": "Pick the band, the side setting and the halo, then choose white, yellow or rose gold in 14K or 18K." },
+      { "title": "See it in 3D", "text": "Rotate your ring 360° and check it from the front, side, top and angle views before you decide." },
+      { "title": "Get your quote", "text": "Tap “Enquire for price”. We send a quote, certified lab-grown or natural stone options and CAD renders for approval." }
+    ],
+    "optionsTitle": "Everything you can customise",
+    "optionGroups": [
+      { "label": "Diamond shape", "items": ["Round", "Princess", "Oval", "Pear", "Emerald", "Radiant", "Marquise", "Heart", "Elongated Cushion"] },
+      { "label": "Centre diamond", "items": ["0.50 ct", "0.75 ct", "1.00 ct", "1.50 ct", "2.00 ct", "3.00 ct"] },
+      { "label": "Ring style", "items": ["Classic Straight", "Cathedral", "Straight Twist", "Split", "Two Row", "Split Pinch"] },
+      { "label": "Side setting", "items": ["Plain Gold", "Pavé", "Prong", "Channel"] },
+      { "label": "Halo", "items": ["No Halo", "Hidden Halo", "Single Halo"] },
+      { "label": "Metal", "items": ["White Gold", "Yellow Gold", "Rose Gold", "14K", "18K"] }
+    ],
+    "featuresTitle": "Why design your ring with Starlink",
+    "features": [
+      { "title": "Certified diamonds", "text": "Lab-grown or natural centre stones graded by IGI or GIA, with the certificate shared before dispatch." },
+      { "title": "Approve before we craft", "text": "You see detailed CAD renders of your exact design and approve every detail before anything is made." },
+      { "title": "Handcrafted in Surat", "text": "Cast, set and polished by master artisans in Surat, the diamond capital of the world, since 2011." },
+      { "title": "Insured worldwide delivery", "text": "Fully tracked and insured shipping, complimentary on orders over $500." }
+    ],
+    "faq": [
+      { "question": "What is the Starlink Ring Builder?", "answer": "It is a free online 3D ring designer. You choose the diamond shape and carat, the band style, side setting, halo and gold, see the ring in real-time 3D, and send the design to our team for a quote." },
+      { "question": "Is the ring builder free to use?", "answer": "Yes. Designing your ring is completely free and needs no account. You only pay if you decide to order the ring." },
+      { "question": "Can I choose a lab-grown or a natural diamond?", "answer": "Yes. After you send your design we share certified lab-grown and natural diamond options that match your chosen shape and size, so you can compare before deciding." },
+      { "question": "Which diamond shapes and settings can I pick?", "answer": "Round, princess, oval, pear, emerald, radiant, marquise, heart and elongated cushion diamonds from 0.50 to 3.00 carats, six band styles, plain gold, pavé, prong or channel side settings, and no halo, a hidden halo or a single halo." },
+      { "question": "Which metals are available?", "answer": "White, yellow and rose gold in 14K or 18K. Ask our team if you would like another metal." },
+      { "question": "How do I get the price of my ring?", "answer": "Tap “Enquire for price” in the ring builder or contact us on WhatsApp. We reply with a quote, certified stone options and CAD renders of your design." },
+      { "question": "Can I change my design after I send it?", "answer": "Yes. You approve the CAD renders before crafting begins, so size, stone or setting changes can be made at that stage." },
+      { "question": "Do you ship my ring worldwide?", "answer": "Yes. Every ring is shipped fully insured with tracking, and shipping is complimentary on orders over $500. Your delivery date is confirmed on WhatsApp before we begin." }
+    ],
+    "finalTitle": "Ready to design your ring?",
+    "finalText": "It takes a few minutes. Our experts are on WhatsApp if you want help choosing."
+  },
+  "viewer": {
+    "path": "/3d-jewelry-viewer",
+    "metaTitle": "3D Jewelry Viewer – Real-Time Photorealistic Jewelry Rendering",
+    "metaDescription": "See fine jewelry in photorealistic real-time 3D. Rotate each piece 360°, switch between gold, platinum and silver finishes live and watch the diamonds sparkle.",
+    "keywords": "3D jewelry viewer, jewelry rendering, photorealistic jewelry rendering, 360 jewelry viewer, real-time jewelry 3D, jewellery render, 3D ring viewer",
+    "breadcrumb": "3D Jewelry Viewer",
+    "eyebrow": "360° 3D Viewer",
+    "title": "Photorealistic jewelry,",
+    "accent": "in real-time 3D",
+    "intro": "Look at fine jewelry the way you would in a boutique. Our real-time 3D viewer lets you rotate every piece 360°, switch between gold, platinum and silver finishes live, and see true diamond refraction, right in your browser.",
+    "toolName": "Starlink 3D Jewelry Viewer",
+    "toolUrl": "https://360.starlinkjewels.com/",
+    "cta": "Open the 3D viewer",
+    "trust": ["Runs in your browser", "Nothing to install", "Free"],
+    "stepsTitle": "How it works",
+    "steps": [
+      { "title": "Open a piece", "text": "The viewer loads a photorealistic 3D model of the jewelry, ready to explore." },
+      { "title": "Turn it 360°", "text": "Drag to rotate and zoom in on the setting, the gallery and the profile from any angle." },
+      { "title": "Switch the metal", "text": "Change between gold, platinum and silver finishes live to find the look you love." },
+      { "title": "Ask about it", "text": "Talk to our experts on WhatsApp for the price, certified stone options and delivery." }
+    ],
+    "optionsTitle": "What makes it photorealistic",
+    "optionGroups": [
+      { "label": "Rendering", "items": ["Real-time 3D", "True diamond refraction", "Studio lighting"] },
+      { "label": "Controls", "items": ["360° turntable", "Drag to rotate", "Zoom"] },
+      { "label": "Finishes", "items": ["Gold", "Platinum", "Silver"] },
+      { "label": "Devices", "items": ["Phone", "Tablet", "Desktop"] }
+    ],
+    "featuresTitle": "Made for how people buy jewelry today",
+    "features": [
+      { "title": "See every angle", "text": "Photos show one side. A 360° model shows the profile, the prongs and how the stone sits." },
+      { "title": "Compare finishes instantly", "text": "Switch metals live instead of imagining how a design looks in another colour." },
+      { "title": "Buy with confidence", "text": "Pair the 3D view with a live video call and certified diamonds before you order." },
+      { "title": "For jewellers & retailers", "text": "Manufacturing with Starlink? We share CAD renders of your designs for approval before production." }
+    ],
+    "faq": [
+      { "question": "What is the Starlink 3D jewelry viewer?", "answer": "It is a free, real-time 3D viewer for fine jewelry. You can rotate a piece 360°, zoom in and switch between gold, platinum and silver finishes, with realistic diamond refraction." },
+      { "question": "Do I need to install any software?", "answer": "No. The viewer runs in your web browser on phone, tablet or desktop. There is nothing to download or install." },
+      { "question": "Is the 3D view photorealistic?", "answer": "The viewer renders each piece in real time with studio lighting and true diamond refraction, so the metal and the stones react to light as you turn them." },
+      { "question": "Which metal finishes can I compare?", "answer": "Gold, platinum and silver finishes, switched live in the viewer." },
+      { "question": "Can I buy a piece I see in 3D?", "answer": "Yes. Contact our team on WhatsApp for the price, certified stone options and delivery details. Every piece is made to order." },
+      { "question": "Can jewellers get renders of their own designs?", "answer": "If Starlink is manufacturing your designs, we share detailed CAD renders for you to approve before production. Contact our team to discuss your project." }
+    ],
+    "finalTitle": "See it before you buy it",
+    "finalText": "Open the viewer, or design a ring of your own in our 3D Ring Builder."
+  }
+}

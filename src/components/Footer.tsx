@@ -6,7 +6,6 @@ import { useAppSelector } from "@/store/hooks";
 import { selectGlobalData } from "@/store/contentSlice";
 import { orderCategoriesWithCustomFirst } from "@/lib/storage";
 import { whatsappLink } from "@/lib/whatsapp";
-import { SITE } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import Zelle from "@/assets/paylogo/Zelle_(payment_service)-Logo.wine.png";
 import Venmo from "@/assets/paylogo/Venmo-Logo.wine.png";
@@ -146,14 +145,14 @@ const Footer = () => {
             <h3 className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-foreground">Company</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href={SITE.ringBuilder.url} target="_blank" rel="noopener" title={SITE.ringBuilder.title} className="font-semibold text-brand transition-colors hover:text-foreground">
-                  {SITE.ringBuilder.label}
-                </a>
+                <Link to="/ring-builder" title="3D Ring Builder – design your own engagement ring" className="font-semibold text-brand transition-colors hover:text-foreground">
+                  3D Ring Builder
+                </Link>
               </li>
               <li>
-                <a href={SITE.viewer360.url} target="_blank" rel="noopener" title={SITE.viewer360.title} className="font-semibold text-brand transition-colors hover:text-foreground">
-                  {SITE.viewer360.label}
-                </a>
+                <Link to="/3d-jewelry-viewer" title="3D Jewelry Viewer – real-time photorealistic rendering" className="font-semibold text-brand transition-colors hover:text-foreground">
+                  3D Jewelry Viewer
+                </Link>
               </li>
               {companyLinks.map((l) => (
                 <li key={l.to}>
