@@ -146,9 +146,9 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
       <div className="pointer-events-none absolute -right-40 bottom-0 -z-10 h-[420px] w-[420px] rounded-full bg-[#4f7fd6]/25 blur-[140px]" />
       <div className="pattern-lattice pointer-events-none absolute inset-0 -z-10 opacity-[0.06]" />
 
-      <div className="container-wide grid items-center gap-12 lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-20 xl:gap-28">
+      <div className="container-wide grid items-center gap-12 lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-20 xl:gap-28 3xl:grid-cols-[minmax(0,560px)_1fr]">
         {/* Arched film window */}
-        <div ref={cardRef} className="relative mx-auto w-full max-w-[360px] lg:max-w-[420px]">
+        <div ref={cardRef} className="relative mx-auto w-full max-w-[360px] lg:max-w-[420px] 3xl:max-w-[520px]">
           <div className="relative aspect-[3/4.6] overflow-hidden rounded-b-[2rem] rounded-t-[999px] border border-[#a9c4f5]/35 bg-[#081226] shadow-[0_60px_120px_-40px_rgba(43,89,168,0.7)]">
             <video
               ref={attachVideo}
@@ -258,7 +258,7 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
                           isActive ? "lg:mt-1.5 lg:grid-rows-[1fr] lg:opacity-100" : "lg:grid-rows-[0fr] lg:opacity-0"
                         )}
                       >
-                        <span className="overflow-hidden text-sm leading-relaxed text-white/60">{step.text}</span>
+                        <span className="measure overflow-hidden text-sm leading-relaxed text-white/60">{step.text}</span>
                       </span>
                     </span>
                   </button>

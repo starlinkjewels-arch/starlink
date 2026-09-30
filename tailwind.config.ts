@@ -13,6 +13,13 @@ export default {
       },
     },
     extend: {
+      // Wide-desktop steps above Tailwind's 2xl (1536px), so large monitors get more
+      // content instead of wider empty margins. Used by .container-wide and by the
+      // product / collection grids, which gain a column at each step.
+      screens: {
+        "3xl": "1800px",
+        "4xl": "2200px",
+      },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['"Inter Tight"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],

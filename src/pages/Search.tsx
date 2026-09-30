@@ -88,7 +88,7 @@ const SearchPage = () => {
         {!query ? (
           <EmptyState onPick={submit} />
         ) : loading ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 3xl:grid-cols-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i}>
                 <div className="aspect-[4/5] animate-pulse rounded-md bg-muted" />
@@ -123,7 +123,7 @@ const SearchPage = () => {
                 </>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6 3xl:grid-cols-5">
               {visible.map((product, i) => (
                 <Reveal key={product.id} delay={(i % 4) * 60}>
                   <ProductCard product={product} categoryName={categoryName(product)} priority={i < 4} />
