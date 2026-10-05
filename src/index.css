@@ -190,8 +190,15 @@ html.a11y-readable body * {
     @apply py-16 md:py-28;
   }
 
+  /* Page width. Grows in steps on large monitors so a wide screen shows more of the
+     site instead of two empty margins; the gutter grows with it so it never looks cramped. */
   .container-wide {
-    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10;
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10 2xl:max-w-[1640px] 2xl:px-12 3xl:max-w-[1820px] 3xl:px-16 4xl:max-w-[2040px];
+  }
+
+  /* Readable line length for body copy inside a full-width section. */
+  .measure {
+    @apply max-w-[62ch];
   }
 
   .heading-xl {

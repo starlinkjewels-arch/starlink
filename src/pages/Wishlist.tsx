@@ -106,7 +106,7 @@ const Wishlist = () => {
         </div>
 
         {loading ? (
-          <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 3xl:grid-cols-5">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="aspect-square animate-pulse rounded-3xl bg-muted" />
             ))}
@@ -132,7 +132,7 @@ const Wishlist = () => {
             </div>
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+          <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6 3xl:grid-cols-5">
             {items.map((p, i) => (
               <ProductCard key={p.id} product={p} priority={i < 4} />
             ))}

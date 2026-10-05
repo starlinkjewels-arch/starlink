@@ -81,14 +81,14 @@ const Categories = () => {
             hydrated ? (
               <p className="py-20 text-center text-muted-foreground">No collections available yet.</p>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 3xl:grid-cols-4">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="aspect-[4/5] animate-pulse rounded-3xl bg-muted" />
                 ))}
               </div>
             )
           ) : (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3 3xl:grid-cols-4">
               {ordered.map((category, i) => (
                 <Reveal key={category.id} delay={(i % 3) * 90}>
                   <Link to={categoryPath(category)} className="group block">
