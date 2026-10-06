@@ -35,20 +35,38 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 - [x] Accessibility widget: added a "Reduce transparency" toggle driving
       `html.a11y-solid` (`site/AccessibilityWidget.tsx`)
 
+**Second pass**
+- [x] Sort → `Segmented` (`CategoryProducts.tsx`); labels shortened to fit three
+      segments, accessible names kept explicit via `srLabel`
+- [x] `brand-foreground` token added — the pill was borrowing `--primary-foreground`
+      and only reading correctly by coincidence (see log)
+- [x] Soft scroll edge under the PDP action bar; its hard border removed, since a
+      pane gets one edge treatment
+- [x] Ad-hoc `backdrop-blur` swept from the whole storefront — **0 remaining**
+      outside `.glass` (banner, product card, save button, cookie banner, a11y
+      widget, craft story, video reels, index hero)
+- [x] Skeletons → `.skeleton` tonal ramp class; 23 placeholders across 10 files
+- [x] Enquiry form success/error → `success` / `destructive` roles
+- [x] Header touch targets raised to 44px
+
 ### TODO
 
-- [ ] Filters & sort: sort `Select` → `Segmented`; filter chips → selection pill
-      (`site/ProductFilters.tsx`)
-- [ ] Diamond shape / metal pickers → selection pill (rule 9: one selection language)
-- [ ] Product card → `surfaceContainerHigh` + hairline, confirm no elevation (§6.3)
+- [ ] Diamond shape / metal pickers → selection pill (rule 9)
 - [ ] Container transform: product card → product page (§5.3 E), using `motion`
 - [ ] Menu / popover morph from source (§5.3 F)
-- [ ] Soft scroll edge under the PDP action bar (§5.3 H)
-- [ ] Status chips → `success` / `caution` / `info` containers instead of ad-hoc colours
-- [ ] Skeletons → tonal ramp shimmer (§5.3 D)
-- [ ] Sweep remaining ad-hoc `backdrop-blur-*` in storefront components
-      (`BannerCarousel.tsx`, `AdPopup.tsx`) — admin is out of scope
-- [ ] Audit the 44px touch-target floor across header controls
+- [ ] Press feedback (§5.3 A): scale + glow on glass controls via `useMotion()`
+- [ ] First-load cascade on product grids (§5.3 D)
+
+### Deliberately not changed
+
+- **Filter groups stay multi-select toggles.** The sliding pill is for single-select
+  only — a pill can occupy one position, so it cannot express several active filters.
+  Rule 9 does not apply to them.
+- **Product card already complies with §6.3** — tokenized surface, no resting
+  elevation. Its hover shadow is press/hover feedback, not resting elevation.
+- **Amber on the announcement bar and the rose wishlist heart** are brand and
+  product convention, not status colours, so they were left as-is.
+- **Admin panel** — out of scope (decision 5); its `backdrop-blur` usages remain.
 
 ## Verification
 
@@ -59,6 +77,7 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 | Home + category rendered (headless Chrome over CDP) | **passes** in light, dark, high-contrast, reduced-transparency and reduced-motion |
 | Glass header | **verified** in all four display modes; hairline correctly absent at scroll 0 |
 | Selection pill | **verified** after fixing a stacking-context bug (see log) |
+| Sort + density pills | **verified** in light, dark, high-contrast and solid |
 | Mobile PDP action bar | partially — the gallery glass was seen, the sticky bar was covered by the cookie banner in the shot |
 | Hover / press / focus states | **not checked** — static screenshots only |
 | Motion (springs, pill slide, morphs) | **not checked** — needs a real browser session |
@@ -74,3 +93,14 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
   selected icon rendered white-on-grey with nothing behind it. `position: relative`
   with `z-index: auto` creates no stacking context. Fixed by keeping the pill at the
   default level and lifting the label/icon to `z-10`.
+
+- **2026-10-06 (second pass)** — Sort moved to the shared selection pill; soft scroll
+  edge added under the PDP bar; ad-hoc `backdrop-blur` swept from the storefront
+  (0 remaining outside `.glass`); skeletons moved to the tonal ramp; header touch
+  targets raised to 44px.
+  **Second bug found during verification:** the selection pill's label used
+  `--primary-foreground`, which is the on-colour for ink, not for brand. It happened
+  to read correctly in both themes only because brand lightness tracks primary
+  lightness per theme — a coincidence, not a rule. Added an explicit
+  `--brand-foreground` token and pointed the pill at it.
+  Re-verified home and category in all five modes.

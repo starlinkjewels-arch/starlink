@@ -80,7 +80,7 @@ const EnquiryForm = ({ defaultType = "Quote for a piece", product, className, on
   if (sent) {
     return (
       <div className={cn("py-6 text-center", className)}>
-        <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
+        <CheckCircle2 className="mx-auto h-12 w-12 text-success" />
         <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight">Thank you, {sent.name}</h3>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
           Your request is with our team. We will reply by {contactMethod === "Phone call" ? "phone" : contactMethod} as soon as possible.
@@ -217,7 +217,7 @@ const EnquiryForm = ({ defaultType = "Quote for a piece", product, className, on
         </span>
       </label>
 
-      {error && <p className="text-sm text-rose-600" role="alert">{error}</p>}
+      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
       <Button type="submit" size="xl" className="w-full" disabled={sending || !country}>
         {sending ? <Loader2 className="animate-spin" /> : "Send request"}

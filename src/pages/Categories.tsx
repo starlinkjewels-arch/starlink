@@ -83,7 +83,7 @@ const Categories = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 3xl:grid-cols-4">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="aspect-[4/5] animate-pulse rounded-3xl bg-muted" />
+                  <div key={i} className="aspect-[4/5] skeleton rounded-3xl" />
                 ))}
               </div>
             )

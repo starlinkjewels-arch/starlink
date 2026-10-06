@@ -18,7 +18,11 @@ export type SegmentedItem<T extends string = string> = {
   label: ReactNode;
   /** Optional leading icon — monochrome, it inherits colour. */
   icon?: ReactNode;
-  /** Accessible name when `label` is an icon or otherwise not descriptive. */
+  /**
+   * Accessible name, used when the visible label is an icon or is abbreviated
+   * ("A–Z" → "Name A to Z"). Replaces the accessible name; it is not read in
+   * addition to the visible label.
+   */
   srLabel?: string;
 };
 
@@ -89,6 +93,9 @@ export function Segmented<T extends string = string>({
               type="button"
               role="tab"
               aria-selected={selected}
+              // srLabel replaces the accessible name rather than appending to it, so a
+              // segment reading "Newest" is not announced as "Newest Newest first".
+              aria-label={item.srLabel}
               tabIndex={selected ? 0 : -1}
               onClick={() => onValueChange(item.value)}
               onKeyDown={(e) => onKeyDown(e, i)}
@@ -97,7 +104,7 @@ export function Segmented<T extends string = string>({
                 "transition-colors duration-150 outline-none",
                 "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 seg,
-                selected ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                selected ? "text-brand-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
               {/* The sliding pill. One element for the whole group.
@@ -115,7 +122,6 @@ export function Segmented<T extends string = string>({
               <span className="relative z-10 inline-flex items-center gap-2">
                 {item.icon}
                 {item.label}
-                {item.srLabel && <span className="sr-only">{item.srLabel}</span>}
               </span>
             </button>
           );

@@ -96,8 +96,8 @@ const BuyingGuidePage = () => {
       <section className="container-wide py-12 md:py-16">
         {loading ? (
           <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
-            <div className="h-72 animate-pulse rounded-md bg-muted" />
-            <div className="h-[480px] animate-pulse rounded-md bg-muted" />
+            <div className="h-72 skeleton rounded-md" />
+            <div className="h-[480px] skeleton rounded-md" />
           </div>
         ) : guides.length === 0 || !selected ? (
           <div className="py-20 text-center">

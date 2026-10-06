@@ -69,7 +69,7 @@ const ReelCard = ({ video, product, onOpen }: { video: VideoPost; product?: Prod
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
-      <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md">
+      <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/25 text-white">
         <Play className="h-3.5 w-3.5 fill-current" />
       </span>
 
@@ -194,7 +194,7 @@ const ReelViewer = ({ videos, productsById, index, onClose, onChange }: ViewerPr
         <button
           type="button"
           onClick={() => setMuted((m) => !m)}
-          className="absolute left-3 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur"
+          className="absolute left-3 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white"
           aria-label={muted ? "Unmute" : "Mute"}
         >
           {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}

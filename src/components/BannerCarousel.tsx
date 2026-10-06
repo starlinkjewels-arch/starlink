@@ -168,11 +168,12 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
 
           <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
 
-          {/* Floating glass chips */}
-          <div className="animate-float absolute left-5 top-5 z-20 flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-md">
+          {/* Floating info chips. Non-interactive, so content layer - solid tonal,
+              no blur: on glass they would read as buttons (DESIGN.md §2 rule 6). */}
+          <div className="animate-float absolute left-5 top-5 z-20 flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold shadow-lg">
             <Sparkles className="h-3.5 w-3.5 text-brand" /> Handcrafted in Surat
           </div>
-          <div className="animate-float absolute right-5 top-16 z-20 hidden items-center gap-2 rounded-2xl border border-white/40 bg-white/70 px-4 py-3 shadow-lg backdrop-blur-md [animation-delay:1.5s] sm:flex">
+          <div className="animate-float absolute right-5 top-16 z-20 hidden items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg [animation-delay:1.5s] sm:flex">
             <ShieldCheck className="h-5 w-5 text-brand" />
             <span className="leading-tight">
               <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Every stone</span>
@@ -183,7 +184,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
           {/* Caption + controls */}
           <div className="absolute inset-x-5 bottom-5 z-20 flex items-end justify-between gap-4">
             {activeBanner?.title ? (
-              <div key={current} className="max-w-sm rounded-2xl border border-white/30 bg-black/35 px-4 py-3 text-white backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-700">
+              <div key={current} className="max-w-sm rounded-2xl bg-foreground/80 px-4 py-3 text-background animate-in fade-in slide-in-from-bottom-2 duration-700">
                 <p className="line-clamp-2 text-sm font-semibold leading-snug">{activeBanner.title}</p>
                 {count > 1 && (
                   <div className="mt-2.5 flex gap-1.5">
@@ -207,10 +208,10 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
             )}
             {count > 1 && (
               <div className="flex shrink-0 gap-2">
-                <button type="button" onClick={() => go(-1)} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-md backdrop-blur transition hover:scale-105" aria-label="Previous slide">
+                <button type="button" onClick={() => go(-1)} className="glass flex h-11 w-11 items-center justify-center rounded-full transition hover:scale-105" aria-label="Previous slide">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button type="button" onClick={() => go(1)} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-md backdrop-blur transition hover:scale-105" aria-label="Next slide">
+                <button type="button" onClick={() => go(1)} className="glass flex h-11 w-11 items-center justify-center rounded-full transition hover:scale-105" aria-label="Next slide">
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>

@@ -47,6 +47,7 @@ export default {
         },
         brand: {
           DEFAULT: "hsl(var(--brand))",
+          foreground: "hsl(var(--brand-foreground))",
           light: "hsl(var(--brand-light))",
         },
         silver: {

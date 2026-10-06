@@ -139,7 +139,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
           id="a11y-panel"
           role="dialog"
           aria-label="Accessibility options"
-          className="absolute bottom-14 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl border bg-background/95 p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
+          className="absolute bottom-14 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl glass-lg p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
         >
           <div className="mb-5 flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-brand">

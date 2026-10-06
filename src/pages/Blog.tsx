@@ -117,8 +117,8 @@ const Blog = () => {
               <div className="grid gap-8 md:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i}>
-                    <div className="aspect-[4/3] animate-pulse rounded-3xl bg-muted" />
-                    <div className="mt-5 h-6 w-3/4 animate-pulse rounded bg-muted" />
+                    <div className="aspect-[4/3] skeleton rounded-3xl" />
+                    <div className="mt-5 h-6 w-3/4 skeleton rounded" />
                   </div>
                 ))}
               </div>

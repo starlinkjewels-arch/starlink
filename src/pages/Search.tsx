@@ -91,8 +91,8 @@ const SearchPage = () => {
           <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 3xl:grid-cols-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i}>
-                <div className="aspect-[4/5] animate-pulse rounded-md bg-muted" />
-                <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="aspect-[4/5] skeleton rounded-md" />
+                <div className="mt-4 h-5 w-3/4 skeleton rounded" />
               </div>
             ))}
           </div>

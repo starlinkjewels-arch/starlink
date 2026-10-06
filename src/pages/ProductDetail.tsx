@@ -88,12 +88,12 @@ const ProductDetail = () => {
         <SEOHead title={loading ? 'Loading Product' : 'Product Not Found'} description="Certified lab-grown and natural diamond jewelry by Starlink Jewels." canonicalUrl={pageUrl} noIndex={!loading} />
         {loading ? (
           <div className="container-wide grid gap-10 py-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
-            <div className="aspect-square animate-pulse rounded-md bg-muted" />
+            <div className="aspect-square skeleton rounded-md" />
             <div className="space-y-4">
-              <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-              <div className="h-10 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-12 w-full animate-pulse rounded bg-muted" />
-              <div className="h-40 w-full animate-pulse rounded bg-muted" />
+              <div className="h-4 w-24 skeleton rounded" />
+              <div className="h-10 w-3/4 skeleton rounded" />
+              <div className="h-12 w-full skeleton rounded" />
+              <div className="h-40 w-full skeleton rounded" />
             </div>
           </div>
         ) : (
@@ -251,9 +251,12 @@ const ProductDetail = () => {
 
       {/* Mobile sticky enquiry bar */}
       {/* Glass chrome (DESIGN.md §4.1). The enquiry button is the single tinted
-          control on this screen - nothing else here competes for prominence. */}
-      <div className="glass fixed inset-x-0 bottom-0 z-40 border-t border-border/80 p-3 lg:hidden">
-        <div className="flex items-center gap-3">
+          control on this screen - nothing else here competes for prominence.
+          A soft scroll edge (§5.3 H) fades content out above the bar; a pane gets
+          one edge treatment, so there is no border on the bar as well. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+        <div aria-hidden className="pointer-events-none h-6 bg-gradient-to-t from-background to-transparent" />
+        <div className="glass flex items-center gap-3 p-3">
           <div className="min-w-0 flex-1">
             <p className="line-clamp-1 text-sm font-medium">{product.name}</p>
             <p className="text-xs font-semibold text-brand">Price on request</p>

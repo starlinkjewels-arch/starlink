@@ -9,7 +9,6 @@ import ProductCard from '@/components/ProductCard';
 import ProductFilters from '@/components/site/ProductFilters';
 import { EMPTY_FILTERS, filtersFromParams, matchesFilters, writeFiltersToParams, type ProductFilterState } from '@/lib/productAttributes';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   SITE,
   buildFaqForCategory,
@@ -39,9 +38,9 @@ const ProductGridSkeleton = () => (
   <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6 3xl:grid-cols-5">
     {Array.from({ length: 8 }).map((_, i) => (
       <div key={i}>
-        <div className="aspect-[4/5] animate-pulse rounded-md bg-muted" />
-        <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-muted" />
-        <div className="mt-2 h-4 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="aspect-[4/5] skeleton rounded-md" />
+        <div className="mt-4 h-5 w-3/4 skeleton rounded" />
+        <div className="mt-2 h-4 w-1/2 skeleton rounded" />
       </div>
     ))}
   </div>
@@ -148,7 +147,7 @@ const CategoryProducts = () => {
         />
         {stillLoading ? (
           <div className="container-wide py-16">
-            <div className="mb-10 h-14 w-72 animate-pulse rounded bg-muted" />
+            <div className="mb-10 h-14 w-72 skeleton rounded" />
             <ProductGridSkeleton />
           </div>
         ) : (
@@ -198,16 +197,21 @@ const CategoryProducts = () => {
             resultCount={visibleProducts.length}
             trailing={
               <>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="h-10 w-[150px] rounded-full text-sm" aria-label="Sort products">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest first</SelectItem>
-                    <SelectItem value="oldest">Oldest first</SelectItem>
-                    <SelectItem value="name">Name A–Z</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Sort is single-select, so it uses the shared selection pill rather
+                    than a dropdown (DESIGN.md §2 rule 9). Labels are shortened to fit
+                    three segments on one row; the accessible names stay explicit. */}
+                <Segmented
+                  label="Sort products"
+                  variant="plain"
+                  size="sm"
+                  value={sortBy}
+                  onValueChange={(v) => setSortBy(v as SortOption)}
+                  items={[
+                    { value: 'newest', label: 'Newest', srLabel: 'Newest first' },
+                    { value: 'oldest', label: 'Oldest', srLabel: 'Oldest first' },
+                    { value: 'name', label: 'A–Z', srLabel: 'Name A to Z' },
+                  ]}
+                />
                 {/* One selection language (DESIGN.md §2 rule 9 / §6.2): density uses the
                     same sliding pill as every other single-select in the product. */}
                 <Segmented

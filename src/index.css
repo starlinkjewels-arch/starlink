@@ -56,6 +56,10 @@
 
     /* Brand sapphire, sampled from the Starlink logo (#2B59A8). */
     --brand: 219 59% 41%;
+    /* Explicit on-brand colour. The selection pill previously borrowed
+       --primary-foreground, which only worked because brand lightness happens
+       to track primary lightness per theme - a coincidence, not a rule. */
+    --brand-foreground: 0 0% 100%;
     --brand-light: 219 60% 95%;
 
     --whatsapp: 142 70% 41%;
@@ -148,6 +152,7 @@
     --silver-light: 0 0% 20%;
 
     --brand: 219 75% 70%;
+    --brand-foreground: 240 6% 8%;
     --brand-light: 219 30% 16%;
 
     --surface: 240 6% 6%;
@@ -349,6 +354,29 @@ html.a11y-readable body * {
     .glass::before,
     .glass-lg::before {
       display: none;
+    }
+  }
+
+  /* Skeleton placeholder (DESIGN.md §5.3 D): a tonal breath between two steps of
+     the surface ramp, 1.2s, rather than an opacity pulse on a flat grey. */
+  .skeleton {
+    background-color: hsl(var(--surface-container));
+    animation: skeleton-pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      background-color: hsl(var(--surface-container));
+    }
+    50% {
+      background-color: hsl(var(--surface-container-highest));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
     }
   }
 

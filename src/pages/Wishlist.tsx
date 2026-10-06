@@ -108,7 +108,7 @@ const Wishlist = () => {
         {loading ? (
           <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 3xl:grid-cols-5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-square animate-pulse rounded-3xl bg-muted" />
+              <div key={i} className="aspect-square skeleton rounded-3xl" />
             ))}
           </div>
         ) : items.length === 0 ? (
