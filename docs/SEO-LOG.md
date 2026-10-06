@@ -168,3 +168,50 @@ These need shortening in the admin panel by someone who owns the copy.
 Lighthouse has **not** been re-run since the image work — the previous score (18)
 was measured against production. The image saving is real but its effect on LCP is
 unproven until this is deployed to a preview and measured again.
+
+---
+
+## 2026-10-06 — Phase 5: self-hosted fonts (render-blocking)
+
+### What changed
+
+Measured on the build: the Google Fonts stylesheet was the single largest
+render-blocking resource at **951 ms** — an external stylesheet holds up first
+paint until DNS, TLS and the response all complete.
+
+- Installed `@fontsource-variable/inter`, `@fontsource-variable/inter-tight` and
+  `@fontsource/cormorant-garamond`, imported in `src/main.tsx`.
+- Removed the Google Fonts `<link>` and its two preconnects from `index.html`.
+- `tailwind.config.ts` font stacks now lead with the variable family names
+  (`Inter Variable`, `Inter Tight Variable`), keeping the old names behind them.
+- Only weights 400-700 are used anywhere in the codebase; the old request also
+  pulled 300 and 800. The variable files cover the whole range in one file each.
+
+### The regression this caused, and the fix
+
+Self-hosting alone **made CLS worse: 0 → 0.332**. The blocking stylesheet had been
+hiding the problem — with it gone, fonts arrived after first paint and swapped in,
+reflowing the text.
+
+`scripts/prerender.mjs` now injects `<link rel="preload" as="font">` for the two
+latin variable files into every pre-rendered page. Vite hashes the filenames, so
+they are resolved from the build output rather than hard-coded. Only the latin
+subsets of the two above-the-fold families are preloaded; preloading more would
+compete with the LCP image.
+
+### Verification (local build, mobile emulation)
+
+| | Before | Self-hosted | + preload |
+|---|---|---|---|
+| Render-blocking | 951 ms (fonts) + 469 ms (css) | 458 ms (css only) | **471 ms (css only)** |
+| CLS | 0 | 0.332 ❌ | **0** ✅ |
+
+Typography checked by screenshot — headline, serif italic accent and body text are
+unchanged. No external font references remain in the built HTML.
+
+### ⚠️ Still unresolved
+
+TBT is ~2 s and the DOM is 1,339 elements; neither was addressed. LCP is dominated
+by the ~2 MB homepage video and the Firebase hero imagery, which is still awaiting
+an owner decision. Local Lighthouse has no network latency, so these numbers are
+useful for comparing before/after but are **not** production scores.
