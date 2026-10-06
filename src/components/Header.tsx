@@ -172,8 +172,12 @@ const Header = () => {
 
       <header
         className={cn(
-          "sticky top-0 z-50 border-b bg-background/95 backdrop-blur-xl transition-shadow duration-300",
-          (isScrolled || activeMenu) && "shadow-[0_8px_30px_-12px_rgba(15,27,51,0.25)]"
+          // Glass chrome (DESIGN.md §4.1). The recipe - fill, blur tier, rim, shadow
+          // and the reduced-transparency / high-contrast fallbacks - lives in `.glass`.
+          "glass sticky top-0 z-50 transition-[border-color] duration-[120ms]",
+          // Hard scroll edge (§5.3 H): the hairline appears only once content is
+          // actually underneath the bar, instead of a permanent divider.
+          isScrolled || activeMenu ? "border-b border-border/80" : "border-b border-transparent"
         )}
         onMouseLeave={() => setActiveMenu(null)}
       >
@@ -181,10 +185,10 @@ const Header = () => {
         {/* Fixed height: animating height re-lays-out the whole page every frame (froze phones on navigation). */}
         <div className="container-wide grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-4 md:h-20">
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" aria-label="Open menu" onClick={() => setMobileOpen(true)}>
+            <Button variant="ghost" size="icon" className="-ml-2 h-11 w-11 lg:hidden" aria-label="Open menu" onClick={() => setMobileOpen(true)}>
               <Menu className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Search" onClick={() => setSearchOpen(true)}>
+            <Button variant="ghost" size="icon" className="h-11 w-11 lg:hidden" aria-label="Search" onClick={() => setSearchOpen(true)}>
               <Search className="h-5 w-5" />
             </Button>
             <HeaderSearch className="hidden w-full max-w-[320px] lg:block" />
@@ -202,17 +206,19 @@ const Header = () => {
           </Link>
 
           <div className="flex items-center justify-end gap-1 lg:gap-3">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode" className="hidden sm:inline-flex">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode" className="hidden h-11 w-11 sm:inline-flex">
               {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
             </Button>
             <Link
               to="/wishlist"
               aria-label={savedCount ? `Wishlist, ${savedCount} saved` : "Wishlist"}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-secondary"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-secondary"
             >
               <Heart className="h-[19px] w-[19px]" />
               {savedCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+                /* Chrome stays neutral (DESIGN.md §4.3): a count is information, not a
+                   status, so it reads monochrome rather than borrowing a status hue. */
+                <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-bold tabular-nums text-background">
                   {savedCount > 99 ? "99+" : savedCount}
                 </span>
               )}
@@ -330,7 +336,7 @@ const Header = () => {
                 ) : (
                   <div className="grid grid-cols-4 gap-4">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <span key={i} className="aspect-square animate-pulse rounded-md bg-muted" />
+                      <span key={i} className="aspect-square skeleton rounded-md" />
                     ))}
                   </div>
                 )}

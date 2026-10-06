@@ -54,7 +54,7 @@ const SaveButton = ({ productId, productName, variant = "card", className }: Sav
       aria-pressed={saved}
       aria-label={label}
       className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-full bg-background/90 shadow-sm backdrop-blur transition-all hover:scale-110",
+        "flex h-9 w-9 items-center justify-center glass press-glow rounded-full transition-all hover:scale-110 active:scale-[0.96]",
         saved ? "text-rose-600" : "text-foreground/70 hover:text-rose-600",
         className
       )}

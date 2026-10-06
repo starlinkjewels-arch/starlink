@@ -130,7 +130,7 @@ const Gallery = () => {
             ) : (
               <div className="columns-2 gap-4 md:columns-3 lg:columns-4">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className={`mb-4 animate-pulse rounded-2xl bg-muted ${i % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'}`} />
+                  <div key={i} className={`mb-4 skeleton rounded-2xl  ${i % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'}`} />
                 ))}
               </div>
             )

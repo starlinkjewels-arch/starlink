@@ -66,10 +66,10 @@ const BlogDetail = () => {
         />
         {loading ? (
           <div className="container-wide max-w-3xl space-y-5 py-16">
-            <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-            <div className="h-12 w-4/5 animate-pulse rounded bg-muted" />
-            <div className="aspect-[16/9] animate-pulse rounded-3xl bg-muted" />
-            <div className="h-40 animate-pulse rounded bg-muted" />
+            <div className="h-4 w-32 skeleton rounded" />
+            <div className="h-12 w-4/5 skeleton rounded" />
+            <div className="aspect-[16/9] skeleton rounded-3xl" />
+            <div className="h-40 skeleton rounded" />
           </div>
         ) : (
           <div className="container-wide py-28 text-center">

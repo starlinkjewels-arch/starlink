@@ -11,6 +11,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectGlobalData } from '@/store/contentSlice';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
+import { useProductTransition } from '@/lib/viewTransition';
 import SaveButton from '@/components/site/SaveButton';
 import { productPath } from '@/lib/urls';
 
@@ -111,10 +112,22 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
   };
 
   const href = productPath(product);
+  // Container transform (DESIGN.md §5.3 E): drives the View Transition itself,
+  // because <BrowserRouter> ignores React Router's own viewTransition prop.
+  const openWithTransition = useProductTransition(href, () => cardRef.current);
   const primaryAction = onClick ? (
     <button type="button" onClick={onClick} className="absolute inset-0 z-10" aria-label={`Quick view ${product.name}`} />
   ) : (
-    <Link to={href} className="absolute inset-0 z-10" aria-label={product.name} />
+    // Container transform (DESIGN.md §5.3 E): the card names itself as the shared
+    // element just before navigating, so the product page grows out of this tile
+    // instead of the page swapping. No-op where View Transitions are unsupported
+    // or motion is reduced.
+    <Link
+      to={href}
+      className="absolute inset-0 z-10"
+      aria-label={product.name}
+      onClick={openWithTransition}
+    />
   );
 
   return (
@@ -193,7 +206,7 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
         <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5">
           {isNew && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">New</span>}
           {hasVideo && (
-            <span className="flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
+            <span className="flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
               <Play className="h-3 w-3 fill-current" /> Video
             </span>
           )}
@@ -213,14 +226,14 @@ const ProductCard = ({ product, onClick, categoryName, className, priority = fal
             <button
               type="button"
               onClick={onClick}
-              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-background/95 text-[13px] font-semibold shadow-md backdrop-blur hover:bg-primary hover:text-primary-foreground"
+              className="flex h-10 flex-1 items-center justify-center gap-2 glass press-glow rounded-full text-[13px] font-semibold active:scale-[0.96] hover:bg-primary hover:text-primary-foreground"
             >
               <Eye className="h-4 w-4" /> Quick view
             </button>
           ) : (
             <Link
               to={href}
-              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-background/95 text-[13px] font-semibold shadow-md backdrop-blur hover:bg-primary hover:text-primary-foreground"
+              className="flex h-10 flex-1 items-center justify-center gap-2 glass press-glow rounded-full text-[13px] font-semibold active:scale-[0.96] hover:bg-primary hover:text-primary-foreground"
             >
               View details <ArrowUpRight className="h-4 w-4" />
             </Link>

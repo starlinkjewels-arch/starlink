@@ -248,7 +248,7 @@ const Index = () => {
                 loading="lazy"
                 decoding="async"
               />
-              <span className="absolute bottom-4 left-4 hidden rounded-full border border-white/40 bg-white/80 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-md lg:inline-flex">
+              <span className="absolute bottom-4 left-4 hidden rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold shadow-lg lg:inline-flex">
                 Handcrafted in Surat · since 2011
               </span>
             </div>

@@ -52,7 +52,9 @@ const AdPopup = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300"
+      /* Modal scrim, not a glass surface: 45% per DESIGN.md §5.3 G. The slight blur
+         belongs to the scrim itself, which is why it is not routed through .glass. */
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm animate-in fade-in duration-300"
       onClick={handleClose}
     >
       {/* Close button */}

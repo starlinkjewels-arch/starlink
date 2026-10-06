@@ -183,7 +183,7 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
               <button
                 type="button"
                 onClick={togglePlay}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-brand"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white-md transition hover:bg-white hover:text-brand"
                 aria-label={playing ? "Pause video" : "Play video"}
               >
                 {playing ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 translate-x-px fill-current" />}

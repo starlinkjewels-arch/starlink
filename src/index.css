@@ -56,9 +56,53 @@
 
     /* Brand sapphire, sampled from the Starlink logo (#2B59A8). */
     --brand: 219 59% 41%;
+    /* Explicit on-brand colour. The selection pill previously borrowed
+       --primary-foreground, which only worked because brand lightness happens
+       to track primary lightness per theme - a coincidence, not a rule. */
+    --brand-foreground: 0 0% 100%;
     --brand-light: 219 60% 95%;
 
     --whatsapp: 142 70% 41%;
+
+    /* Tonal surface ramp (DESIGN.md §4.3). Used by glass fills, nested panel
+       sections and skeletons. Cards stay on --card so the white storefront keeps
+       its look; the ramp supplies depth without greying the page. */
+    --surface: 0 0% 100%;
+    --surface-container-low: 0 0% 99%;
+    --surface-container: 240 11% 97%;
+    --surface-container-high: 240 10% 95%;
+    --surface-container-highest: 240 9% 92%;
+
+    /* Status roles. Always paired with text or an icon, never colour alone. */
+    --success: 152 58% 34%;
+    --success-foreground: 0 0% 100%;
+    --success-container: 152 46% 94%;
+    --caution: 36 84% 42%;
+    --caution-foreground: 0 0% 100%;
+    --caution-container: 38 86% 94%;
+    --info: 219 59% 41%;
+    --info-foreground: 0 0% 100%;
+    --info-container: 219 60% 95%;
+
+    /* Glass (DESIGN.md §4.1). Tier A = blurred, Tier B = flat fallback. */
+    --glass-blur-sm: 24px;
+    --glass-blur-lg: 32px;
+    --glass-alpha-sm: 0.62;
+    --glass-alpha-lg: 0.76;
+    --glass-alpha-sm-flat: 0.88;
+    --glass-alpha-lg-flat: 0.97;
+    --glass-rim: 0 0% 100%;
+    --glass-rim-alpha: 0.35;
+    --glass-shadow-sm: 0 6px 16px -6px hsl(240 30% 12% / 0.18);
+    --glass-shadow-lg: 0 12px 32px -12px hsl(240 30% 12% / 0.18);
+
+    /* Motion (DESIGN.md §5.2). Springs live in src/lib/motion.ts; these are the
+       easing curves CSS transitions use. */
+    --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --dur-micro: 120ms;
+    --dur-short: 200ms;
+    --dur-medium: 300ms;
+    --dur-long: 380ms;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -108,7 +152,30 @@
     --silver-light: 0 0% 20%;
 
     --brand: 219 75% 70%;
+    --brand-foreground: 240 6% 8%;
     --brand-light: 219 30% 16%;
+
+    --surface: 240 6% 6%;
+    --surface-container-low: 240 6% 8%;
+    --surface-container: 240 5% 11%;
+    --surface-container-high: 240 5% 14%;
+    --surface-container-highest: 240 5% 17%;
+
+    --success: 152 52% 56%;
+    --success-foreground: 240 6% 8%;
+    --success-container: 152 30% 16%;
+    --caution: 38 80% 60%;
+    --caution-foreground: 240 6% 8%;
+    --caution-container: 36 34% 16%;
+    --info: 219 75% 70%;
+    --info-foreground: 240 6% 8%;
+    --info-container: 219 30% 16%;
+
+    /* Dark glass sits darker and leans on the rim rather than the fill. */
+    --glass-rim: 0 0% 100%;
+    --glass-rim-alpha: 0.14;
+    --glass-shadow-sm: 0 6px 16px -6px hsl(0 0% 0% / 0.4);
+    --glass-shadow-lg: 0 12px 32px -12px hsl(0 0% 0% / 0.4);
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -144,6 +211,33 @@ html.a11y-contrast a {
 }
 html.a11y-contrast img {
   filter: contrast(1.08);
+}
+/* Glass goes opaque under high contrast, and under the widget's "solid surfaces"
+   toggle (browser support for prefers-reduced-transparency is still partial). */
+html.a11y-contrast .glass,
+html.a11y-contrast .glass-lg,
+html.a11y-solid .glass,
+html.a11y-solid .glass-lg {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background-color: hsl(var(--surface-container-high)) !important;
+  border: 1px solid hsl(var(--border));
+}
+html.a11y-contrast .glass,
+html.a11y-contrast .glass-lg {
+  border-width: 1.5px;
+  border-color: hsl(var(--foreground) / 0.45);
+}
+html.a11y-contrast .glass::before,
+html.a11y-contrast .glass-lg::before,
+html.a11y-solid .glass::before,
+html.a11y-solid .glass-lg::before {
+  display: none;
+}
+/* No tinted glass under high contrast - it loses the contrast ratio. */
+html.a11y-contrast .glass-tinted {
+  background-color: hsl(var(--brand)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 html.a11y-readable body,
 html.a11y-readable body * {
@@ -184,6 +278,214 @@ html.a11y-readable body * {
   .eyebrow::before {
     content: "";
     @apply h-1.5 w-1.5 rounded-full bg-current;
+  }
+
+  /* ---------------------------------------------------------------------
+     Glass surface (DESIGN.md §4.1). The only place blur is defined.
+     Components use .glass / .glass-lg and set their own radius.
+     Tier B (flat, more opaque) is the base so it looks right with no blur;
+     Tier A layers backdrop-filter on top where the browser supports it.
+     --------------------------------------------------------------------- */
+  .glass,
+  .glass-lg {
+    position: relative;
+    isolation: isolate;
+    background-color: hsl(var(--surface-container-high) / var(--glass-alpha-sm-flat));
+    box-shadow: var(--glass-shadow-sm);
+  }
+
+  .glass-lg {
+    background-color: hsl(var(--surface-container-high) / var(--glass-alpha-lg-flat));
+    box-shadow: var(--glass-shadow-lg);
+  }
+
+  /* Rim highlight: 1px gradient stroke, bright top-leading fading to nothing.
+     This is the specular cue - no shaders, no lensing. */
+  .glass::before,
+  .glass-lg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--glass-rim) / var(--glass-rim-alpha)),
+      hsl(var(--glass-rim) / 0) 60%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background-color: hsl(var(--surface) / var(--glass-alpha-sm));
+      -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(160%);
+      backdrop-filter: blur(var(--glass-blur-sm)) saturate(160%);
+    }
+    .glass-lg {
+      background-color: hsl(var(--surface) / var(--glass-alpha-lg));
+      -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(160%);
+      backdrop-filter: blur(var(--glass-blur-lg)) saturate(160%);
+    }
+  }
+
+  /* The one tinted control per glass surface. Tint is --brand, never --primary. */
+  .glass-tinted {
+    background-color: hsl(var(--brand) / 0.35);
+    color: hsl(var(--brand-foreground, var(--primary-foreground)));
+  }
+
+  /* Identity: glass off. Opaque surface + outline, no blur, no rim.
+     Triggered by the OS preference, the high-contrast mode, or the a11y widget. */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .glass-lg,
+    .glass-tinted {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      background-color: hsl(var(--surface-container-high));
+      border: 1px solid hsl(var(--border));
+    }
+    .glass::before,
+    .glass-lg::before {
+      display: none;
+    }
+  }
+
+  /* Container transform (DESIGN.md §5.3 E): the product page grows out of the card
+     that opened it. The pairing is done by view-transition-name in
+     src/lib/viewTransition.ts; this only tunes the timing. */
+  ::view-transition-group(product-hero) {
+    animation-duration: 380ms;
+    animation-timing-function: var(--ease-emphasized);
+  }
+
+  /* Morph from source (DESIGN.md §5.3 F): a menu or popover grows out of the
+     control that opened it rather than popping in place. Radix publishes the
+     trigger's position as a transform-origin, which is what makes it a morph
+     rather than a zoom. */
+  .morph-source {
+    transform-origin: var(
+      --radix-popover-content-transform-origin,
+      var(--radix-dropdown-menu-content-transform-origin, center)
+    );
+  }
+  .morph-source[data-state="open"] {
+    animation: morph-in 300ms var(--ease-emphasized) both;
+  }
+  .morph-source[data-state="closed"] {
+    animation: morph-out 160ms var(--ease-emphasized) both;
+  }
+
+  @keyframes morph-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes morph-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+  }
+
+  /* Reduce Motion: cross-fade at the destination, no growth. */
+  @media (prefers-reduced-motion: reduce) {
+    .morph-source[data-state="open"] {
+      animation: morph-in-reduced 200ms ease-out both;
+    }
+    .morph-source[data-state="closed"] {
+      animation: morph-out-reduced 120ms ease-out both;
+    }
+    @keyframes morph-in-reduced {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes morph-out-reduced {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+  }
+
+  /* Press feedback (DESIGN.md §5.3 A).
+     Glass "illuminates from within": a radial glow spreads from where the pointer
+     actually landed, which usePressOrigin publishes as --px / --py. */
+  .press-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at var(--px, 50%) var(--py, 50%),
+      hsl(0 0% 100% / 0.18),
+      hsl(0 0% 100% / 0) 60%
+    );
+    opacity: 0;
+    transition: opacity 160ms ease-out;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .press-glow:active::after {
+    opacity: 1;
+    transition-duration: 220ms;
+  }
+
+  /* Content presses: a flat overlay, never a scale or a bounce. */
+  .press-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: hsl(var(--foreground) / 0.06);
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+    pointer-events: none;
+  }
+  .press-overlay:active::after {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press-glow::after {
+      display: none;
+    }
+  }
+
+  /* Skeleton placeholder (DESIGN.md §5.3 D): a tonal breath between two steps of
+     the surface ramp, 1.2s, rather than an opacity pulse on a flat grey. */
+  .skeleton {
+    background-color: hsl(var(--surface-container));
+    animation: skeleton-pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      background-color: hsl(var(--surface-container));
+    }
+    50% {
+      background-color: hsl(var(--surface-container-highest));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
   }
 
   .section {
@@ -433,4 +735,14 @@ html.a11y-readable body * {
 /* Cookie banner steps aside while a menu, filter panel or dialog is open (Radix locks body scroll). */
 body[data-scroll-locked] #cookie-banner {
   display: none;
+}
+
+/* Reduce Motion: no page-level view transition at all. The helper already skips
+   naming the shared element, and this stops the default root cross-fade too. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

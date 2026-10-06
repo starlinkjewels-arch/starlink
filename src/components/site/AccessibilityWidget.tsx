@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Accessibility, AArrowDown, AArrowUp, Contrast, Type, Volume2, Square, RotateCcw, X } from "lucide-react";
+import { Accessibility, AArrowDown, AArrowUp, Contrast, Layers, Type, Volume2, Square, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface A11ySettings {
   textScale: number;
   highContrast: boolean;
   readableFont: boolean;
+  /** Glass off: opaque surfaces. Browser support for prefers-reduced-transparency
+   *  is still partial, so the panel offers it explicitly (DESIGN.md §8). */
+  solidSurfaces: boolean;
 }
 
 const STORAGE_KEY = "starlink_a11y";
-const DEFAULTS: A11ySettings = { textScale: 100, highContrast: false, readableFont: false };
+const DEFAULTS: A11ySettings = { textScale: 100, highContrast: false, readableFont: false, solidSurfaces: false };
 const MIN_SCALE = 80;
 const MAX_SCALE = 150;
 const SCALE_STEP = 10;
@@ -49,6 +52,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
     root.style.fontSize = settings.textScale === 100 ? "" : `${settings.textScale}%`;
     root.classList.toggle("a11y-contrast", settings.highContrast);
     root.classList.toggle("a11y-readable", settings.readableFont);
+    root.classList.toggle("a11y-solid", settings.solidSurfaces);
     if (settings.readableFont) ensureReadableFont();
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -135,7 +139,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
           id="a11y-panel"
           role="dialog"
           aria-label="Accessibility options"
-          className="absolute bottom-14 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl border bg-background/95 p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
+          className="absolute bottom-14 left-0 max-h-[calc(100dvh-8rem)] w-[min(272px,calc(100vw-2rem))] overflow-y-auto rounded-3xl glass-lg p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] animate-in fade-in slide-in-from-bottom-2 duration-200 lg:bottom-auto lg:left-14 lg:top-1/2 lg:max-h-none lg:-translate-y-1/2 lg:slide-in-from-left-2"
         >
           <div className="mb-5 flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-brand">
@@ -175,6 +179,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
           <div className="space-y-2">
             <ToggleRow icon={Contrast} label="High contrast" active={settings.highContrast} onClick={() => update({ highContrast: !settings.highContrast })} />
             <ToggleRow icon={Type} label="Dyslexia-friendly font" active={settings.readableFont} onClick={() => update({ readableFont: !settings.readableFont })} />
+            <ToggleRow icon={Layers} label="Reduce transparency" active={settings.solidSurfaces} onClick={() => update({ solidSurfaces: !settings.solidSurfaces })} />
           </div>
 
           {canSpeak && (

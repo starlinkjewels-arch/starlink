@@ -42,7 +42,10 @@ const FloatingWhatsApp = () => {
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
       className={cn(
-        "group fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full border border-white/60 bg-white/80 p-1.5 text-foreground shadow-[0_18px_40px_-14px_rgba(15,27,51,0.35)] ring-1 ring-black/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-14px_rgba(43,89,168,0.45)] dark:border-white/10 dark:bg-neutral-900/80 md:bottom-8 md:right-8 md:pr-5",
+        // Solid, not glass (DESIGN.md decision 1): the product page already spends its
+        // glass budget on the header and the sticky action bar, and the action bar must
+        // stay the one tinted control. A solid pill keeps this just as findable.
+        "group fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full border border-border bg-card p-1.5 text-foreground shadow-[0_18px_40px_-14px_rgba(15,27,51,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-14px_rgba(43,89,168,0.45)] md:bottom-8 md:right-8 md:pr-5",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       )}
     >

@@ -70,7 +70,7 @@ const CookieBanner = () => {
       role="dialog"
       aria-modal="false"
       aria-labelledby="cookie-title"
-      className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-[560px] rounded-3xl border bg-background/95 p-5 shadow-[0_30px_80px_-24px_rgba(15,27,51,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 sm:bottom-5 md:left-5 md:right-auto md:mx-0 md:p-6"
+      className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-[560px] glass-lg rounded-3xl p-5 animate-in fade-in slide-in-from-bottom-4 duration-500 sm:bottom-5 md:left-5 md:right-auto md:mx-0 md:p-6"
     >
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">

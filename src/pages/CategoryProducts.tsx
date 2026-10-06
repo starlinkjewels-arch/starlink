@@ -1,15 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, LayoutGrid, Grid3X3 } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import Reveal from '@/components/site/Reveal';
 import ProductCard from '@/components/ProductCard';
 import ProductFilters from '@/components/site/ProductFilters';
 import { EMPTY_FILTERS, filtersFromParams, matchesFilters, writeFiltersToParams, type ProductFilterState } from '@/lib/productAttributes';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   SITE,
   buildFaqForCategory,
@@ -30,6 +28,8 @@ import { productHasCategory } from '@/lib/storage';
 import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
+import { Segmented } from '@/components/ui/segmented';
+import { Cascade } from '@/components/ui/cascade';
 import { categoryPath, categoryUrl, findCategoryByParam, productUrl } from '@/lib/urls';
 
 type SortOption = 'newest' | 'oldest' | 'name';
@@ -38,9 +38,9 @@ const ProductGridSkeleton = () => (
   <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6 3xl:grid-cols-5">
     {Array.from({ length: 8 }).map((_, i) => (
       <div key={i}>
-        <div className="aspect-[4/5] animate-pulse rounded-md bg-muted" />
-        <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-muted" />
-        <div className="mt-2 h-4 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="aspect-[4/5] skeleton rounded-md" />
+        <div className="mt-4 h-5 w-3/4 skeleton rounded" />
+        <div className="mt-2 h-4 w-1/2 skeleton rounded" />
       </div>
     ))}
   </div>
@@ -59,6 +59,15 @@ const CategoryProducts = () => {
 
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [dense, setDense] = useState(false);
+  // The cascade runs once, on the grid's first paint. Re-sorts, filter changes and
+  // later inserts must not re-animate (DESIGN.md §5.3 D).
+  const firstPaint = useRef(true);
+  useEffect(() => {
+    if (productsReady) {
+      const t = setTimeout(() => { firstPaint.current = false; }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [productsReady]);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -147,7 +156,7 @@ const CategoryProducts = () => {
         />
         {stillLoading ? (
           <div className="container-wide py-16">
-            <div className="mb-10 h-14 w-72 animate-pulse rounded bg-muted" />
+            <div className="mb-10 h-14 w-72 skeleton rounded" />
             <ProductGridSkeleton />
           </div>
         ) : (
@@ -197,36 +206,35 @@ const CategoryProducts = () => {
             resultCount={visibleProducts.length}
             trailing={
               <>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="h-10 w-[150px] rounded-full text-sm" aria-label="Sort products">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest first</SelectItem>
-                    <SelectItem value="oldest">Oldest first</SelectItem>
-                    <SelectItem value="name">Name A–Z</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="hidden overflow-hidden rounded-full border lg:flex">
-                  <button
-                    type="button"
-                    onClick={() => setDense(false)}
-                    className={cn('flex h-10 w-10 items-center justify-center', !dense && 'bg-foreground text-background')}
-                    aria-label="Larger grid"
-                    aria-pressed={!dense}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDense(true)}
-                    className={cn('flex h-10 w-10 items-center justify-center', dense && 'bg-foreground text-background')}
-                    aria-label="Compact grid"
-                    aria-pressed={dense}
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </button>
-                </div>
+                {/* Sort is single-select, so it uses the shared selection pill rather
+                    than a dropdown (DESIGN.md §2 rule 9). Labels are shortened to fit
+                    three segments on one row; the accessible names stay explicit. */}
+                <Segmented
+                  label="Sort products"
+                  variant="plain"
+                  size="sm"
+                  value={sortBy}
+                  onValueChange={(v) => setSortBy(v as SortOption)}
+                  items={[
+                    { value: 'newest', label: 'Newest', srLabel: 'Newest first' },
+                    { value: 'oldest', label: 'Oldest', srLabel: 'Oldest first' },
+                    { value: 'name', label: 'A–Z', srLabel: 'Name A to Z' },
+                  ]}
+                />
+                {/* One selection language (DESIGN.md §2 rule 9 / §6.2): density uses the
+                    same sliding pill as every other single-select in the product. */}
+                <Segmented
+                  className="hidden lg:inline-flex"
+                  label="Grid density"
+                  variant="plain"
+                  size="sm"
+                  value={dense ? 'compact' : 'large'}
+                  onValueChange={(v) => setDense(v === 'compact')}
+                  items={[
+                    { value: 'large', label: '', srLabel: 'Larger grid', icon: <LayoutGrid className="h-4 w-4" /> },
+                    { value: 'compact', label: '', srLabel: 'Compact grid', icon: <Grid3X3 className="h-4 w-4" /> },
+                  ]}
+                />
               </>
             }
           />
@@ -250,9 +258,9 @@ const CategoryProducts = () => {
         ) : (
           <div className={cn('grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-6 lg:gap-y-14', dense ? 'lg:grid-cols-4 xl:grid-cols-5 3xl:grid-cols-6' : 'lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5')}>
             {visibleProducts.map((product, i) => (
-              <Reveal key={product.id} delay={(i % 4) * 60}>
+              <Cascade key={product.id} index={i} enabled={firstPaint.current}>
                 <ProductCard product={product} priority={i < 4} />
-              </Reveal>
+              </Cascade>
             ))}
           </div>
         )}
