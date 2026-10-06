@@ -89,9 +89,12 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/200"
-    }
+    { "source": "/product/(.*)", "destination": "/200" },
+    { "source": "/category/(.*)", "destination": "/200" },
+    { "source": "/blog/(.*)", "destination": "/200" },
+    { "source": "/buying-guide/(.*)", "destination": "/200" },
+    { "source": "/search", "destination": "/200" },
+    { "source": "/wishlist", "destination": "/200" },
+    { "source": "/aEgZjaHJvbWUyBggAEEUYOdIBCDUzMTRqMGo3/:path*", "destination": "/200" }
   ]
 }

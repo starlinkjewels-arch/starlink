@@ -20,9 +20,12 @@ export default {
         "3xl": "1800px",
         "4xl": "2200px",
       },
+      // The self-hosted variable files register as "Inter Variable" / "Inter Tight
+      // Variable" (see src/main.tsx), so those names come first; the plain names are
+      // kept behind them so anything still serving the static families still matches.
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['"Inter Tight"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Inter Variable"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Inter Tight Variable"', '"Inter Tight"', '"Inter Variable"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         serif: ['"Cormorant Garamond"', 'ui-serif', 'Georgia', 'serif'],
       },
       colors: {

@@ -35,16 +35,14 @@
   <link rel="manifest" href="/manifest.json">
 
   <!-- Preconnect for Performance -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <!-- Fonts are self-hosted (see src/main.tsx). The Google Fonts stylesheet used to
+       sit here and was the single largest render-blocking resource on the page
+       (951 ms, measured): an external stylesheet blocks first paint until DNS, TLS
+       and the response all complete. Its preconnects went with it. -->
   <link rel="preconnect" href="https://firebasestorage.googleapis.com">
   <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
   <link rel="preconnect" href="https://storage.googleapis.com">
   <link rel="dns-prefetch" href="https://storage.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@1,400;1,500&display=swap"
-    rel="stylesheet">
 
   <!-- Open Graph (no og:url here — react-helmet-async sets the correct URL per route) -->
   <meta property="og:type" content="website">

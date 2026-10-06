@@ -156,24 +156,76 @@ export const buildMetaDescriptionFromHtml = (html: string, max = 160) => {
  */
 export const excerpt = (html: string, max = 220) => buildMetaDescriptionFromHtml(html, max);
 
-export const buildMetaTitleForCategory = (categoryName: string) => {
-  return `Buy ${categoryName} Online – Certified Lab-Grown & Natural Diamonds`;
+/**
+ * SERP budgets. Google truncates titles around 60 characters and descriptions
+ * around 155; anything past that is written for nobody.
+ */
+export const MAX_TITLE = 60;
+export const DESC_MIN = 140;
+export const DESC_MAX = 155;
+
+const BRAND_SUFFIX = ` | ${SITE.name}`;
+
+/**
+ * Picks the richest title variant that still fits MAX_TITLE *including* the brand,
+ * so the keyword leads and the brand survives. Variants run longest to shortest.
+ */
+export const fitTitle = (variants: string[]): string => {
+  for (const v of variants) {
+    const full = `${v}${BRAND_SUFFIX}`;
+    if (full.length <= MAX_TITLE) return full;
+  }
+  // Nothing fits with the brand: keep the full name and drop the suffix rather
+  // than ellipsizing a real product or article name.
+  return variants[variants.length - 1];
 };
+
+/** Trims to the last whole word within max. */
+const clampWords = (text: string, max: number) => {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
+};
+
+/**
+ * Keeps a description inside the 140-155 window: pads a too-short one with a real
+ * selling clause rather than leaving half a line, and word-trims a too-long one.
+ */
+export const fitDescription = (primary: string, filler: string): string => {
+  const base = primary.trim().replace(/\s+/g, " ");
+  if (base.length >= DESC_MIN) return clampWords(base, DESC_MAX);
+  const joined = `${base.replace(/[.\s]+$/, "")}. ${filler}`.trim();
+  return clampWords(joined, DESC_MAX);
+};
+
+const CATEGORY_FILLER = "Certified lab-grown & natural diamonds, handcrafted in Surat, with free insured worldwide delivery.";
+const PRODUCT_FILLER = "Certified diamonds, made to order in Surat, with free insured worldwide delivery.";
+
+export const buildMetaTitleForCategory = (categoryName: string) =>
+  fitTitle([
+    `Buy ${categoryName} Online – Lab-Grown & Natural Diamonds`,
+    `${categoryName} – Lab-Grown & Natural Diamonds`,
+    `${categoryName} – Certified Diamond Jewelry`,
+    `Buy ${categoryName} Online`,
+    categoryName,
+  ]);
 
 export const buildMetaDescriptionForCategory = (categoryName: string, desc?: string) => {
-  if (desc && desc.trim().length > 40) return buildMetaDescriptionFromHtml(desc, 165);
-  return `Shop certified ${categoryName.toLowerCase()} at ${SITE.name}. GIA & IGI certified lab-grown and natural diamonds, handcrafted in Surat, with free insured worldwide delivery to the USA, Canada, Australia and Germany.`;
+  const own = desc && desc.trim().length > 40 ? stripHtml(desc) : "";
+  return fitDescription(own || `Shop certified ${categoryName.toLowerCase()} at ${SITE.name}.`, CATEGORY_FILLER);
 };
 
-export const buildMetaTitleForProduct = (productName: string, categoryName?: string) => {
-  return categoryName ? `${productName} – ${categoryName}` : productName;
-};
+export const buildMetaTitleForProduct = (productName: string, categoryName?: string) =>
+  fitTitle(categoryName ? [`${productName} – ${categoryName}`, productName] : [productName]);
 
 export const buildMetaDescriptionForProduct = (productName: string, categoryName?: string, descriptionHtml?: string) => {
   const text = stripHtml(descriptionHtml || "");
-  if (text.length > 60) return buildMetaDescriptionFromHtml(descriptionHtml || "", 165);
   const categoryText = categoryName ? ` in ${categoryName}` : "";
-  return `Discover ${productName}${categoryText} at ${SITE.name}. Certified lab-grown and natural diamonds, made to order in Surat with insured worldwide delivery.`;
+  return fitDescription(
+    text.length > 60 ? text : `Discover ${productName}${categoryText} at ${SITE.name}.`,
+    PRODUCT_FILLER,
+  );
 };
 
 export const parsePrice = (price?: string): number | null => {
