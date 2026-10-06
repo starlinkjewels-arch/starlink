@@ -53,6 +53,31 @@ export default {
           DEFAULT: "hsl(var(--silver))",
           light: "hsl(var(--silver-light))",
         },
+        // Tonal surface ramp — see DESIGN.md §4.3. Glass fills, nested panel
+        // sections and skeletons read from these instead of ad-hoc greys.
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          low: "hsl(var(--surface-container-low))",
+          container: "hsl(var(--surface-container))",
+          high: "hsl(var(--surface-container-high))",
+          highest: "hsl(var(--surface-container-highest))",
+        },
+        // Status roles. Never used on chrome, never colour alone.
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          container: "hsl(var(--success-container))",
+        },
+        caution: {
+          DEFAULT: "hsl(var(--caution))",
+          foreground: "hsl(var(--caution-foreground))",
+          container: "hsl(var(--caution-container))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          container: "hsl(var(--info-container))",
+        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

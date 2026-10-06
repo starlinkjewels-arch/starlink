@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Accessibility, AArrowDown, AArrowUp, Contrast, Type, Volume2, Square, RotateCcw, X } from "lucide-react";
+import { Accessibility, AArrowDown, AArrowUp, Contrast, Layers, Type, Volume2, Square, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface A11ySettings {
   textScale: number;
   highContrast: boolean;
   readableFont: boolean;
+  /** Glass off: opaque surfaces. Browser support for prefers-reduced-transparency
+   *  is still partial, so the panel offers it explicitly (DESIGN.md §8). */
+  solidSurfaces: boolean;
 }
 
 const STORAGE_KEY = "starlink_a11y";
-const DEFAULTS: A11ySettings = { textScale: 100, highContrast: false, readableFont: false };
+const DEFAULTS: A11ySettings = { textScale: 100, highContrast: false, readableFont: false, solidSurfaces: false };
 const MIN_SCALE = 80;
 const MAX_SCALE = 150;
 const SCALE_STEP = 10;
@@ -49,6 +52,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
     root.style.fontSize = settings.textScale === 100 ? "" : `${settings.textScale}%`;
     root.classList.toggle("a11y-contrast", settings.highContrast);
     root.classList.toggle("a11y-readable", settings.readableFont);
+    root.classList.toggle("a11y-solid", settings.solidSurfaces);
     if (settings.readableFont) ensureReadableFont();
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -175,6 +179,7 @@ const AccessibilityWidget = ({ raised = false }: { raised?: boolean }) => {
           <div className="space-y-2">
             <ToggleRow icon={Contrast} label="High contrast" active={settings.highContrast} onClick={() => update({ highContrast: !settings.highContrast })} />
             <ToggleRow icon={Type} label="Dyslexia-friendly font" active={settings.readableFont} onClick={() => update({ readableFont: !settings.readableFont })} />
+            <ToggleRow icon={Layers} label="Reduce transparency" active={settings.solidSurfaces} onClick={() => update({ solidSurfaces: !settings.solidSurfaces })} />
           </div>
 
           {canSpeak && (

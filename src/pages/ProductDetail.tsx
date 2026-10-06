@@ -250,7 +250,9 @@ const ProductDetail = () => {
       )}
 
       {/* Mobile sticky enquiry bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur-xl lg:hidden">
+      {/* Glass chrome (DESIGN.md §4.1). The enquiry button is the single tinted
+          control on this screen - nothing else here competes for prominence. */}
+      <div className="glass fixed inset-x-0 bottom-0 z-40 border-t border-border/80 p-3 lg:hidden">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="line-clamp-1 text-sm font-medium">{product.name}</p>

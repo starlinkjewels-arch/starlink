@@ -144,7 +144,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
             <button
               type="button"
               onClick={() => go(-1)}
-              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow-md backdrop-blur transition hover:bg-background"
+              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full glass transition hover:brightness-[1.04]"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -152,12 +152,14 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
             <button
               type="button"
               onClick={() => go(1)}
-              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow-md backdrop-blur transition hover:bg-background"
+              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full glass transition hover:brightness-[1.04]"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
-            <span className="absolute bottom-3 left-3 rounded-full bg-background/90 px-3 py-1 text-xs font-medium tabular-nums backdrop-blur">
+            {/* A count is not a control: it stays in the content layer so it cannot be
+                mistaken for a button on glass (DESIGN.md §2 rule 6). */}
+            <span className="absolute bottom-3 left-3 rounded-full bg-foreground/80 px-3 py-1 text-xs font-medium tabular-nums text-background">
               {index + 1} / {count}
             </span>
           </>

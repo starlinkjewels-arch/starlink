@@ -30,6 +30,7 @@ import { productHasCategory } from '@/lib/storage';
 import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
+import { Segmented } from '@/components/ui/segmented';
 import { categoryPath, categoryUrl, findCategoryByParam, productUrl } from '@/lib/urls';
 
 type SortOption = 'newest' | 'oldest' | 'name';
@@ -207,26 +208,20 @@ const CategoryProducts = () => {
                     <SelectItem value="name">Name A–Z</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="hidden overflow-hidden rounded-full border lg:flex">
-                  <button
-                    type="button"
-                    onClick={() => setDense(false)}
-                    className={cn('flex h-10 w-10 items-center justify-center', !dense && 'bg-foreground text-background')}
-                    aria-label="Larger grid"
-                    aria-pressed={!dense}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDense(true)}
-                    className={cn('flex h-10 w-10 items-center justify-center', dense && 'bg-foreground text-background')}
-                    aria-label="Compact grid"
-                    aria-pressed={dense}
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </button>
-                </div>
+                {/* One selection language (DESIGN.md §2 rule 9 / §6.2): density uses the
+                    same sliding pill as every other single-select in the product. */}
+                <Segmented
+                  className="hidden lg:inline-flex"
+                  label="Grid density"
+                  variant="plain"
+                  size="sm"
+                  value={dense ? 'compact' : 'large'}
+                  onValueChange={(v) => setDense(v === 'compact')}
+                  items={[
+                    { value: 'large', label: '', srLabel: 'Larger grid', icon: <LayoutGrid className="h-4 w-4" /> },
+                    { value: 'compact', label: '', srLabel: 'Compact grid', icon: <Grid3X3 className="h-4 w-4" /> },
+                  ]}
+                />
               </>
             }
           />

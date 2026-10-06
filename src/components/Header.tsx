@@ -172,8 +172,12 @@ const Header = () => {
 
       <header
         className={cn(
-          "sticky top-0 z-50 border-b bg-background/95 backdrop-blur-xl transition-shadow duration-300",
-          (isScrolled || activeMenu) && "shadow-[0_8px_30px_-12px_rgba(15,27,51,0.25)]"
+          // Glass chrome (DESIGN.md §4.1). The recipe - fill, blur tier, rim, shadow
+          // and the reduced-transparency / high-contrast fallbacks - lives in `.glass`.
+          "glass sticky top-0 z-50 transition-[border-color] duration-[120ms]",
+          // Hard scroll edge (§5.3 H): the hairline appears only once content is
+          // actually underneath the bar, instead of a permanent divider.
+          isScrolled || activeMenu ? "border-b border-border/80" : "border-b border-transparent"
         )}
         onMouseLeave={() => setActiveMenu(null)}
       >
@@ -212,7 +216,9 @@ const Header = () => {
             >
               <Heart className="h-[19px] w-[19px]" />
               {savedCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+                /* Chrome stays neutral (DESIGN.md §4.3): a count is information, not a
+                   status, so it reads monochrome rather than borrowing a status hue. */
+                <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-bold tabular-nums text-background">
                   {savedCount > 99 ? "99+" : savedCount}
                 </span>
               )}

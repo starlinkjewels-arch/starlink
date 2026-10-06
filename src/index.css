@@ -60,6 +60,46 @@
 
     --whatsapp: 142 70% 41%;
 
+    /* Tonal surface ramp (DESIGN.md §4.3). Used by glass fills, nested panel
+       sections and skeletons. Cards stay on --card so the white storefront keeps
+       its look; the ramp supplies depth without greying the page. */
+    --surface: 0 0% 100%;
+    --surface-container-low: 0 0% 99%;
+    --surface-container: 240 11% 97%;
+    --surface-container-high: 240 10% 95%;
+    --surface-container-highest: 240 9% 92%;
+
+    /* Status roles. Always paired with text or an icon, never colour alone. */
+    --success: 152 58% 34%;
+    --success-foreground: 0 0% 100%;
+    --success-container: 152 46% 94%;
+    --caution: 36 84% 42%;
+    --caution-foreground: 0 0% 100%;
+    --caution-container: 38 86% 94%;
+    --info: 219 59% 41%;
+    --info-foreground: 0 0% 100%;
+    --info-container: 219 60% 95%;
+
+    /* Glass (DESIGN.md §4.1). Tier A = blurred, Tier B = flat fallback. */
+    --glass-blur-sm: 24px;
+    --glass-blur-lg: 32px;
+    --glass-alpha-sm: 0.62;
+    --glass-alpha-lg: 0.76;
+    --glass-alpha-sm-flat: 0.88;
+    --glass-alpha-lg-flat: 0.97;
+    --glass-rim: 0 0% 100%;
+    --glass-rim-alpha: 0.35;
+    --glass-shadow-sm: 0 6px 16px -6px hsl(240 30% 12% / 0.18);
+    --glass-shadow-lg: 0 12px 32px -12px hsl(240 30% 12% / 0.18);
+
+    /* Motion (DESIGN.md §5.2). Springs live in src/lib/motion.ts; these are the
+       easing curves CSS transitions use. */
+    --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --dur-micro: 120ms;
+    --dur-short: 200ms;
+    --dur-medium: 300ms;
+    --dur-long: 380ms;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -110,6 +150,28 @@
     --brand: 219 75% 70%;
     --brand-light: 219 30% 16%;
 
+    --surface: 240 6% 6%;
+    --surface-container-low: 240 6% 8%;
+    --surface-container: 240 5% 11%;
+    --surface-container-high: 240 5% 14%;
+    --surface-container-highest: 240 5% 17%;
+
+    --success: 152 52% 56%;
+    --success-foreground: 240 6% 8%;
+    --success-container: 152 30% 16%;
+    --caution: 38 80% 60%;
+    --caution-foreground: 240 6% 8%;
+    --caution-container: 36 34% 16%;
+    --info: 219 75% 70%;
+    --info-foreground: 240 6% 8%;
+    --info-container: 219 30% 16%;
+
+    /* Dark glass sits darker and leans on the rim rather than the fill. */
+    --glass-rim: 0 0% 100%;
+    --glass-rim-alpha: 0.14;
+    --glass-shadow-sm: 0 6px 16px -6px hsl(0 0% 0% / 0.4);
+    --glass-shadow-lg: 0 12px 32px -12px hsl(0 0% 0% / 0.4);
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -144,6 +206,33 @@ html.a11y-contrast a {
 }
 html.a11y-contrast img {
   filter: contrast(1.08);
+}
+/* Glass goes opaque under high contrast, and under the widget's "solid surfaces"
+   toggle (browser support for prefers-reduced-transparency is still partial). */
+html.a11y-contrast .glass,
+html.a11y-contrast .glass-lg,
+html.a11y-solid .glass,
+html.a11y-solid .glass-lg {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background-color: hsl(var(--surface-container-high)) !important;
+  border: 1px solid hsl(var(--border));
+}
+html.a11y-contrast .glass,
+html.a11y-contrast .glass-lg {
+  border-width: 1.5px;
+  border-color: hsl(var(--foreground) / 0.45);
+}
+html.a11y-contrast .glass::before,
+html.a11y-contrast .glass-lg::before,
+html.a11y-solid .glass::before,
+html.a11y-solid .glass-lg::before {
+  display: none;
+}
+/* No tinted glass under high contrast - it loses the contrast ratio. */
+html.a11y-contrast .glass-tinted {
+  background-color: hsl(var(--brand)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 html.a11y-readable body,
 html.a11y-readable body * {
@@ -184,6 +273,83 @@ html.a11y-readable body * {
   .eyebrow::before {
     content: "";
     @apply h-1.5 w-1.5 rounded-full bg-current;
+  }
+
+  /* ---------------------------------------------------------------------
+     Glass surface (DESIGN.md §4.1). The only place blur is defined.
+     Components use .glass / .glass-lg and set their own radius.
+     Tier B (flat, more opaque) is the base so it looks right with no blur;
+     Tier A layers backdrop-filter on top where the browser supports it.
+     --------------------------------------------------------------------- */
+  .glass,
+  .glass-lg {
+    position: relative;
+    isolation: isolate;
+    background-color: hsl(var(--surface-container-high) / var(--glass-alpha-sm-flat));
+    box-shadow: var(--glass-shadow-sm);
+  }
+
+  .glass-lg {
+    background-color: hsl(var(--surface-container-high) / var(--glass-alpha-lg-flat));
+    box-shadow: var(--glass-shadow-lg);
+  }
+
+  /* Rim highlight: 1px gradient stroke, bright top-leading fading to nothing.
+     This is the specular cue - no shaders, no lensing. */
+  .glass::before,
+  .glass-lg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--glass-rim) / var(--glass-rim-alpha)),
+      hsl(var(--glass-rim) / 0) 60%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background-color: hsl(var(--surface) / var(--glass-alpha-sm));
+      -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(160%);
+      backdrop-filter: blur(var(--glass-blur-sm)) saturate(160%);
+    }
+    .glass-lg {
+      background-color: hsl(var(--surface) / var(--glass-alpha-lg));
+      -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(160%);
+      backdrop-filter: blur(var(--glass-blur-lg)) saturate(160%);
+    }
+  }
+
+  /* The one tinted control per glass surface. Tint is --brand, never --primary. */
+  .glass-tinted {
+    background-color: hsl(var(--brand) / 0.35);
+    color: hsl(var(--brand-foreground, var(--primary-foreground)));
+  }
+
+  /* Identity: glass off. Opaque surface + outline, no blur, no rim.
+     Triggered by the OS preference, the high-contrast mode, or the a11y widget. */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .glass-lg,
+    .glass-tinted {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      background-color: hsl(var(--surface-container-high));
+      border: 1px solid hsl(var(--border));
+    }
+    .glass::before,
+    .glass-lg::before {
+      display: none;
+    }
   }
 
   .section {
