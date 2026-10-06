@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, LayoutGrid, Grid3X3 } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
-import Reveal from '@/components/site/Reveal';
 import ProductCard from '@/components/ProductCard';
 import ProductFilters from '@/components/site/ProductFilters';
 import { EMPTY_FILTERS, filtersFromParams, matchesFilters, writeFiltersToParams, type ProductFilterState } from '@/lib/productAttributes';
@@ -30,6 +29,7 @@ import { firstImage, getProductTime, isVideoUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import CdnImage from '@/components/site/CdnImage';
 import { Segmented } from '@/components/ui/segmented';
+import { Cascade } from '@/components/ui/cascade';
 import { categoryPath, categoryUrl, findCategoryByParam, productUrl } from '@/lib/urls';
 
 type SortOption = 'newest' | 'oldest' | 'name';
@@ -59,6 +59,15 @@ const CategoryProducts = () => {
 
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [dense, setDense] = useState(false);
+  // The cascade runs once, on the grid's first paint. Re-sorts, filter changes and
+  // later inserts must not re-animate (DESIGN.md §5.3 D).
+  const firstPaint = useRef(true);
+  useEffect(() => {
+    if (productsReady) {
+      const t = setTimeout(() => { firstPaint.current = false; }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [productsReady]);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -249,9 +258,9 @@ const CategoryProducts = () => {
         ) : (
           <div className={cn('grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-6 lg:gap-y-14', dense ? 'lg:grid-cols-4 xl:grid-cols-5 3xl:grid-cols-6' : 'lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5')}>
             {visibleProducts.map((product, i) => (
-              <Reveal key={product.id} delay={(i % 4) * 60}>
+              <Cascade key={product.id} index={i} enabled={firstPaint.current}>
                 <ProductCard product={product} priority={i < 4} />
-              </Reveal>
+              </Cascade>
             ))}
           </div>
         )}

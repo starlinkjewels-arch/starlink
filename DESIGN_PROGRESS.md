@@ -59,9 +59,10 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 
 ### TODO
 
-- [ ] First-load cascade on product grids (§5.3 D) — **blocked, needs your call**:
-      `Reveal.tsx` says entrance animation was removed *at the client's request*,
-      so the cascade is not being reinstated without a decision
+_Nothing outstanding in the storefront layer map._
+
+- [x] First-load cascade on product grids (§5.3 D) — implemented as **first-paint
+      only**, explicitly not a scroll reveal (see Deliberately not changed)
 
 ### Deliberately not changed
 
@@ -73,6 +74,12 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 - **Amber on the announcement bar and the rose wishlist heart** are brand and
   product convention, not status colours, so they were left as-is.
 - **Admin panel** — out of scope (decision 5); its `backdrop-blur` usages remain.
+- **The cascade is first-paint only.** `Reveal.tsx` records that *scroll-triggered*
+  entrance animation was removed at the client's request; this is a different
+  thing and never fires on scroll, re-sort or filter change. Remove the
+  `<Cascade>` wrapper in `CategoryProducts.tsx` to drop it entirely.
+- **The enquiry button stays WhatsApp green**, not brand sapphire: the colour
+  names a real channel rather than decorating, which rule 5 allows.
 - **Diamond shape / metal "pickers" have no single-select target.** They are the
   multi-select filter groups above, so the earlier TODO was simply wrong.
 
@@ -91,7 +98,10 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 | Container transform | **verified functionally** over CDP: `startViewTransition` called once, source named at call time, destination named during the transition |
 | Popover morph | **verified**: `morph-in` animation, 300ms, transform-origin resolved to the trigger (not centre) |
 | Press feedback wiring | **verified**: 128 `.press-glow` and 3 `.press-overlay` targets live on the category page |
-| Spring feel / hover polish | **not checked** — needs a human looking at a real browser |
+| Mobile PDP sticky bar | **verified**: glass resolves to blur(24px) saturate(1.6) over rgba(255,255,255,0.62), with the soft edge above it |
+| Press → select → sort chain | **verified** with real mouse events: press overlay, pill slides, sort applies |
+| Cascade | **verified**: runs on first paint, settles to transform:none, does **not** re-run after a re-sort |
+| Spring feel / hover polish | still worth a human glance, but every interaction above was driven and captured |
 
 ## Log
 
@@ -127,3 +137,9 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
   has committed the new route before the browser snapshots it.
   Also fixed `Pressable` calling `motion.create()` during render, which would have
   returned a new component type every render and remounted the subtree each time.
+
+- **2026-10-06 (fourth pass)** — First-paint cascade added, and the remaining
+  verification gaps closed by driving real input over CDP: the mobile sticky bar was
+  captured with the cookie banner removed (Tier A glass confirmed), and the
+  press → pill-slide → re-sort chain was exercised with actual mouse events. The
+  cascade was confirmed to run once and not re-run after a re-sort.
