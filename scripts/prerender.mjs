@@ -75,6 +75,13 @@ const redirectHtml = (to) =>
 
 const outputPath = (path) => (path === "/" ? resolve(dist, "index.html") : resolve(dist, `${path.replace(/^\//, "")}.html`));
 
+// Swap the robots directive in a shell. The index.html shipped by Vite carries
+// "index, follow, ..." for the real pages; the SPA fallback and 404 need the opposite.
+const withRobots = (html, value) =>
+  html.includes('name="robots"')
+    ? html.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${value}">`)
+    : html.replace(/<\/head>/i, `<meta name="robots" content="${value}"></head>`);
+
 const run = async () => {
   // A previous run leaves the pristine shell in 200.html (index.html is then the pre-rendered home page).
   const shellFile = existsSync(resolve(dist, "200.html")) ? "200.html" : "index.html";
@@ -82,7 +89,19 @@ const run = async () => {
   if (!template.includes('<div id="root"></div>')) throw new Error('dist/index.html has no empty <div id="root"></div>');
 
   // The untouched shell is the SPA fallback (vercel.json rewrites unknown routes to /200 (cleanUrls serves 200.html)).
-  await writeFile(resolve(dist, "200.html"), template, "utf8");
+  //
+  // It must be noindex. Every route that should rank gets its own pre-rendered file
+  // below, with its own index,follow. The shell is only ever served for URLs that
+  // were NOT pre-rendered: a brand-new product awaiting the next build, /search,
+  // /wishlist, or a bad id. None of those should enter the index, and a crawler
+  // that doesn't run JS never sees the client-side noindex that NotFound sets.
+  const noindexShell = withRobots(template, "noindex, follow");
+  await writeFile(resolve(dist, "200.html"), noindexShell, "utf8");
+
+  // A real 404 document. Vercel serves dist/404.html with a 404 status for any path
+  // that matches no file and no rewrite, which is what makes unknown URLs return 404
+  // instead of a soft 200.
+  await writeFile(resolve(dist, "404.html"), noindexShell, "utf8");
 
   let data;
   try {
