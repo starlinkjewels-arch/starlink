@@ -92,3 +92,79 @@ The admin path is now hard-coded in `vercel.json` as well as in `src/App.tsx`
 (`ADMIN_PATH`). **If that constant changes, `vercel.json` must change with it**, or
 the admin route will start returning 404. It was already shipped in the client
 bundle, so this adds no new exposure — but it is a footgun worth knowing about.
+
+---
+
+## 2026-10-06 — Phase 5 (images) + Phase 2 (titles & descriptions)
+
+### Images: 661 KB off the bundled assets
+
+`src/assets/craft/*.jpg` were 1400×1400 but render at roughly 300px, which is the
+~95% waste Lighthouse flagged. Resized to 800px wide and re-encoded (mozjpeg, q78,
+progressive). Hero banners kept at 1920 (they are the LCP element) but re-encoded.
+
+```
+craft-1.jpg  1400 -> 800   203KB ->  58KB  (-71%)
+craft-2.jpg  1400 -> 800   261KB ->  57KB  (-78%)
+craft-3.jpg  1400 -> 800   138KB ->  35KB  (-74%)
+craft-4.jpg  1400 -> 800   240KB ->  67KB  (-72%)
+hero-banner-1.jpg  1920    137KB -> 120KB  (-12%)
+hero-banner-2.jpg  1920    126KB -> 106KB  (-16%)
+                           1105KB -> 444KB (-60%)
+```
+
+Extensions unchanged, so no import paths moved. Quality compared side by side at
+display size — no visible difference. Source files are tracked in git, so this is
+revertible.
+
+**Not touched:** Firebase-hosted images already go through wsrv.nl (WebP, resized),
+and `src/assets/{2,3,04,05}.jpg` (2.3 MB) are unreferenced and never bundled — dead
+files in the repo, no runtime cost. Left alone rather than deleted unprompted.
+
+### Titles and descriptions: SERP budgets enforced
+
+Added `fitTitle` / `fitDescription` / `clampWords` to `src/lib/seo.ts` and mirrored
+them in `scripts/seo-data.mjs` (the two were already documented as needing to stay
+in sync).
+
+- `fitTitle` picks the richest variant that fits **60 chars including the brand**,
+  so the keyword leads and the brand survives.
+- `fullTitle` now appends the brand **only when it fits**, instead of pushing titles
+  over the limit. Applied in both the prerender and `SEOHead.tsx`.
+- Titles are **never ellipsized**. Where nothing fits, the brand is dropped and the
+  real name kept — a truncated product or article name looks broken, and Google
+  truncates visually anyway.
+- Descriptions are word-trimmed to 155 at a final choke point, so CMS-authored
+  `metaDescription` values are budgeted too, not just generated ones.
+- Homepage title shortened to `Lab-Grown & Natural Diamond Jewelry | Starlink Jewels`
+  (53 chars). It was 61 and had lost its brand entirely.
+
+### Verification (240 indexable pages in the build)
+
+| Check | Before | After |
+|---|---|---|
+| Titles > 60 chars | 84 | **26** |
+| Descriptions > 155 chars | 33 | **0** |
+| Descriptions < 140 chars | 9 | 9 |
+
+Build passes, `tsc --noEmit` clean, 238 pages + 201 legacy redirects.
+
+### ⚠️ Remaining 26 titles and 9 descriptions are editorial, not code
+
+They come from CMS `metaTitle` / `metaDescription` fields and long blog headlines,
+which the code deliberately does not truncate. Worst offenders:
+
+```
+135 chars  blog/1776404082399
+124 chars  product/luxe-bezel-set-round-diamond-riviera-necklace-1783748116101
+121 chars  blog/1780745390384
+109 chars  product/classic-bezel-set-round-diamond-station-necklace-1783747504490
+```
+
+These need shortening in the admin panel by someone who owns the copy.
+
+### ⚠️ Not re-measured
+
+Lighthouse has **not** been re-run since the image work — the previous score (18)
+was measured against production. The image saving is real but its effect on LCP is
+unproven until this is deployed to a preview and measured again.

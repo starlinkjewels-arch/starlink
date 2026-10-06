@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { SITE, buildKeywords } from "@/lib/seo";
+import { SITE, buildKeywords, MAX_TITLE } from "@/lib/seo";
 
 interface SEOHeadProps {
   title: string;
@@ -27,7 +27,11 @@ const SEOHead = ({
   noIndex = false,
 }: SEOHeadProps) => {
   const siteName = SITE.name;
-  const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+  // Append the brand only when it fits the 60-char SERP budget (mirrors
+  // scripts/seo-data.mjs). An editor-written title is never truncated here: Google
+  // truncates visually, and an ellipsis in the source looks broken.
+  const withBrand = `${title} | ${siteName}`;
+  const fullTitle = title.includes(siteName) ? title : withBrand.length <= MAX_TITLE ? withBrand : title;
   const baseUrl = SITE.url;
   const pageUrl = canonicalUrl || baseUrl;
   const metaKeywords = keywords || buildKeywords();

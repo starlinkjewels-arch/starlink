@@ -125,19 +125,74 @@ const meaningful = (value, min = 15) => {
   return v.length >= min ? v : "";
 };
 
-const fullTitle = (title) => (title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`);
+// Append the brand only when it fits the 60-char budget. A title already at the
+// limit should not be pushed over it by the suffix, and an editor-written title is
+// never truncated here - Google truncates visually, and an ellipsis looks broken.
+const fullTitle = (title) => {
+  if (!title || title.includes(SITE_NAME)) return title;
+  const full = `${title}${BRAND_SUFFIX}`;
+  return full.length <= MAX_TITLE ? full : title;
+};
 
-// Meta builders (mirror src/lib/seo.ts)
-export const categoryTitle = (name) => `Buy ${name} Online – Certified Lab-Grown & Natural Diamonds`;
-export const categoryDescription = (name, desc) =>
-  desc && desc.trim().length > 40
-    ? truncate(stripHtml(desc), 165)
-    : `Shop certified ${name.toLowerCase()} at ${SITE_NAME}. GIA & IGI certified lab-grown and natural diamonds, handcrafted in Surat, with free insured worldwide delivery to the USA, Canada, Australia and Germany.`;
-export const productTitle = (name, categoryName) => (categoryName ? `${name} – ${categoryName}` : name);
+// Meta builders (mirror src/lib/seo.ts — keep the two in sync)
+//
+// SERP budgets: Google truncates titles near 60 chars and descriptions near 155.
+const MAX_TITLE = 60;
+const DESC_MIN = 140;
+const DESC_MAX = 155;
+const BRAND_SUFFIX = ` | ${SITE_NAME}`;
+
+/** Richest title variant that fits MAX_TITLE including the brand. Longest first. */
+const fitTitle = (variants) => {
+  for (const v of variants) {
+    const full = `${v}${BRAND_SUFFIX}`;
+    if (full.length <= MAX_TITLE) return full;
+  }
+  // Nothing fits with the brand: keep the full name and drop the suffix rather
+  // than ellipsizing a real product or article name.
+  return variants[variants.length - 1];
+};
+
+const clampWords = (text, max) => {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
+};
+
+/** Keeps a description inside 140-155: pads a short one, word-trims a long one. */
+const fitDescription = (primary, filler) => {
+  const base = String(primary || "").trim().replace(/\s+/g, " ");
+  if (base.length >= DESC_MIN) return clampWords(base, DESC_MAX);
+  return clampWords(`${base.replace(/[.\s]+$/, "")}. ${filler}`.trim(), DESC_MAX);
+};
+
+const CATEGORY_FILLER = "Certified lab-grown & natural diamonds, handcrafted in Surat, with free insured worldwide delivery.";
+const PRODUCT_FILLER = "Certified diamonds, made to order in Surat, with free insured worldwide delivery.";
+
+export const categoryTitle = (name) =>
+  fitTitle([
+    `Buy ${name} Online – Lab-Grown & Natural Diamonds`,
+    `${name} – Lab-Grown & Natural Diamonds`,
+    `${name} – Certified Diamond Jewelry`,
+    `Buy ${name} Online`,
+    name,
+  ]);
+
+export const categoryDescription = (name, desc) => {
+  const own = desc && desc.trim().length > 40 ? stripHtml(desc) : "";
+  return fitDescription(own || `Shop certified ${name.toLowerCase()} at ${SITE_NAME}.`, CATEGORY_FILLER);
+};
+
+export const productTitle = (name, categoryName) =>
+  fitTitle(categoryName ? [`${name} – ${categoryName}`, name] : [name]);
+
 export const productDescription = (name, categoryName, desc) => {
   const text = stripHtml(desc);
-  if (text.length > 60) return truncate(text, 165);
-  return `Discover ${name}${categoryName ? ` in ${categoryName}` : ""} at ${SITE_NAME}. Certified lab-grown and natural diamonds, made to order in Surat with insured worldwide delivery.`;
+  return fitDescription(
+    text.length > 60 ? text : `Discover ${name}${categoryName ? ` in ${categoryName}` : ""} at ${SITE_NAME}.`,
+    PRODUCT_FILLER,
+  );
 };
 
 const imagesOf = (p) => (Array.isArray(p.images) && p.images.length ? p.images : [p.image]).filter((u) => typeof u === "string" && u.startsWith("http") && !/\.(mp4|webm|mov)(\?|$)/i.test(u));
@@ -200,7 +255,9 @@ export const buildRoutes = (data) => {
   // Home
   routes.push({
     path: "/",
-    title: "Premium Diamond & Gold Jewelry | Lab Grown & Natural Diamonds",
+    // 42 chars, so the brand still fits inside the 60-char budget — the homepage is
+    // the one title that should never lose it.
+    title: "Lab-Grown & Natural Diamond Jewelry",
     description:
       "Shop certified lab-grown and natural diamond jewelry at Starlink Jewels. Explore IGI & GIA certified engagement rings, wedding bands, necklaces, earrings & bracelets, handcrafted in Surat with insured worldwide shipping.",
     changefreq: "daily",
@@ -529,7 +586,17 @@ ${related.length ? `<h2>More from ${esc(cat.name)}</h2>${productList(related, ca
     }
   }
 
-  return routes.map((r) => ({ ...r, fullTitle: fullTitle(r.title), url: `${SITE_URL}${r.path === "/" ? "" : r.path}` }));
+  // Final guard. Titles and descriptions can also come straight from the CMS
+  // (metaTitle / metaDescription), which bypasses the builders above, so the SERP
+  // budget is enforced once here for every route regardless of source.
+  // Over-long descriptions are word-trimmed; titles are only ever left alone or
+  // have the brand dropped, never ellipsized.
+  return routes.map((r) => ({
+    ...r,
+    fullTitle: fullTitle(r.title),
+    description: clampWords(String(r.description || "").trim().replace(/\s+/g, " "), DESC_MAX),
+    url: `${SITE_URL}${r.path === "/" ? "" : r.path}`,
+  }));
 };
 
 // ── Sitemap ───────────────────────────────────────────────────────────────
