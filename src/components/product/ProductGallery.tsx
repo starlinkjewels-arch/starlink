@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import CdnImage from '@/components/site/CdnImage';
 import { isVideoUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
+import { receiveProductHero } from '@/lib/viewTransition';
 
 interface ProductGalleryProps {
   media: string[];
@@ -94,9 +95,14 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
     </div>
   );
 
+
+  // Destination of the container transform from the product card (DESIGN.md §5.3 E).
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => receiveProductHero(heroRef.current), []);
   return (
     <div className={cn(layout === 'side' ? 'flex flex-col gap-3 lg:flex-row lg:items-start' : '', 'self-start', className)}>
       <div
+        ref={heroRef}
         className="relative w-full min-w-0 flex-1 touch-pan-y overflow-hidden rounded-2xl bg-muted md:rounded-3xl"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -144,7 +150,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
             <button
               type="button"
               onClick={() => go(-1)}
-              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full glass transition hover:brightness-[1.04]"
+              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full glass press-glow transition hover:brightness-[1.04] active:scale-[0.96]"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -152,7 +158,7 @@ const ProductGallery = ({ media, name, className, layout = 'stacked' }: ProductG
             <button
               type="button"
               onClick={() => go(1)}
-              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full glass transition hover:brightness-[1.04]"
+              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full glass press-glow transition hover:brightness-[1.04] active:scale-[0.96]"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />

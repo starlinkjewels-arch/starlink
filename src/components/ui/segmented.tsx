@@ -100,9 +100,12 @@ export function Segmented<T extends string = string>({
               onClick={() => onValueChange(item.value)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                "relative inline-flex min-w-[44px] items-center justify-center gap-2 rounded-full font-medium",
+                "relative isolate inline-flex min-w-[44px] items-center justify-center gap-2 rounded-full font-medium",
                 "transition-colors duration-150 outline-none",
                 "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                // Press feedback (§5.3 A). The glow is suppressed under Reduce Motion
+                // by the class's own media query.
+                !selected && "press-overlay",
                 seg,
                 selected ? "text-brand-foreground" : "text-muted-foreground hover:text-foreground",
               )}

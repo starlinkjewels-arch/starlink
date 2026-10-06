@@ -49,13 +49,19 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 - [x] Enquiry form success/error → `success` / `destructive` roles
 - [x] Header touch targets raised to 44px
 
+**Third pass — motion**
+- [x] Press feedback (§5.3 A): `.press-glow` / `.press-overlay` + `Pressable`;
+      glass scales and glows from the pointer, content gets a flat overlay only
+- [x] Menu / popover morph from source (§5.3 F) — grows from the trigger using
+      Radix's transform-origin, not a generic zoom
+- [x] Container transform (§5.3 E): product card → product page, via the View
+      Transitions API and a shared `product-hero` name
+
 ### TODO
 
-- [ ] Diamond shape / metal pickers → selection pill (rule 9)
-- [ ] Container transform: product card → product page (§5.3 E), using `motion`
-- [ ] Menu / popover morph from source (§5.3 F)
-- [ ] Press feedback (§5.3 A): scale + glow on glass controls via `useMotion()`
-- [ ] First-load cascade on product grids (§5.3 D)
+- [ ] First-load cascade on product grids (§5.3 D) — **blocked, needs your call**:
+      `Reveal.tsx` says entrance animation was removed *at the client's request*,
+      so the cascade is not being reinstated without a decision
 
 ### Deliberately not changed
 
@@ -67,6 +73,8 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 - **Amber on the announcement bar and the rose wishlist heart** are brand and
   product convention, not status colours, so they were left as-is.
 - **Admin panel** — out of scope (decision 5); its `backdrop-blur` usages remain.
+- **Diamond shape / metal "pickers" have no single-select target.** They are the
+  multi-select filter groups above, so the earlier TODO was simply wrong.
 
 ## Verification
 
@@ -80,7 +88,10 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
 | Sort + density pills | **verified** in light, dark, high-contrast and solid |
 | Mobile PDP action bar | partially — the gallery glass was seen, the sticky bar was covered by the cookie banner in the shot |
 | Hover / press / focus states | **not checked** — static screenshots only |
-| Motion (springs, pill slide, morphs) | **not checked** — needs a real browser session |
+| Container transform | **verified functionally** over CDP: `startViewTransition` called once, source named at call time, destination named during the transition |
+| Popover morph | **verified**: `morph-in` animation, 300ms, transform-origin resolved to the trigger (not centre) |
+| Press feedback wiring | **verified**: 128 `.press-glow` and 3 `.press-overlay` targets live on the category page |
+| Spring feel / hover polish | **not checked** — needs a human looking at a real browser |
 
 ## Log
 
@@ -104,3 +115,15 @@ Tracks the migration described in [DESIGN.md](DESIGN.md). Branch: `design-system
   lightness per theme — a coincidence, not a rule. Added an explicit
   `--brand-foreground` token and pointed the pill at it.
   Re-verified home and category in all five modes.
+
+- **2026-10-06 (third pass — motion)** — Press feedback, menu/popover morph from
+  source, and the card→product container transform.
+  **Third bug found during verification:** the container transform silently did
+  nothing. React Router's `viewTransition` prop only works with a data router
+  (`createBrowserRouter` + `RouterProvider`); this app uses `<BrowserRouter>`, where
+  the prop is ignored without warning. Confirmed by hooking
+  `document.startViewTransition` — it was never called. Replaced with
+  `useProductTransition`, which drives the API directly and uses `flushSync` so React
+  has committed the new route before the browser snapshots it.
+  Also fixed `Pressable` calling `motion.create()` during render, which would have
+  returned a new component type every render and remounted the subtree each time.

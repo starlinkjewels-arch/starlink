@@ -357,6 +357,114 @@ html.a11y-readable body * {
     }
   }
 
+  /* Container transform (DESIGN.md §5.3 E): the product page grows out of the card
+     that opened it. The pairing is done by view-transition-name in
+     src/lib/viewTransition.ts; this only tunes the timing. */
+  ::view-transition-group(product-hero) {
+    animation-duration: 380ms;
+    animation-timing-function: var(--ease-emphasized);
+  }
+
+  /* Morph from source (DESIGN.md §5.3 F): a menu or popover grows out of the
+     control that opened it rather than popping in place. Radix publishes the
+     trigger's position as a transform-origin, which is what makes it a morph
+     rather than a zoom. */
+  .morph-source {
+    transform-origin: var(
+      --radix-popover-content-transform-origin,
+      var(--radix-dropdown-menu-content-transform-origin, center)
+    );
+  }
+  .morph-source[data-state="open"] {
+    animation: morph-in 300ms var(--ease-emphasized) both;
+  }
+  .morph-source[data-state="closed"] {
+    animation: morph-out 160ms var(--ease-emphasized) both;
+  }
+
+  @keyframes morph-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes morph-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+  }
+
+  /* Reduce Motion: cross-fade at the destination, no growth. */
+  @media (prefers-reduced-motion: reduce) {
+    .morph-source[data-state="open"] {
+      animation: morph-in-reduced 200ms ease-out both;
+    }
+    .morph-source[data-state="closed"] {
+      animation: morph-out-reduced 120ms ease-out both;
+    }
+    @keyframes morph-in-reduced {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes morph-out-reduced {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+  }
+
+  /* Press feedback (DESIGN.md §5.3 A).
+     Glass "illuminates from within": a radial glow spreads from where the pointer
+     actually landed, which usePressOrigin publishes as --px / --py. */
+  .press-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at var(--px, 50%) var(--py, 50%),
+      hsl(0 0% 100% / 0.18),
+      hsl(0 0% 100% / 0) 60%
+    );
+    opacity: 0;
+    transition: opacity 160ms ease-out;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .press-glow:active::after {
+    opacity: 1;
+    transition-duration: 220ms;
+  }
+
+  /* Content presses: a flat overlay, never a scale or a bounce. */
+  .press-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: hsl(var(--foreground) / 0.06);
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+    pointer-events: none;
+  }
+  .press-overlay:active::after {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press-glow::after {
+      display: none;
+    }
+  }
+
   /* Skeleton placeholder (DESIGN.md §5.3 D): a tonal breath between two steps of
      the surface ramp, 1.2s, rather than an opacity pulse on a flat grey. */
   .skeleton {
@@ -627,4 +735,14 @@ html.a11y-readable body * {
 /* Cookie banner steps aside while a menu, filter panel or dialog is open (Radix locks body scroll). */
 body[data-scroll-locked] #cookie-banner {
   display: none;
+}
+
+/* Reduce Motion: no page-level view transition at all. The helper already skips
+   naming the shared element, and this stops the default root cross-fade too. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
