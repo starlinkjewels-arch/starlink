@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { SITE } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { useLightMedia } from "@/hooks/useLightMedia";
 
 const VIDEO_SRC = "/videos/craftsmanship.mp4";
 const POSTER_SRC = "/videos/craftsmanship-poster.webp";
@@ -46,10 +47,21 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
     setActive((prev) => (prev === current ? prev : current));
   };
 
+  const lightMedia = useLightMedia();
   const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
   // Attach the film well before the section scrolls in, so it has buffered by the time it is seen.
+  //
+  // Phones, Save-Data and slow links keep the poster and never fetch the film.
+  //
+  // Measured on a clean first visit at a phone viewport (empty cache, no service worker),
+  // production downloaded this 1,959 KiB film on load — the 1000px rootMargin reaches the
+  // section almost immediately on a short viewport. That was a third of the page's bytes.
+  // (An earlier measurement reported zero; it reused a browser profile whose service
+  // worker was serving the response, which hid the download.) The poster is the film's
+  // opening frame, so nothing looks missing.
   useEffect(() => {
+    if (lightMedia) return;
     const node = cardRef.current;
     if (!node || typeof IntersectionObserver === "undefined") {
       setLoadVideo(true);
@@ -66,7 +78,7 @@ const CraftStory = ({ consultHref }: CraftStoryProps) => {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [lightMedia]);
 
   // Play while on screen, pause when scrolled away (saves battery and data).
   useEffect(() => {

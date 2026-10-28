@@ -43,7 +43,7 @@ export const fetchCatalog = async () => {
     const snap = await getDocs(collection(db, name));
     return snap.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
   };
-  const [categories, products, blogs, buyingGuides, reviews] = await Promise.all([
+  const [categories, products, blogs, buyingGuides, reviews, banners] = await Promise.all([
     read("categories"),
     read("products"),
     read("blogs"),
@@ -51,8 +51,14 @@ export const fetchCatalog = async () => {
     getDocs(query(collection(db, "reviews"), where("status", "==", "approved")))
       .then((snap) => snap.docs.map((d) => ({ ...d.data(), id: d.id })))
       .catch(() => []),
+    // Optional: only used to preload the homepage hero. A failure here must not
+    // cost the whole pre-render, so it degrades to "no preload".
+    read("banners").catch(() => []),
   ]);
   return {
+    // Same ordering as getBanners() in src/lib/storage.ts, so banners[0] is the slide
+    // BannerCarousel actually shows first.
+    banners: banners.sort((a, b) => (a.priority || 99) - (b.priority || 99)),
     categories: categories.sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999)),
     products,
     blogs: blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
@@ -60,6 +66,42 @@ export const fetchCatalog = async () => {
     reviews,
   };
 };
+
+// ── Image CDN (mirror src/lib/imageUrl.ts — byte-identical) ─────────────────
+//
+// The pre-rendered HTML and the live app must request the *same* image URLs. When they
+// did not, every image in the static body was fetched once raw from Firebase while the
+// page parsed, then fetched again via the CDN once React rendered: measured on a phone,
+// each banner downloaded twice. A browser only reuses a response (or a preload) when the
+// URL matches character for character, so parameter names, order and defaults below
+// follow cdnImg() exactly. Change one, change both.
+
+const WSRV = "https://wsrv.nl/";
+const isFirebaseUrl = (src) =>
+  typeof src === "string" && (src.includes("firebasestorage.googleapis.com") || src.includes("storage.googleapis.com"));
+
+export const cdnImg = (src, opts = {}) => {
+  if (!src || !isFirebaseUrl(src)) return src;
+  const { width = 800, height, quality = 82, fit = "cover" } = opts;
+  const p = new URLSearchParams();
+  p.set("url", src);
+  p.set("output", "webp");
+  p.set("q", String(quality));
+  p.set("fit", fit);
+  p.set("w", String(width));
+  if (height) p.set("h", String(height));
+  return `${WSRV}?${p.toString()}`;
+};
+
+export const HERO_WIDTHS = [480, 768, 1024, 1440];
+export const HERO_SIZES = "(min-width: 1024px) 50vw, 100vw";
+export const HERO_QUALITY = 80;
+export const cdnSrcSet = (src, widths = HERO_WIDTHS, quality = HERO_QUALITY) =>
+  !src || !isFirebaseUrl(src) ? undefined : widths.map((w) => `${cdnImg(src, { width: w, quality })} ${w}w`).join(", ");
+
+// The exact presets the components request (ProductCard / ProductGallery).
+export const CARD_CDN = { width: 600, height: 600, quality: 80 };
+export const SLIDE_CDN = { width: 1200, height: 1200, quality: 85 };
 
 // ── URL helpers (mirror src/lib/urls.ts) ───────────────────────────────────
 
@@ -232,7 +274,7 @@ const productList = (products, categoriesById) =>
     .map((p) => {
       const img = imagesOf(p)[0];
       const cat = categoriesById.get(categoryIdsOf(p)[0]);
-      return `<li><a href="${productPath(p)}">${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy" width="300" height="300">` : ""}<span>${esc(p.name)}</span></a>${cat ? `<small>${esc(cat.name)}</small>` : ""}<small>Price on request</small></li>`;
+      return `<li><a href="${productPath(p)}">${img ? `<img src="${esc(cdnImg(img, CARD_CDN))}" alt="${esc(p.name)}" loading="lazy" width="300" height="300">` : ""}<span>${esc(p.name)}</span></a>${cat ? `<small>${esc(cat.name)}</small>` : ""}<small>Price on request</small></li>`;
     })
     .join("")}</ul>`;
 
@@ -252,9 +294,21 @@ export const buildRoutes = (data) => {
   const shell = (crumbs, body) => pageShell({ categories, crumbs, body });
   const categoryLinks = `<ul class="pr-links">${categories.map((c) => `<li><a href="${categoryPath(c)}">${esc(c.name)}</a>${c.description ? ` — ${esc(truncate(stripHtml(c.description), 120))}` : ""}</li>`).join("")}</ul>`;
 
+  // The homepage hero is the LCP element. Preloading it from the static <head> starts
+  // the fetch while the HTML is still parsing — before React, before the Firestore read
+  // that tells the app which banners exist. Only the first image banner: preloading
+  // every slide would split the bandwidth the first one needs. The srcset/sizes mirror
+  // BannerCarousel exactly, so the <img> it renders reuses this response.
+  const hero = (data.banners || []).find((b) => b && b.image && b.mediaType !== "video");
+  const heroPreload =
+    hero && cdnSrcSet(hero.image)
+      ? [{ href: cdnImg(hero.image, { width: 1024, quality: HERO_QUALITY }), srcset: cdnSrcSet(hero.image), sizes: HERO_SIZES }]
+      : [];
+
   // Home
   routes.push({
     path: "/",
+    preload: heroPreload,
     // 42 chars, so the brand still fits inside the 60-char budget — the homepage is
     // the one title that should never lose it.
     title: "Lab-Grown & Natural Diamond Jewelry",
@@ -507,7 +561,7 @@ ${t.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join(""
       body: shell(
         crumbs,
         `<article><h1>${esc(p.name)}</h1>${cat ? `<p>${esc(cat.name)}</p>` : ""}<p><strong>Price on request</strong> · Made to order · Certified diamonds · Insured delivery</p>
-${imgs.slice(0, 4).map((src, i) => `<img src="${esc(src)}" alt="${esc(`${p.name}${i ? ` – view ${i + 1}` : ""}`)}" width="600" height="600"${i ? ' loading="lazy"' : ""}>`).join("")}
+${imgs.slice(0, 4).map((src, i) => `<img src="${esc(cdnImg(src, SLIDE_CDN))}" alt="${esc(`${p.name}${i ? ` – view ${i + 1}` : ""}`)}" width="600" height="600"${i ? ' loading="lazy"' : ""}>`).join("")}
 ${desc ? `<h2>Product details</h2><p>${esc(desc)}</p>` : ""}
 <p>Enquire on WhatsApp for availability, customisation options and delivery details.</p></article>
 ${related.length ? `<h2>More from ${esc(cat.name)}</h2>${productList(related, categoriesById)}` : ""}`
@@ -546,7 +600,7 @@ ${related.length ? `<h2>More from ${esc(cat.name)}</h2>${productList(related, ca
         },
         breadcrumbLd(crumbs),
       ],
-      body: shell(crumbs, `<article><h1>${esc(b.title)}</h1><p><time datetime="${esc(b.date)}">${esc(b.date)}</time></p>${b.image ? `<img src="${esc(b.image)}" alt="${esc(b.title)}">` : ""}${safeArticleHtml(b.content)}</article>`),
+      body: shell(crumbs, `<article><h1>${esc(b.title)}</h1><p><time datetime="${esc(b.date)}">${esc(b.date)}</time></p>${b.image ? `<img src="${esc(cdnImg(b.image, { width: 1600, quality: 82 }))}" alt="${esc(b.title)}">` : ""}${safeArticleHtml(b.content)}</article>`),
     });
   }
 

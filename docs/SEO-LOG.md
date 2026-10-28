@@ -215,3 +215,82 @@ TBT is ~2 s and the DOM is 1,339 elements; neither was addressed. LCP is dominat
 by the ~2 MB homepage video and the Firebase hero imagery, which is still awaiting
 an owner decision. Local Lighthouse has no network latency, so these numbers are
 useful for comparing before/after but are **not** production scores.
+
+---
+
+## 2026-10-28 — Phase 5: hero image, duplicate downloads, phone video
+
+### How this was measured
+
+A fresh, isolated Chrome browser context at a phone viewport (390×844, DPR 2): empty
+HTTP cache, no service worker, but caching **enabled** so a URL requested twice on
+the same page is reused as it would be for a real visitor. Two earlier methods gave
+wrong answers and are recorded so nobody repeats them:
+
+- **Reusing a browser profile** reported the homepage film as not loading on phones.
+  The site's service worker was serving it, which hid the download.
+- **Disabling the cache** made every repeat of an *identical* URL look like a second
+  download, inflating duplicates.
+
+### What was wrong
+
+1. **Every image in the pre-rendered HTML was a raw Firebase URL.** The browser began
+   fetching them while parsing, then React replaced the page and requested the CDN
+   versions — so each was downloaded twice. 11 raw images, 1,224 KiB.
+2. **The app-wide preloader requested URLs nothing displayed.** It preloaded every
+   banner at `w=1600` (`fetchpriority=high`) and thumbnails at `w=800`, on every route,
+   while banners rendered the raw URL and product cards a `600×600` crop. Each banner
+   ended up downloaded three times (CDN 1600, raw, CDN 800).
+3. **The 1,959 KiB craftsmanship film loaded on phones on first visit** — a third of
+   the page. The section's 1000px `rootMargin` reaches it almost immediately on a short
+   viewport.
+
+### What changed
+
+- `src/lib/imageUrl.ts` — `cdnSrcSet()` and `HERO_*` constants (480/768/1024/1440,
+  `sizes="(min-width: 1024px) 50vw, 100vw"`).
+- `scripts/seo-data.mjs` — a byte-identical mirror of `cdnImg`/`cdnSrcSet`, **verified
+  identical** against the TypeScript original. Pre-rendered body images now use the
+  exact presets the components request (`CARD_CDN`, `SLIDE_CDN`, blog `w=1600`), so
+  the browser reuses one response instead of fetching twice. Banners are now read in
+  `fetchCatalog`, in the same order as `getBanners()`.
+- `scripts/prerender.mjs` — the homepage `<head>` preloads the first banner with
+  `imagesrcset`/`imagesizes`/`fetchpriority="high"`, so the LCP fetch starts at HTML
+  parse time, before any JavaScript or Firestore read.
+- `BannerCarousel.tsx` — renders the same srcset; the next slide is warmed with an
+  `Image` carrying the same srcset/sizes, replacing a fixed-800px warm that never matched.
+- `App.tsx` — removed the app-wide preloader.
+- `useLightMedia` + `CraftStory.tsx` — phones, Save-Data, slow links and Reduce Motion
+  keep the film's poster and never fetch the film. Desktop is unchanged.
+
+### Results — phone, first visit
+
+| | Production | This build |
+|---|---|---|
+| **Total** | 5,647 KiB | **2,010 KiB (−64%)** |
+| Images | 2,664 KiB | 988 KiB |
+| Video | 1,959 KiB | **0** |
+| Bytes wasted on duplicate downloads | 665 KiB | **0** |
+| Raw un-resized Firebase images | 11 | **0** |
+
+Desktop still loads the film (1,958 KiB), as intended.
+
+### Bugs caught in my own changes during verification
+
+- **`useLightMedia` started `false` and corrected itself after mount**, so the first
+  render mounted the `<video>` and `CraftStory`'s mount-only effect read `false` — the
+  phone guard would have done nothing on phones. Caught by an eslint
+  `exhaustive-deps` warning. Now computed synchronously on first render.
+- **The hero had lost its outage protection.** It used to load straight from Firebase;
+  after this change it depended on wsrv.nl with no fallback. Added `onError` → drop the
+  srcset and load the original, and **verified by blocking wsrv.nl entirely**: the hero
+  still renders, served from Firebase.
+
+### ⚠️ Not verified
+
+- A headless `--virtual-time-budget` screenshot showed a broken hero on phones. It is an
+  artifact: virtual time fast-forwards the carousel's autoplay to a lazy, re-keyed slide
+  and captures it mid-load. Real-time screenshots of both production and this build
+  render correctly, and both report every banner image loaded.
+- LCP in seconds is still unmeasured — lab timing on this machine varied 8× between
+  identical runs. Bytes and request counts above are deterministic; timings are not.

@@ -58,6 +58,15 @@ const headFor = (r) => {
     `<meta name="twitter:image" content="${esc(image)}" data-prerender>`,
   ];
   if (r.jsonLd && r.jsonLd.length) tags.push(jsonLdTag(r.jsonLd.filter(Boolean)));
+  // Per-route image preloads (the homepage hero). imagesrcset/imagesizes let the browser
+  // choose the same candidate the page's <img srcset> will, so the response is reused.
+  for (const p of r.preload || []) {
+    tags.push(
+      `<link rel="preload" as="image" href="${esc(p.href)}"` +
+        (p.srcset ? ` imagesrcset="${esc(p.srcset)}" imagesizes="${esc(p.sizes)}"` : "") +
+        ` fetchpriority="high" data-prerender>`,
+    );
+  }
   tags.push(STYLE);
   return tags.join("\n  ");
 };
