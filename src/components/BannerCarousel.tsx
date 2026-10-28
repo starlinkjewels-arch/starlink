@@ -4,10 +4,11 @@ import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles, ShieldCh
 import { Banner } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import KineticHeading from '@/components/site/KineticHeading';
-import { preloadMedia } from '@/lib/preload';
+import { cdnImg, cdnSrcSet, HERO_QUALITY, HERO_SIZES } from '@/lib/imageUrl';
 import { SITE } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 import heroFallback from '@/assets/hero-banner-1.jpg';
+import { useLightMedia } from '@/hooks/useLightMedia';
 
 interface BannerCarouselProps {
   banners?: Banner[];
@@ -27,6 +28,8 @@ const readCachedFallback = () => {
 
 // Split hero: kinetic headline on a soft panel + rounded media carousel (admin banners).
 const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
+  // Skip the heavy hero video on phones and slow links (see useLightMedia).
+  const lightMedia = useLightMedia();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [loaded, setLoaded] = useState<Set<number>>(new Set());
@@ -64,10 +67,19 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
     return () => window.clearTimeout(id);
   }, [count, current, paused, go]);
 
+  // Warm the next slide. An Image given the same srcset and sizes as the real <img>
+  // picks the same candidate for this viewport, so the fetch is reused when the slide
+  // changes. The old preloadMedia() asked for a fixed 800px URL the carousel never
+  // rendered, so it downloaded the image and then downloaded it again.
   useEffect(() => {
     if (count === 0) return;
     const next = banners[(current + 1) % count];
-    if (next && next.mediaType !== 'video') preloadMedia([next.image]);
+    if (!next || next.mediaType === 'video' || !next.image) return;
+    const warm = new Image();
+    warm.sizes = HERO_SIZES;
+    const set = cdnSrcSet(next.image);
+    if (set) warm.srcset = set;
+    warm.src = cdnImg(next.image, { width: 1024, quality: HERO_QUALITY });
   }, [banners, count, current]);
 
   const activeLoaded = loaded.has(current);
@@ -138,7 +150,7 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
                 className={cn('absolute inset-0 transition-opacity duration-1000 ease-out', isActive ? 'z-10 opacity-100' : 'z-0 opacity-0')}
                 aria-hidden={!isActive}
               >
-                {banner.mediaType === 'video' ? (
+                {banner.mediaType === 'video' && !lightMedia ? (
                   <video
                     src={banner.image}
                     className="h-full w-full object-cover"
@@ -150,16 +162,48 @@ const BannerCarousel = memo(({ banners = [] }: BannerCarouselProps) => {
                     poster={fallbackImage}
                     onLoadedData={() => markLoaded(i)}
                   />
+                ) : banner.mediaType === 'video' ? (
+                  // Phone, Save-Data, slow link or Reduce Motion: show the poster the
+                  // video would have opened on. Banners are set in the admin and are
+                  // currently all images, so this branch is a guard: if a video banner
+                  // is ever uploaded, phones get a still frame instead of a multi-MB
+                  // download sitting in the LCP slot.
+                  <img
+                    src={fallbackImage}
+                    alt={banner.title}
+                    className="h-full w-full object-cover"
+                    loading={isActive ? 'eager' : 'lazy'}
+                    fetchPriority={isActive && i === 0 ? 'high' : 'auto'}
+                    decoding="async"
+                    onLoad={() => markLoaded(i)}
+                  />
                 ) : (
+                  // Served through the CDN at a viewport-appropriate width. The first
+                  // banner is the LCP element, and the pre-rendered page preloads it with
+                  // this exact srcset and sizes — they must stay identical for the browser
+                  // to reuse that preload instead of fetching a second copy.
                   <img
                     key={isActive ? `active-${current}` : banner.id}
-                    src={banner.image}
+                    src={cdnImg(banner.image, { width: 1024, quality: HERO_QUALITY })}
+                    srcSet={cdnSrcSet(banner.image)}
+                    sizes={HERO_SIZES}
                     alt={banner.title}
                     className={cn('h-full w-full object-cover', isActive && 'animate-hero-zoom')}
                     loading={isActive ? 'eager' : 'lazy'}
                     decoding="async"
-                    fetchPriority={isActive ? 'high' : 'auto'}
+                    fetchPriority={isActive && i === 0 ? 'high' : 'auto'}
                     onLoad={() => markLoaded(i)}
+                    // wsrv.nl is a free third-party CDN. Before this component used it,
+                    // the hero came straight from Firebase and a CDN outage could not
+                    // touch it — so keep that property: if the CDN fails, drop the srcset
+                    // and load the original. CdnImage does the same for the same reason.
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.dataset.cdnFallback || !banner.image) return; // no retry loop
+                      img.dataset.cdnFallback = '1';
+                      img.removeAttribute('srcset');
+                      img.src = banner.image;
+                    }}
                   />
                 )}
               </div>

@@ -12,6 +12,8 @@ interface SEOHeadProps {
   faqItems?: Array<{ question: string; answer: string }>;
   breadcrumbs?: Array<{ name: string; url: string }>;
   noIndex?: boolean;
+  /** With noIndex: still let crawlers follow links on the page (noindex, follow). */
+  followLinks?: boolean;
 }
 
 const SEOHead = ({
@@ -25,11 +27,13 @@ const SEOHead = ({
   faqItems,
   breadcrumbs,
   noIndex = false,
+  followLinks = false,
 }: SEOHeadProps) => {
   const siteName = SITE.name;
   // Append the brand only when it fits the 60-char SERP budget (mirrors
   // scripts/seo-data.mjs). An editor-written title is never truncated here: Google
   // truncates visually, and an ellipsis in the source looks broken.
+  const noIndexValue = followLinks ? "noindex, follow" : "noindex, nofollow";
   const withBrand = `${title} | ${siteName}`;
   const fullTitle = title.includes(siteName) ? title : withBrand.length <= MAX_TITLE ? withBrand : title;
   const baseUrl = SITE.url;
@@ -194,14 +198,10 @@ const SEOHead = ({
       <meta name="keywords" content={metaKeywords} />
       <meta
         name="robots"
-        content={
-          noIndex
-            ? "noindex, nofollow"
-            : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-        }
+        content={noIndex ? noIndexValue : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
       />
-      <meta name="googlebot" content={noIndex ? "noindex, nofollow" : "index, follow"} />
-      <meta name="bingbot" content={noIndex ? "noindex, nofollow" : "index, follow"} />
+      <meta name="googlebot" content={noIndex ? noIndexValue : "index, follow"} />
+      <meta name="bingbot" content={noIndex ? noIndexValue : "index, follow"} />
       <meta name="language" content="English" />
       <meta name="author" content={siteName} />
       <meta name="publisher" content={siteName} />

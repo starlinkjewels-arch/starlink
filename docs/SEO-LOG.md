@@ -215,3 +215,170 @@ TBT is ~2 s and the DOM is 1,339 elements; neither was addressed. LCP is dominat
 by the ~2 MB homepage video and the Firebase hero imagery, which is still awaiting
 an owner decision. Local Lighthouse has no network latency, so these numbers are
 useful for comparing before/after but are **not** production scores.
+
+---
+
+## 2026-10-28 — Phase 5: hero image, duplicate downloads, phone video
+
+### How this was measured
+
+A fresh, isolated Chrome browser context at a phone viewport (390×844, DPR 2): empty
+HTTP cache, no service worker, but caching **enabled** so a URL requested twice on
+the same page is reused as it would be for a real visitor. Two earlier methods gave
+wrong answers and are recorded so nobody repeats them:
+
+- **Reusing a browser profile** reported the homepage film as not loading on phones.
+  The site's service worker was serving it, which hid the download.
+- **Disabling the cache** made every repeat of an *identical* URL look like a second
+  download, inflating duplicates.
+
+### What was wrong
+
+1. **Every image in the pre-rendered HTML was a raw Firebase URL.** The browser began
+   fetching them while parsing, then React replaced the page and requested the CDN
+   versions — so each was downloaded twice. 11 raw images, 1,224 KiB.
+2. **The app-wide preloader requested URLs nothing displayed.** It preloaded every
+   banner at `w=1600` (`fetchpriority=high`) and thumbnails at `w=800`, on every route,
+   while banners rendered the raw URL and product cards a `600×600` crop. Each banner
+   ended up downloaded three times (CDN 1600, raw, CDN 800).
+3. **The 1,959 KiB craftsmanship film loaded on phones on first visit** — a third of
+   the page. The section's 1000px `rootMargin` reaches it almost immediately on a short
+   viewport.
+
+### What changed
+
+- `src/lib/imageUrl.ts` — `cdnSrcSet()` and `HERO_*` constants (480/768/1024/1440,
+  `sizes="(min-width: 1024px) 50vw, 100vw"`).
+- `scripts/seo-data.mjs` — a byte-identical mirror of `cdnImg`/`cdnSrcSet`, **verified
+  identical** against the TypeScript original. Pre-rendered body images now use the
+  exact presets the components request (`CARD_CDN`, `SLIDE_CDN`, blog `w=1600`), so
+  the browser reuses one response instead of fetching twice. Banners are now read in
+  `fetchCatalog`, in the same order as `getBanners()`.
+- `scripts/prerender.mjs` — the homepage `<head>` preloads the first banner with
+  `imagesrcset`/`imagesizes`/`fetchpriority="high"`, so the LCP fetch starts at HTML
+  parse time, before any JavaScript or Firestore read.
+- `BannerCarousel.tsx` — renders the same srcset; the next slide is warmed with an
+  `Image` carrying the same srcset/sizes, replacing a fixed-800px warm that never matched.
+- `App.tsx` — removed the app-wide preloader.
+- `useLightMedia` + `CraftStory.tsx` — phones, Save-Data, slow links and Reduce Motion
+  keep the film's poster and never fetch the film. Desktop is unchanged.
+
+### Results — phone, first visit
+
+| | Production | This build |
+|---|---|---|
+| **Total** | 5,647 KiB | **2,010 KiB (−64%)** |
+| Images | 2,664 KiB | 988 KiB |
+| Video | 1,959 KiB | **0** |
+| Bytes wasted on duplicate downloads | 665 KiB | **0** |
+| Raw un-resized Firebase images | 11 | **0** |
+
+Desktop still loads the film (1,958 KiB), as intended.
+
+### Bugs caught in my own changes during verification
+
+- **`useLightMedia` started `false` and corrected itself after mount**, so the first
+  render mounted the `<video>` and `CraftStory`'s mount-only effect read `false` — the
+  phone guard would have done nothing on phones. Caught by an eslint
+  `exhaustive-deps` warning. Now computed synchronously on first render.
+- **The hero had lost its outage protection.** It used to load straight from Firebase;
+  after this change it depended on wsrv.nl with no fallback. Added `onError` → drop the
+  srcset and load the original, and **verified by blocking wsrv.nl entirely**: the hero
+  still renders, served from Firebase.
+
+### ⚠️ Not verified
+
+- A headless `--virtual-time-budget` screenshot showed a broken hero on phones. It is an
+  artifact: virtual time fast-forwards the carousel's autoplay to a lazy, re-keyed slide
+  and captures it mid-load. Real-time screenshots of both production and this build
+  render correctly, and both report every banner image loaded.
+- LCP in seconds is still unmeasured — lab timing on this machine varied 8× between
+  identical runs. Bytes and request counts above are deterministic; timings are not.
+
+---
+
+## 2026-10-28 — Phase 6: shape sub-collections, country pages, one H1, one robots meta
+
+### Research input
+
+Strategy was cross-checked with Gemini (search grounding was quota-blocked on the
+free-tier key, so its input was reasoning, not fresh search). Its useful calls were
+verified against the real catalogue and live HTML before acting on any of them:
+
+| Gemini said | Measured | Outcome |
+|---|---|---|
+| Country pages are doorway risk; hreflang is the wrong tool | `/usa` vs `/canada`: 97% shared vocabulary, 12/13 long sentences identical | **Acted on** |
+| `llms.txt` has no evidenced ranking effect | Consistent with what is known | Left as is, no further investment |
+| Build 25–35 sub-collections | Only **13** shape × collection combos have ≥ 6 pieces; metal and lab/natural are detectable on < 40% of products | **Built 13**, not 35 — the rest would be scaled thin content |
+| Product pages are near-duplicates | Median 502 visible words, 59/60 unique titles, 0 duplicate descriptions | **Rejected** — they are substantial pages |
+
+### Shape sub-collections — 13 new indexable pages
+
+`/category/<collection>/<shape>`, e.g. `/category/rings/oval`. Built only where a shape has
+**≥ 6 pieces** in a jewellery-type collection (Custom, Ready to Ship and Cuban excluded).
+
+```
+rings/round 30   rings/marquise 11   rings/oval 9    rings/pear 9   rings/heart 8   rings/emerald 6
+pendants/round 16   necklaces/round 14   earrings/round 11   earrings/pear 9
+bracelets/round 9   bracelets/emerald 8   eternity-bands/round 6
+```
+
+Each has a keyword-led title (≤ 60), a 140–155 char description, one H1, a factual
+gemological description of the cut (no business claims), the real product count,
+`CollectionPage` + `ItemList` + `BreadcrumbList` schema, and a self-canonical. Parent
+collections link to them through a crawlable "Shop by shape" nav (rendered by both the
+pre-render and the app — React replaces the static DOM, so without the app's copy those
+links would vanish for users and JS-rendering crawlers). A shape view below the bar still
+works but is noindex and never linked or pre-rendered.
+
+**Crawler/user parity, proven:** a pre-rendered collection must list exactly what the app
+shows, or crawlers and users see different content. The pre-render's shape detection was
+run against the app's — the app's half in real Chrome, because the app strips HTML with
+`DOMParser` — on all 192 products: **192/192 identical**.
+
+That test found **a live bug in the app**: `DOMParser`'s `textContent` joins adjacent block
+elements with no space, so `<h2>…Princess Cut</h2><h2>Metal:` became "Princess CutMetal",
+and a genuinely princess-cut product was missing from the live Princess filter.
+`stripHtml` now breaks after block closes first.
+
+### Country pages → noindex, follow
+
+Not rewritten with country detail: duties, delivery times and local certification are
+business facts I do not have. Kept live for visitors and ads; out of the index and sitemap.
+Two places would have quietly undone it and were fixed: `buildSitemapXml` now filters
+noindex itself (the daily sitemap workflow calls it too), and `sitemap-urls.txt` — submitted
+to IndexNow daily — no longer includes them.
+
+### Exactly one H1 per page — all 251 pages
+
+- Every page had **two**: `index.html`'s `<noscript>` fallback carried its own `<h1>`, and the
+  template is copied into every page. Demoted it; also dropped the country links from it.
+- Five articles had **up to 20**, because editors use H1 for section headings. CMS content
+  now renders H1 as H2, in both the pre-render (`safeArticleHtml`) and the app (`RichText`).
+
+### Exactly one robots meta per page
+
+Every page carried **two** robots metas: the template's (unmarked, so `main.tsx` never
+removed it) plus Helmet's. Where they disagreed — a thin shape page said `index` and
+`noindex` at once — the signals conflicted. On noindex pages, `googlebot`/`bingbot` also
+still said `index`. The pre-render now marks all three `data-prerender` and keeps them
+consistent; after hydration there is exactly one directive per page. Thin shape pages are
+noindex with a **self**-canonical (noindex + a canonical to another URL is a mixed signal).
+
+**Behaviour change worth knowing:** a brand-new product served by the SPA fallback before
+the next build is now indexable by JS-rendering crawlers immediately, instead of being held
+at `noindex` by the conflicting static tag. Bad URLs remain noindex via `NotFound`. This
+supersedes the earlier note that new products "stay soft" until rebuilt.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `tsc` / eslint on changed files | clean |
+| Pages built | 251 + 201 legacy redirects |
+| Sitemap | 234 → **247** (−4 country, +13 shape) |
+| Shape detection parity, pre-render vs app (real Chrome) | **192/192** |
+| Pages with exactly one real H1 | **251/251** (2 empty SPA shells have none, by design) |
+| Robots metas after hydration | **exactly 1** on every page type tested |
+| `/category/rings/oval` in the app | correct H1, title, canonical, 9 products, active nav |
+| Invalid shape (`/category/rings/not-a-shape`) | redirects to `/category/rings` |

@@ -113,11 +113,20 @@ export const stripHtml = (html: string) => {
   return result;
 };
 
+// textContent joins adjacent block elements with no space between them, so
+// "<h2>Princess Cut</h2><h2>Metal:" became "Princess CutMetal" — and with the word glued
+// shut, shape detection missed a product that genuinely is princess cut, so the live
+// Princess filter left it out. Break after block-level closes (and <br>) first. This is
+// what scripts/seo-data.mjs's stripHtml already does; the two must agree, or a
+// pre-rendered collection lists different products to crawlers than to users.
+const BLOCK_BREAK = /<br\s*\/?>|<\/(?:p|div|li|h[1-6]|tr|td|th|blockquote|section|article|ul|ol)>/gi;
+
 const stripHtmlUncached = (html: string) => {
   let text = html;
   if (typeof DOMParser !== "undefined") {
     // Let the browser parse real markup, then strip any escaped markup that was pasted as text.
-    text = new DOMParser().parseFromString(html, "text/html").body.textContent || "";
+    const spaced = html.replace(BLOCK_BREAK, (m) => `${m} `);
+    text = new DOMParser().parseFromString(spaced, "text/html").body.textContent || "";
   } else {
     text = decodeEntities(text.replace(TAG_PATTERN, " "));
   }
@@ -199,7 +208,7 @@ export const fitDescription = (primary: string, filler: string): string => {
   return clampWords(joined, DESC_MAX);
 };
 
-const CATEGORY_FILLER = "Certified lab-grown & natural diamonds, handcrafted in Surat, with free insured worldwide delivery.";
+export const CATEGORY_FILLER = "Certified lab-grown & natural diamonds, handcrafted in Surat, with free insured worldwide delivery.";
 const PRODUCT_FILLER = "Certified diamonds, made to order in Surat, with free insured worldwide delivery.";
 
 export const buildMetaTitleForCategory = (categoryName: string) =>

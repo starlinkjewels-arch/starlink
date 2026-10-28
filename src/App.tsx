@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +19,6 @@ import Index from "./pages/Index";
 import ScrollToTop from "./components/ScrollToTop";
 import { requestLocationAndLog } from '@/lib/locationPermission';
 import { getConsent, onConsentChange, type ConsentState } from '@/lib/consent';
-import { preloadCritical, preloadImages } from "@/lib/preload";
 import GlobalLoader from "@/components/GlobalLoader";
 import AdPopup from "@/components/AdPopup";
 import { SiteShell } from "@/components/site/SiteLayout";
@@ -172,40 +171,18 @@ const AppContent = () => {
     };
   }, []);
 
-  // Collect ALL critical images to preload so the service-worker cache is warm
-  // on first render and subsequent navigations are instant.
-  const assetUrls = useMemo(() => {
-    const take = (arr: string[], n: number) => arr.filter(Boolean).slice(0, n);
-    if (isAdminRoute) return [];
-    return [
-      // Banners — highest priority (LCP on home page)
-      ...take(data.banners.map((b) => b.image), 3),
-      // Category thumbnails — first row only
-      ...take(data.categories.map((c) => c.image), 4),
-      // Featured collection — first few products
-      ...take((data.featuredCollection ?? []).map((p: { thumbnail?: string; image?: string }) => p.thumbnail || p.image || ''), 3),
-      // Blog thumbnails — first few
-      ...take(data.blogs.map((b: { thumbnail?: string; image?: string }) => b.thumbnail || b.image || ''), 3),
-    ];
-  }, [
-    data.banners,
-    data.categories,
-    data.featuredCollection,
-    data.blogs,
-    isAdminRoute,
-  ]);
-
-  useEffect(() => {
-    if (status === "succeeded" || hydrated) {
-      // Banners = LCP images → preload at high priority with hero sizing (1600px WebP)
-      const bannerUrls = (data.banners ?? []).map((b: { image?: string }) => b.image ?? '').filter(Boolean);
-      preloadCritical(bannerUrls, 1600);
-
-      // Everything else → standard priority (800px WebP thumbnails)
-      const rest = assetUrls.filter((u) => !bannerUrls.includes(u));
-      preloadImages(rest, 800);
-    }
-  }, [assetUrls, data.banners, hydrated, status]);
+  // No app-wide image preloading.
+  //
+  // This used to preload every banner at 1600px (fetchpriority=high) plus category,
+  // featured and blog thumbnails at 800px, on every route. Measured on a phone, none of
+  // those URLs matched what the components actually rendered — banners rendered the raw
+  // Firebase URL, product cards a 600x600 crop — so each preload was a second download
+  // of an image nobody displayed, ~500 KiB of it at the highest priority, competing with
+  // the real LCP image. It also ran on product and blog pages, preloading homepage
+  // banners there too.
+  //
+  // The hero is now preloaded by the pre-rendered HTML itself (scripts/prerender.mjs),
+  // which fires at parse time, before any JS, with the exact srcset BannerCarousel uses.
 
   const routes = (
     <Routes>
@@ -213,6 +190,8 @@ const AppContent = () => {
       <Route path="/about" element={<About />} />
       <Route path="/categories" element={<Categories />} />
       <Route path="/category/:id" element={<CategoryProducts />} />
+      {/* Shape sub-collections, e.g. /category/rings/oval (see src/lib/subcollections.ts). */}
+      <Route path="/category/:id/:shape" element={<CategoryProducts />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/gallery" element={<Gallery />} />
       <Route path="/blog" element={<Blog />} />

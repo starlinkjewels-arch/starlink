@@ -58,12 +58,23 @@ const headFor = (r) => {
     `<meta name="twitter:image" content="${esc(image)}" data-prerender>`,
   ];
   if (r.jsonLd && r.jsonLd.length) tags.push(jsonLdTag(r.jsonLd.filter(Boolean)));
+  // Per-route image preloads (the homepage hero). imagesrcset/imagesizes let the browser
+  // choose the same candidate the page's <img srcset> will, so the response is reused.
+  for (const p of r.preload || []) {
+    tags.push(
+      `<link rel="preload" as="image" href="${esc(p.href)}"` +
+        (p.srcset ? ` imagesrcset="${esc(p.srcset)}" imagesizes="${esc(p.sizes)}"` : "") +
+        ` fetchpriority="high" data-prerender>`,
+    );
+  }
   tags.push(STYLE);
   return tags.join("\n  ");
 };
 
+// The template's robots meta is "index, follow". A route flagged noindex gets it swapped
+// in the static HTML, where crawlers that do not run JavaScript read it.
 const render = (template, r) =>
-  template
+  (r.noindex ? withRobots(template, "noindex, follow") : template)
     .replace(GENERIC_HEAD_TAGS, "")
     .replace("</head>", `  ${headFor(r)}\n</head>`)
     .replace('<div id="root"></div>', `<div id="root">${r.body}</div>`);
@@ -97,12 +108,28 @@ const injectFontPreloads = (html) => {
   return html.includes("<head>") ? html.replace("<head>", `<head>${links}`) : html;
 };
 
+// The template's crawler directives (robots / googlebot / bingbot) come from index.html
+// with no marker, so main.tsx — which removes [data-prerender] tags once React mounts —
+// left them in place, and react-helmet-async then added its own: every page carried two
+// robots metas, and where they disagreed (a thin shape page: "index" vs "noindex") the
+// signals conflicted. Marking them hands them to the same cleanup, so non-JS crawlers
+// read the static value and, after mount, Helmet's is the only one.
+const CRAWLER_METAS = /<meta\s+name="(robots|googlebot|bingbot)"(?![^>]*data-prerender)([^>]*?)\s*\/?>/gi;
+const markCrawlerMetas = (html) => html.replace(CRAWLER_METAS, '<meta name="$1"$2 data-prerender>');
+
 // Swap the robots directive in a shell. The index.html shipped by Vite carries
 // "index, follow, ..." for the real pages; the SPA fallback and 404 need the opposite.
-const withRobots = (html, value) =>
-  html.includes('name="robots"')
-    ? html.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${value}">`)
-    : html.replace(/<\/head>/i, `<meta name="robots" content="${value}"></head>`);
+// Swaps only the content value, keeping any other attributes (data-prerender). Matching
+// the whole tag instead would stop matching once the marker is present and fall through
+// to inserting a second robots meta — the duplicate this is meant to prevent.
+// googlebot/bingbot follow robots, so a noindex page does not say "index" to them.
+const withRobots = (html, value) => {
+  if (!/<meta\s+name="robots"/i.test(html)) return html.replace(/<\/head>/i, `<meta name="robots" content="${value}" data-prerender></head>`);
+  const bot = /noindex/.test(value) ? value : "index, follow";
+  return html
+    .replace(/(<meta\s+name="robots"\s+content=")[^"]*(")/i, `$1${value}$2`)
+    .replace(/(<meta\s+name="(?:googlebot|bingbot)"\s+content=")[^"]*(")/gi, `$1${bot}$2`);
+};
 
 const run = async () => {
   // A previous run leaves the pristine shell in 200.html (index.html is then the pre-rendered home page).
@@ -118,6 +145,7 @@ const run = async () => {
   // real font and nothing reflows. Vite hashes the filenames, so they are resolved
   // from the build output here rather than hard-coded in index.html.
   template = injectFontPreloads(template);
+  template = markCrawlerMetas(template);
 
   // The untouched shell is the SPA fallback (vercel.json rewrites unknown routes to /200 (cleanUrls serves 200.html)).
   //

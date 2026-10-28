@@ -43,7 +43,7 @@ export const fetchCatalog = async () => {
     const snap = await getDocs(collection(db, name));
     return snap.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
   };
-  const [categories, products, blogs, buyingGuides, reviews] = await Promise.all([
+  const [categories, products, blogs, buyingGuides, reviews, banners] = await Promise.all([
     read("categories"),
     read("products"),
     read("blogs"),
@@ -51,8 +51,14 @@ export const fetchCatalog = async () => {
     getDocs(query(collection(db, "reviews"), where("status", "==", "approved")))
       .then((snap) => snap.docs.map((d) => ({ ...d.data(), id: d.id })))
       .catch(() => []),
+    // Optional: only used to preload the homepage hero. A failure here must not
+    // cost the whole pre-render, so it degrades to "no preload".
+    read("banners").catch(() => []),
   ]);
   return {
+    // Same ordering as getBanners() in src/lib/storage.ts, so banners[0] is the slide
+    // BannerCarousel actually shows first.
+    banners: banners.sort((a, b) => (a.priority || 99) - (b.priority || 99)),
     categories: categories.sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999)),
     products,
     blogs: blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
@@ -60,6 +66,94 @@ export const fetchCatalog = async () => {
     reviews,
   };
 };
+
+// ── Image CDN (mirror src/lib/imageUrl.ts — byte-identical) ─────────────────
+//
+// The pre-rendered HTML and the live app must request the *same* image URLs. When they
+// did not, every image in the static body was fetched once raw from Firebase while the
+// page parsed, then fetched again via the CDN once React rendered: measured on a phone,
+// each banner downloaded twice. A browser only reuses a response (or a preload) when the
+// URL matches character for character, so parameter names, order and defaults below
+// follow cdnImg() exactly. Change one, change both.
+
+const WSRV = "https://wsrv.nl/";
+const isFirebaseUrl = (src) =>
+  typeof src === "string" && (src.includes("firebasestorage.googleapis.com") || src.includes("storage.googleapis.com"));
+
+export const cdnImg = (src, opts = {}) => {
+  if (!src || !isFirebaseUrl(src)) return src;
+  const { width = 800, height, quality = 82, fit = "cover" } = opts;
+  const p = new URLSearchParams();
+  p.set("url", src);
+  p.set("output", "webp");
+  p.set("q", String(quality));
+  p.set("fit", fit);
+  p.set("w", String(width));
+  if (height) p.set("h", String(height));
+  return `${WSRV}?${p.toString()}`;
+};
+
+export const HERO_WIDTHS = [480, 768, 1024, 1440];
+export const HERO_SIZES = "(min-width: 1024px) 50vw, 100vw";
+export const HERO_QUALITY = 80;
+export const cdnSrcSet = (src, widths = HERO_WIDTHS, quality = HERO_QUALITY) =>
+  !src || !isFirebaseUrl(src) ? undefined : widths.map((w) => `${cdnImg(src, { width: w, quality })} ${w}w`).join(", ");
+
+// The exact presets the components request (ProductCard / ProductGallery).
+export const CARD_CDN = { width: 600, height: 600, quality: 80 };
+export const SLIDE_CDN = { width: 1200, height: 1200, quality: 85 };
+
+// ── Diamond shapes (mirror src/lib/productAttributes.ts + src/lib/subcollections.ts) ──
+//
+// Which products count as "oval", etc. This must agree with the live app exactly, or a
+// pre-rendered sub-collection lists different products to crawlers than to users.
+// Verified by running both against every product in the catalogue — 192/192 identical —
+// after fixing the app's stripHtml, which glued block elements together ("Princess
+// CutMetal") and so missed a genuinely princess-cut piece.
+
+export const DIAMOND_SHAPES = ["Round", "Oval", "Emerald", "Pear", "Marquise", "Cushion", "Princess", "Radiant", "Heart", "Asscher"];
+
+const detectShapes = (name, description) => {
+  const found = new Set();
+  for (const shape of DIAMOND_SHAPES) {
+    const w = shape.toLowerCase();
+    const inName = new RegExp(`\\b${w}\\b`, "i").test(name) && !(shape === "Heart" && /\bheart(s)?\s+(pendant|locket)\b/i.test(name) && !/diamond/i.test(name));
+    const inText = new RegExp(`\\b${w}[- ]?(cut|shape|shaped|brilliant|diamonds?|lab[- ]grown)\\b`, "i").test(description);
+    if (inName || inText) found.add(shape);
+  }
+  if (found.has("Emerald") && /\bemeralds?\b(?![- ]?(cut|shape))/i.test(name) && !/emerald[- ]?(cut|shape)/i.test(description + " " + name)) found.delete("Emerald");
+  return DIAMOND_SHAPES.filter((s) => found.has(s));
+};
+
+/** Shapes a product is listed under. An admin-set value always wins, as in the app. */
+export const shapesOf = (p) =>
+  Array.isArray(p.shapes) && p.shapes.length
+    ? p.shapes.filter((s) => DIAMOND_SHAPES.includes(s))
+    : detectShapes(p.name || "", stripHtml(p.description || ""));
+
+// A shape sub-collection is only built where it is a real page rather than a filter
+// state dressed up as one: enough pieces to browse, in a jewellery-type collection.
+// Scaled thin pages are a Google spam policy, so the bar is deliberately conservative.
+export const SUBCOLLECTION_MIN = 6;
+// Collections that are not a jewellery type, so "oval <collection>" is not something
+// anyone searches for.
+export const SUBCOLLECTION_EXCLUDE = new Set(["custom-jewelry", "cuban-collection", "ready-to-ship"]);
+
+// One factual line per cut — gemology, not marketing, so it is true for every piece.
+export const SHAPE_INFO = {
+  Round: "The round brilliant is cut with 57 or 58 facets to return as much light as possible. It is the most popular diamond shape and the classic choice for an engagement ring.",
+  Oval: "An oval is an elongated brilliant cut. It keeps the sparkle of a round, looks larger than a round of the same carat weight, and lengthens the look of the hand.",
+  Pear: "A pear, or teardrop, joins a rounded end to a single point. It is a brilliant cut with an elegant, elongated outline.",
+  Marquise: "A marquise is a boat-shaped brilliant with two pointed ends. For its carat weight it has one of the largest face-up areas of any shape.",
+  Emerald: "An emerald cut is a rectangular step cut. Its long, open facets give a hall-of-mirrors effect rather than sparkle, so it rewards high clarity.",
+  Heart: "A heart is a brilliant cut with a cleft at the top and a point at the base.",
+  Princess: "A princess is a square brilliant with crisp, pointed corners. It pairs a modern outline with strong sparkle.",
+  Cushion: "A cushion is a square or rectangular cut with softly rounded corners and larger facets, with a vintage feel.",
+  Radiant: "A radiant has the trimmed-corner outline of an emerald cut with the brilliance of a round.",
+  Asscher: "An Asscher is a square step cut with cropped corners and a layered, windmill-like pattern of facets.",
+};
+
+export const shapeSlug = (shape) => shape.toLowerCase();
 
 // ── URL helpers (mirror src/lib/urls.ts) ───────────────────────────────────
 
@@ -113,12 +207,18 @@ export const esc = (value) =>
     .replace(/"/g, "&quot;");
 
 /** Keeps article structure (headings, paragraphs, lists, links, images) but drops anything executable. */
+// The page title is the one <h1>. Editors use H1 for section headings inside articles —
+// measured, up to 20 per page — so any H1 in CMS content is rendered as an H2. Mirrors
+// DEMOTE_H1 in src/components/site/RichText.tsx; the two must agree.
+const DEMOTE_H1 = /<(\/?)h1(\b[^>]*)>/gi;
+
 export const safeArticleHtml = (html) =>
   String(html || "")
     .replace(/<(script|style|iframe|object|embed|form|noscript)[\s\S]*?<\/\1>/gi, "")
     .replace(/<(script|iframe|object|embed|link|meta)[^>]*\/?>/gi, "")
     .replace(/\s(on\w+|style|class|id|data-[\w-]+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"');
+    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"')
+    .replace(DEMOTE_H1, "<$1h2$2>");
 
 const meaningful = (value, min = 15) => {
   const v = String(value || "").trim();
@@ -232,7 +332,7 @@ const productList = (products, categoriesById) =>
     .map((p) => {
       const img = imagesOf(p)[0];
       const cat = categoriesById.get(categoryIdsOf(p)[0]);
-      return `<li><a href="${productPath(p)}">${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy" width="300" height="300">` : ""}<span>${esc(p.name)}</span></a>${cat ? `<small>${esc(cat.name)}</small>` : ""}<small>Price on request</small></li>`;
+      return `<li><a href="${productPath(p)}">${img ? `<img src="${esc(cdnImg(img, CARD_CDN))}" alt="${esc(p.name)}" loading="lazy" width="300" height="300">` : ""}<span>${esc(p.name)}</span></a>${cat ? `<small>${esc(cat.name)}</small>` : ""}<small>Price on request</small></li>`;
     })
     .join("")}</ul>`;
 
@@ -252,9 +352,21 @@ export const buildRoutes = (data) => {
   const shell = (crumbs, body) => pageShell({ categories, crumbs, body });
   const categoryLinks = `<ul class="pr-links">${categories.map((c) => `<li><a href="${categoryPath(c)}">${esc(c.name)}</a>${c.description ? ` — ${esc(truncate(stripHtml(c.description), 120))}` : ""}</li>`).join("")}</ul>`;
 
+  // The homepage hero is the LCP element. Preloading it from the static <head> starts
+  // the fetch while the HTML is still parsing — before React, before the Firestore read
+  // that tells the app which banners exist. Only the first image banner: preloading
+  // every slide would split the bandwidth the first one needs. The srcset/sizes mirror
+  // BannerCarousel exactly, so the <img> it renders reuses this response.
+  const hero = (data.banners || []).find((b) => b && b.image && b.mediaType !== "video");
+  const heroPreload =
+    hero && cdnSrcSet(hero.image)
+      ? [{ href: cdnImg(hero.image, { width: 1024, quality: HERO_QUALITY }), srcset: cdnSrcSet(hero.image), sizes: HERO_SIZES }]
+      : [];
+
   // Home
   routes.push({
     path: "/",
+    preload: heroPreload,
     // 42 chars, so the brand still fits inside the 60-char budget — the homepage is
     // the one title that should never lose it.
     title: "Lab-Grown & Natural Diamond Jewelry",
@@ -289,9 +401,16 @@ ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0,
     ["australia", "Australia", "Premium diamond jewelry for Australia", "Shop certified diamond jewelry and custom designs delivered to Australia. Lab-grown and natural diamonds with expert craftsmanship."],
     ["germany", "Germany", "Certified diamond jewelry delivered to Germany", "Explore Starlink Jewels diamond collections with secure delivery to Germany. Lab-grown and natural diamonds, custom jewelry and expert support."],
   ];
+  // Country pages are noindex. Measured on the live site, /usa and /canada share 97% of
+  // their vocabulary and 12 of 13 long sentences word for word: four templated pages
+  // that differ by a headline and one shipping line, which is what Google treats as
+  // doorway pages. They stay live for visitors, links and ads, and stay out of the
+  // index and the sitemap. To make them indexable again, give each one real
+  // country-specific substance (duties, delivery times, local certification) and drop
+  // the flag — do not just remove the flag.
   for (const [slug, name, headline, description] of countries) {
     const crumbs = [home, { name, url: `${SITE_URL}/${slug}` }];
-    routes.push({ path: `/${slug}`, title: `Diamond Jewelry Shipping to ${name}`, description, priority: "0.6", changefreq: "monthly", jsonLd: [breadcrumbLd(crumbs)], body: shell(crumbs, `<h1>${esc(headline)}</h1><p>${esc(description)}</p>${categoryLinks}`) });
+    routes.push({ path: `/${slug}`, noindex: true, title: `Diamond Jewelry Shipping to ${name}`, description, priority: "0.6", changefreq: "monthly", jsonLd: [breadcrumbLd(crumbs)], body: shell(crumbs, `<h1>${esc(headline)}</h1><p>${esc(description)}</p>${categoryLinks}`) });
   }
 
   // Privacy & cookie policy
@@ -423,12 +542,29 @@ ${t.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join(""
     });
   }
 
+  // Shape sub-collections that clear the bar (see SUBCOLLECTION_MIN), per collection.
+  const subCollectionsOf = (c) => {
+    if (SUBCOLLECTION_EXCLUDE.has(slugify(c.name))) return [];
+    const items = productsIn(c.id);
+    return DIAMOND_SHAPES.map((shape) => ({ shape, items: items.filter((p) => shapesOf(p).includes(shape)) })).filter(
+      (s) => s.items.length >= SUBCOLLECTION_MIN,
+    );
+  };
+
   // Collections
   for (const c of categories) {
     const path = categoryPath(c);
     const url = `${SITE_URL}${path}`;
     const items = productsIn(c.id);
     const crumbs = [home, { name: "Collections", url: `${SITE_URL}/categories` }, { name: c.name, url }];
+    // Real links to this collection's shape pages. Crawlers only follow hrefs, so without
+    // these the sub-collections would be orphans that exist only in the sitemap.
+    const shapes = subCollectionsOf(c);
+    const shapeNav = shapes.length
+      ? `<nav aria-label="Shop by shape"><p>Shop by shape: ${shapes
+          .map((s) => `<a href="${path}/${shapeSlug(s.shape)}">${esc(s.shape)} (${s.items.length})</a>`)
+          .join(" · ")}</p></nav>`
+      : "";
     routes.push({
       path,
       title: meaningful(c.metaTitle) || categoryTitle(c.name),
@@ -457,8 +593,54 @@ ${t.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join(""
           ? [{ "@type": "FAQPage", mainEntity: c.seoFaq.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })) }]
           : []),
       ],
-      body: shell(crumbs, `<h1>${esc(c.name)} collection</h1>${c.description ? `<p>${esc(stripHtml(c.description))}</p>` : ""}<p>${items.length} ${items.length === 1 ? "piece" : "pieces"} · IGI &amp; GIA certified · Made to order</p>${productList(items, categoriesById)}<h2>More collections</h2>${categoryLinks}`),
+      body: shell(crumbs, `<h1>${esc(c.name)} collection</h1>${c.description ? `<p>${esc(stripHtml(c.description))}</p>` : ""}<p>${items.length} ${items.length === 1 ? "piece" : "pieces"} · IGI &amp; GIA certified · Made to order</p>${shapeNav}${productList(items, categoriesById)}<h2>More collections</h2>${categoryLinks}`),
     });
+
+    // Shape sub-collections, e.g. /category/rings/oval
+    for (const { shape, items: shaped } of shapes) {
+      const subPath = `${path}/${shapeSlug(shape)}`;
+      const subUrl = `${SITE_URL}${subPath}`;
+      const heading = `${shape} Diamond ${c.name}`;
+      const subCrumbs = [...crumbs, { name: heading, url: subUrl }];
+      const intro = SHAPE_INFO[shape];
+      const siblings = shapes
+        .filter((s) => s.shape !== shape)
+        .map((s) => `<a href="${path}/${shapeSlug(s.shape)}">${esc(s.shape)}</a>`)
+        .join(" · ");
+      routes.push({
+        path: subPath,
+        title: fitTitle([`${heading} – Lab-Grown & Natural`, `${heading} – Certified`, heading]),
+        description: fitDescription(
+          `Shop ${shaped.length} ${shape.toLowerCase()} diamond ${c.name.toLowerCase()} at ${SITE_NAME}. ${intro}`,
+          CATEGORY_FILLER,
+        ),
+        ogImage: imagesOf(shaped[0])[0] || c.image,
+        priority: "0.75",
+        changefreq: "weekly",
+        lastmod: isoDate(Math.max(0, ...shaped.map(createdAt))),
+        jsonLd: [
+          {
+            "@type": "CollectionPage",
+            "@id": `${subUrl}#collectionpage`,
+            name: `${heading} - ${SITE_NAME}`,
+            url: subUrl,
+            description: intro,
+            isPartOf: { "@id": `${SITE_URL}/#website` },
+            mainEntity: {
+              "@type": "ItemList",
+              numberOfItems: shaped.length,
+              itemListElement: shaped.slice(0, 30).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE_URL}${productPath(p)}`, name: p.name })),
+            },
+          },
+          breadcrumbLd(subCrumbs),
+        ],
+        body: shell(
+          subCrumbs,
+          `<h1>${esc(heading)}</h1><p>${esc(intro)}</p><p>${shaped.length} ${shaped.length === 1 ? "piece" : "pieces"} · IGI &amp; GIA certified · Made to order</p>${productList(shaped, categoriesById)}` +
+            `<p><a href="${path}">All ${esc(c.name.toLowerCase())}</a>${siblings ? ` · Other shapes: ${siblings}` : ""}</p>`,
+        ),
+      });
+    }
   }
 
   // Products
@@ -507,7 +689,7 @@ ${t.faq.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join(""
       body: shell(
         crumbs,
         `<article><h1>${esc(p.name)}</h1>${cat ? `<p>${esc(cat.name)}</p>` : ""}<p><strong>Price on request</strong> · Made to order · Certified diamonds · Insured delivery</p>
-${imgs.slice(0, 4).map((src, i) => `<img src="${esc(src)}" alt="${esc(`${p.name}${i ? ` – view ${i + 1}` : ""}`)}" width="600" height="600"${i ? ' loading="lazy"' : ""}>`).join("")}
+${imgs.slice(0, 4).map((src, i) => `<img src="${esc(cdnImg(src, SLIDE_CDN))}" alt="${esc(`${p.name}${i ? ` – view ${i + 1}` : ""}`)}" width="600" height="600"${i ? ' loading="lazy"' : ""}>`).join("")}
 ${desc ? `<h2>Product details</h2><p>${esc(desc)}</p>` : ""}
 <p>Enquire on WhatsApp for availability, customisation options and delivery details.</p></article>
 ${related.length ? `<h2>More from ${esc(cat.name)}</h2>${productList(related, categoriesById)}` : ""}`
@@ -546,7 +728,7 @@ ${related.length ? `<h2>More from ${esc(cat.name)}</h2>${productList(related, ca
         },
         breadcrumbLd(crumbs),
       ],
-      body: shell(crumbs, `<article><h1>${esc(b.title)}</h1><p><time datetime="${esc(b.date)}">${esc(b.date)}</time></p>${b.image ? `<img src="${esc(b.image)}" alt="${esc(b.title)}">` : ""}${safeArticleHtml(b.content)}</article>`),
+      body: shell(crumbs, `<article><h1>${esc(b.title)}</h1><p><time datetime="${esc(b.date)}">${esc(b.date)}</time></p>${b.image ? `<img src="${esc(cdnImg(b.image, { width: 1600, quality: 82 }))}" alt="${esc(b.title)}">` : ""}${safeArticleHtml(b.content)}</article>`),
     });
   }
 
@@ -605,7 +787,10 @@ const xmlEsc = (v) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").rep
 
 export const buildSitemapXml = (routes) => {
   const today = new Date().toISOString().split("T")[0];
-  const entries = routes.map((r) => {
+  // A sitemap lists canonical, indexable URLs only. The filter lives here rather than
+  // at a call site because two things build this file — the pre-render and the daily
+  // sitemap workflow — and both must agree, or the workflow re-adds noindex pages.
+  const entries = routes.filter((r) => !r.noindex).map((r) => {
     const images = (r.images || [])
       .filter((i) => i.loc)
       .map((i) => `\n    <image:image>\n      <image:loc>${xmlEsc(i.loc)}</image:loc>${i.title ? `\n      <image:title>${xmlEsc(i.title)}</image:title>` : ""}\n    </image:image>`)

@@ -6,13 +6,18 @@ import SiteLayout from '@/components/site/SiteLayout';
 import CollectionHero from '@/components/site/CollectionHero';
 import ProductCard from '@/components/ProductCard';
 import ProductFilters from '@/components/site/ProductFilters';
-import { EMPTY_FILTERS, filtersFromParams, matchesFilters, writeFiltersToParams, type ProductFilterState } from '@/lib/productAttributes';
+import { EMPTY_FILTERS, filtersFromParams, getProductAttributes, matchesFilters, writeFiltersToParams, type ProductFilterState } from '@/lib/productAttributes';
+import { DIAMOND_SHAPES } from '@/lib/search';
+import { SHAPE_INFO, SUBCOLLECTION_MIN, collectionTakesShapes, isRealSubCollection, shapeFromSlug, shapeSlug } from '@/lib/subcollections';
 import { Button } from '@/components/ui/button';
 import {
+  CATEGORY_FILLER,
   SITE,
   buildFaqForCategory,
   buildMetaDescriptionForCategory,
   buildMetaTitleForCategory,
+  fitDescription,
+  fitTitle,
   stripHtml,
 } from '@/lib/seo';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -47,7 +52,9 @@ const ProductGridSkeleton = () => (
 );
 
 const CategoryProducts = () => {
-  const { id: param } = useParams<{ id: string }>();
+  // /category/:id, or a shape sub-collection /category/:id/:shape (e.g. /category/rings/oval).
+  const { id: param, shape: shapeParam } = useParams<{ id: string; shape?: string }>();
+  const shape = shapeFromSlug(shapeParam);
   const dispatch = useAppDispatch();
   const { categories, products } = useAppSelector(selectGlobalData);
   const status = useAppSelector(selectContentStatus);
@@ -75,9 +82,16 @@ const CategoryProducts = () => {
   const category = useMemo(() => findCategoryByParam(categories, param) ?? null, [categories, param]);
   const id = category?.id ?? param;
   const canonicalPath = category ? categoryPath(category) : null;
+  // Keep the shape segment through the legacy-id redirect, or /category/<id>/oval would
+  // quietly land on the whole collection.
+  const shapeSuffix = shape ? `/${shapeSlug(shape)}` : '';
   useEffect(() => {
-    if (canonicalPath && param && canonicalPath !== `/category/${param}`) navigate(`${canonicalPath}${window.location.search}`, { replace: true });
-  }, [canonicalPath, param, navigate]);
+    if (canonicalPath && param && canonicalPath !== `/category/${param}`) navigate(`${canonicalPath}${shapeSuffix}${window.location.search}`, { replace: true });
+  }, [canonicalPath, param, navigate, shapeSuffix]);
+  // A second segment that is not a diamond shape is not a page: go to the collection.
+  useEffect(() => {
+    if (shapeParam && !shape && canonicalPath) navigate(canonicalPath, { replace: true });
+  }, [shapeParam, shape, canonicalPath, navigate]);
   const relatedCategories = useMemo(() => categories.filter((c) => c.id !== id).slice(0, 6), [categories, id]);
 
   const sortedProducts = useMemo(() => {
@@ -86,10 +100,27 @@ const CategoryProducts = () => {
     return list.sort((a, b) => (sortBy === 'oldest' ? getProductTime(a) - getProductTime(b) : getProductTime(b) - getProductTime(a)));
   }, [products, id, sortBy]);
 
+  // On a shape page the collection IS that shape's pieces; the remaining filters (metal,
+  // carat, lab/natural) still narrow within it.
+  const baseProducts = useMemo(
+    () => (shape ? sortedProducts.filter((p) => getProductAttributes(p).shapes.includes(shape)) : sortedProducts),
+    [sortedProducts, shape],
+  );
+
+  // Shape pages that clear the bar for this collection — linked from the collection and
+  // from each other. Same rule as the pre-render (src/lib/subcollections.ts).
+  const shapeLinks = useMemo(() => {
+    if (!category || !collectionTakesShapes(category.name)) return [];
+    return DIAMOND_SHAPES.map((s) => ({
+      shape: s,
+      count: sortedProducts.filter((p) => getProductAttributes(p).shapes.includes(s)).length,
+    })).filter((l) => l.count >= SUBCOLLECTION_MIN);
+  }, [category, sortedProducts]);
+
   // Filters live in the URL (?shape=oval&metal=rose) so a filtered view can be shared.
   const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
   const setFilters = (next: ProductFilterState) => setSearchParams(writeFiltersToParams(searchParams, next), { replace: true });
-  const visibleProducts = useMemo(() => sortedProducts.filter((p) => matchesFilters(p, filters)), [sortedProducts, filters]);
+  const visibleProducts = useMemo(() => baseProducts.filter((p) => matchesFilters(p, filters)), [baseProducts, filters]);
 
   useEffect(() => {
     if (!productsLoaded && productsStatus === 'idle') dispatch(loadProducts());
@@ -103,12 +134,19 @@ const CategoryProducts = () => {
 
   // Hero collage: the collection's newest pieces, falling back to the category image.
   const heroImages = useMemo(() => {
-    const fromProducts = sortedProducts.map((p) => firstImage(p)).filter((url): url is string => Boolean(url) && !isVideoUrl(url));
+    const fromProducts = baseProducts.map((p) => firstImage(p)).filter((url): url is string => Boolean(url) && !isVideoUrl(url));
     const unique = Array.from(new Set(fromProducts)).slice(0, 3);
     return unique.length > 0 ? unique : category?.image ? [category.image] : [];
-  }, [sortedProducts, category?.image]);
+  }, [baseProducts, category?.image]);
 
-  const baseUrl = category ? categoryUrl(category) : `${SITE.url}/category/${param}`;
+  const collectionUrl = category ? categoryUrl(category) : `${SITE.url}/category/${param}`;
+  // A shape page is its own collection URL; everything below describes whichever page this is.
+  const baseUrl = shape ? `${collectionUrl}/${shapeSlug(shape)}` : collectionUrl;
+  const shapeHeading = shape && category ? `${shape} Diamond ${category.name}` : null;
+  // Indexable only when it is a real page — same rule as the pre-render. A thin shape view
+  // stays usable but is noindex (it is never pre-rendered or linked, so only a typed URL
+  // or a shared filter reaches it).
+  const shapeIsReal = Boolean(shape && category && isRealSubCollection(category.name, baseProducts.length));
 
   const structuredData = category
     ? [
@@ -116,15 +154,15 @@ const CategoryProducts = () => {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
           '@id': `${baseUrl}#collectionpage`,
-          name: `${category.name} - Starlink Jewels`,
-          description: category.description || `Shop our ${category.name} collection`,
+          name: `${shapeHeading ?? category.name} - Starlink Jewels`,
+          description: (shape && SHAPE_INFO[shape]) || category.description || `Shop our ${category.name} collection`,
           url: baseUrl,
           mainEntityOfPage: baseUrl,
           mainEntity: {
             '@type': 'ItemList',
             '@id': `${baseUrl}#itemlist`,
-            numberOfItems: sortedProducts.length,
-            itemListElement: sortedProducts.slice(0, 20).map((p, i) => ({
+            numberOfItems: baseProducts.length,
+            itemListElement: baseProducts.slice(0, 20).map((p, i) => ({
               '@type': 'ListItem',
               position: i + 1,
               item: {
@@ -174,33 +212,101 @@ const CategoryProducts = () => {
 
   return (
     <SiteLayout>
-      <SEOHead
-        title={category.metaTitle || buildMetaTitleForCategory(category.name)}
-        description={category.metaDescription || buildMetaDescriptionForCategory(category.name, category.description)}
-        keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, lab grown diamond ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
-        canonicalUrl={baseUrl}
-        structuredData={structuredData}
-        breadcrumbs={[
-          { name: 'Home', url: 'https://starlinkjewels.com' },
-          { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
-          { name: category.name, url: baseUrl },
-        ]}
-        faqItems={category.seoFaq?.length ? category.seoFaq : buildFaqForCategory(category.name)}
-      />
+      {shape && shapeHeading ? (
+        // Shape page — title, description and breadcrumbs mirror scripts/seo-data.mjs so
+        // the head React renders matches the pre-rendered one crawlers read first.
+        <SEOHead
+          title={fitTitle([`${shapeHeading} – Lab-Grown & Natural`, `${shapeHeading} – Certified`, shapeHeading])}
+          description={fitDescription(
+            `Shop ${baseProducts.length} ${shape.toLowerCase()} diamond ${category.name.toLowerCase()} at ${SITE.name}. ${SHAPE_INFO[shape]}`,
+            CATEGORY_FILLER,
+          )}
+          keywords={`${shape.toLowerCase()} diamond ${category.name.toLowerCase()}, ${shape.toLowerCase()} cut ${category.name.toLowerCase()}`}
+          // Self-canonical even when thin. noindex already keeps it out; pointing the
+          // canonical at the collection as well sends the mixed signal Google advises
+          // against ("this duplicates X" and "drop this" at once).
+          canonicalUrl={baseUrl}
+          noIndex={!shapeIsReal}
+          followLinks
+          structuredData={structuredData}
+          breadcrumbs={[
+            { name: 'Home', url: 'https://starlinkjewels.com' },
+            { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
+            { name: category.name, url: collectionUrl },
+            { name: shapeHeading, url: baseUrl },
+          ]}
+        />
+      ) : (
+        <SEOHead
+          title={category.metaTitle || buildMetaTitleForCategory(category.name)}
+          description={category.metaDescription || buildMetaDescriptionForCategory(category.name, category.description)}
+          keywords={`${category.name.toLowerCase()}, ${category.name.toLowerCase()} jewelry, diamond ${category.name.toLowerCase()}, lab grown diamond ${category.name.toLowerCase()}, luxury ${category.name.toLowerCase()}`}
+          canonicalUrl={baseUrl}
+          structuredData={structuredData}
+          breadcrumbs={[
+            { name: 'Home', url: 'https://starlinkjewels.com' },
+            { name: 'Collections', url: 'https://starlinkjewels.com/categories' },
+            { name: category.name, url: baseUrl },
+          ]}
+          faqItems={category.seoFaq?.length ? category.seoFaq : buildFaqForCategory(category.name)}
+        />
+      )}
 
       <CollectionHero
-        eyebrow="Collection"
-        title={category.name}
-        accent="collection"
-        description={category.description}
-        breadcrumbs={[{ name: 'Home', to: '/' }, { name: 'Collections', to: '/categories' }, { name: category.name }]}
+        eyebrow={shape ? `${shape} cut` : 'Collection'}
+        title={shapeHeading ?? category.name}
+        accent={shape ? undefined : 'collection'}
+        description={shape ? SHAPE_INFO[shape] : category.description}
+        breadcrumbs={
+          shape && shapeHeading
+            ? [{ name: 'Home', to: '/' }, { name: 'Collections', to: '/categories' }, { name: category.name, to: categoryPath(category) }, { name: shapeHeading }]
+            : [{ name: 'Home', to: '/' }, { name: 'Collections', to: '/categories' }, { name: category.name }]
+        }
         images={heroImages}
       />
 
+      {shapeLinks.length > 0 && (
+        // Real links, so crawlers can reach the shape pages from the collection (and the
+        // shape pages from each other). Mirrors the pre-rendered "Shop by shape" nav.
+        <nav aria-label="Shop by shape" className="container-wide pt-8">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Shop by shape</p>
+          <ul className="flex flex-wrap gap-2">
+            {shape && (
+              <li>
+                <Link
+                  to={categoryPath(category)}
+                  className="inline-flex h-10 items-center rounded-full border border-border px-4 text-sm font-medium transition-colors hover:border-foreground"
+                >
+                  All {category.name.toLowerCase()}
+                </Link>
+              </li>
+            )}
+            {shapeLinks.map((l) => {
+              const active = l.shape === shape;
+              return (
+                <li key={l.shape}>
+                  <Link
+                    to={`${categoryPath(category)}/${shapeSlug(l.shape)}`}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'inline-flex h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors',
+                      active ? 'border-brand bg-brand text-brand-foreground' : 'border-border hover:border-foreground',
+                    )}
+                  >
+                    {l.shape}
+                    <span className={cn('tabular-nums text-xs', active ? 'opacity-80' : 'text-muted-foreground')}>{l.count}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
+
       <section className="container-wide py-10 md:py-14">
-        {productsReady && sortedProducts.length > 0 && (
+        {productsReady && baseProducts.length > 0 && (
           <ProductFilters
-            products={sortedProducts}
+            products={baseProducts}
             value={filters}
             onChange={setFilters}
             resultCount={visibleProducts.length}
@@ -242,7 +348,7 @@ const CategoryProducts = () => {
 
         {!productsReady ? (
           <ProductGridSkeleton />
-        ) : sortedProducts.length === 0 ? (
+        ) : baseProducts.length === 0 ? (
           <div className="rounded-md border border-dashed py-20 text-center">
             <p className="font-display text-2xl">New pieces are on their way</p>
             <p className="mt-2 text-sm text-muted-foreground">Check back soon, or ask us about custom designs in this style.</p>
