@@ -294,3 +294,91 @@ Desktop still loads the film (1,958 KiB), as intended.
   render correctly, and both report every banner image loaded.
 - LCP in seconds is still unmeasured — lab timing on this machine varied 8× between
   identical runs. Bytes and request counts above are deterministic; timings are not.
+
+---
+
+## 2026-10-28 — Phase 6: shape sub-collections, country pages, one H1, one robots meta
+
+### Research input
+
+Strategy was cross-checked with Gemini (search grounding was quota-blocked on the
+free-tier key, so its input was reasoning, not fresh search). Its useful calls were
+verified against the real catalogue and live HTML before acting on any of them:
+
+| Gemini said | Measured | Outcome |
+|---|---|---|
+| Country pages are doorway risk; hreflang is the wrong tool | `/usa` vs `/canada`: 97% shared vocabulary, 12/13 long sentences identical | **Acted on** |
+| `llms.txt` has no evidenced ranking effect | Consistent with what is known | Left as is, no further investment |
+| Build 25–35 sub-collections | Only **13** shape × collection combos have ≥ 6 pieces; metal and lab/natural are detectable on < 40% of products | **Built 13**, not 35 — the rest would be scaled thin content |
+| Product pages are near-duplicates | Median 502 visible words, 59/60 unique titles, 0 duplicate descriptions | **Rejected** — they are substantial pages |
+
+### Shape sub-collections — 13 new indexable pages
+
+`/category/<collection>/<shape>`, e.g. `/category/rings/oval`. Built only where a shape has
+**≥ 6 pieces** in a jewellery-type collection (Custom, Ready to Ship and Cuban excluded).
+
+```
+rings/round 30   rings/marquise 11   rings/oval 9    rings/pear 9   rings/heart 8   rings/emerald 6
+pendants/round 16   necklaces/round 14   earrings/round 11   earrings/pear 9
+bracelets/round 9   bracelets/emerald 8   eternity-bands/round 6
+```
+
+Each has a keyword-led title (≤ 60), a 140–155 char description, one H1, a factual
+gemological description of the cut (no business claims), the real product count,
+`CollectionPage` + `ItemList` + `BreadcrumbList` schema, and a self-canonical. Parent
+collections link to them through a crawlable "Shop by shape" nav (rendered by both the
+pre-render and the app — React replaces the static DOM, so without the app's copy those
+links would vanish for users and JS-rendering crawlers). A shape view below the bar still
+works but is noindex and never linked or pre-rendered.
+
+**Crawler/user parity, proven:** a pre-rendered collection must list exactly what the app
+shows, or crawlers and users see different content. The pre-render's shape detection was
+run against the app's — the app's half in real Chrome, because the app strips HTML with
+`DOMParser` — on all 192 products: **192/192 identical**.
+
+That test found **a live bug in the app**: `DOMParser`'s `textContent` joins adjacent block
+elements with no space, so `<h2>…Princess Cut</h2><h2>Metal:` became "Princess CutMetal",
+and a genuinely princess-cut product was missing from the live Princess filter.
+`stripHtml` now breaks after block closes first.
+
+### Country pages → noindex, follow
+
+Not rewritten with country detail: duties, delivery times and local certification are
+business facts I do not have. Kept live for visitors and ads; out of the index and sitemap.
+Two places would have quietly undone it and were fixed: `buildSitemapXml` now filters
+noindex itself (the daily sitemap workflow calls it too), and `sitemap-urls.txt` — submitted
+to IndexNow daily — no longer includes them.
+
+### Exactly one H1 per page — all 251 pages
+
+- Every page had **two**: `index.html`'s `<noscript>` fallback carried its own `<h1>`, and the
+  template is copied into every page. Demoted it; also dropped the country links from it.
+- Five articles had **up to 20**, because editors use H1 for section headings. CMS content
+  now renders H1 as H2, in both the pre-render (`safeArticleHtml`) and the app (`RichText`).
+
+### Exactly one robots meta per page
+
+Every page carried **two** robots metas: the template's (unmarked, so `main.tsx` never
+removed it) plus Helmet's. Where they disagreed — a thin shape page said `index` and
+`noindex` at once — the signals conflicted. On noindex pages, `googlebot`/`bingbot` also
+still said `index`. The pre-render now marks all three `data-prerender` and keeps them
+consistent; after hydration there is exactly one directive per page. Thin shape pages are
+noindex with a **self**-canonical (noindex + a canonical to another URL is a mixed signal).
+
+**Behaviour change worth knowing:** a brand-new product served by the SPA fallback before
+the next build is now indexable by JS-rendering crawlers immediately, instead of being held
+at `noindex` by the conflicting static tag. Bad URLs remain noindex via `NotFound`. This
+supersedes the earlier note that new products "stay soft" until rebuilt.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `tsc` / eslint on changed files | clean |
+| Pages built | 251 + 201 legacy redirects |
+| Sitemap | 234 → **247** (−4 country, +13 shape) |
+| Shape detection parity, pre-render vs app (real Chrome) | **192/192** |
+| Pages with exactly one real H1 | **251/251** (2 empty SPA shells have none, by design) |
+| Robots metas after hydration | **exactly 1** on every page type tested |
+| `/category/rings/oval` in the app | correct H1, title, canonical, 9 products, active nav |
+| Invalid shape (`/category/rings/not-a-shape`) | redirects to `/category/rings` |

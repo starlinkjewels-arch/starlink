@@ -234,11 +234,14 @@
   <div id="boot-splash" aria-hidden="true"><img src="/icon.png" alt="" width="72" height="72"><span></span></div>
   <div id="root"></div>
 
-  <!-- noscript navigation: lets Google discover all pages in its first HTML-only pass
-       (shown only when JavaScript is disabled — invisible to normal users) -->
+  <!-- noscript navigation, shown only when JavaScript is disabled.
+       Deliberately not a top-level heading: every pre-rendered page already ships its own
+       inside #root, and this template is copied into all of them, so a heading here gave
+       every page two. The country pages are not listed — they are noindex
+       (see scripts/seo-data.mjs). -->
   <noscript>
     <div style="font-family:sans-serif;padding:24px;max-width:800px;margin:0 auto;">
-      <h1>Starlink Jewels — Premium Diamond &amp; Gold Jewelry</h1>
+      <p style="font-size:1.5em;font-weight:700;margin:0 0 .5em">Starlink Jewels — Premium Diamond &amp; Gold Jewelry</p>
       <p>GIA &amp; IGI certified lab-grown and natural diamond jewelry with free worldwide shipping.</p>
       <nav aria-label="Site navigation">
         <ul>
@@ -249,10 +252,6 @@
           <li><a href="https://starlinkjewels.com/buying-guide">Diamond Jewelry Buying Guide — 4Cs, Certification &amp; Value Tips</a></li>
           <li><a href="https://starlinkjewels.com/about">About Starlink Jewels — GIA Certified Jewelers Since 2011</a></li>
           <li><a href="https://starlinkjewels.com/contact">Contact Us — Custom Orders, Consultations &amp; WhatsApp Support</a></li>
-          <li><a href="https://starlinkjewels.com/usa">Diamond Jewelry — United States</a></li>
-          <li><a href="https://starlinkjewels.com/canada">Diamond Jewelry — Canada</a></li>
-          <li><a href="https://starlinkjewels.com/australia">Diamond Jewelry — Australia</a></li>
-          <li><a href="https://starlinkjewels.com/germany">Diamond Jewelry — Germany</a></li>
         </ul>
       </nav>
       <p>Please enable JavaScript to view the full Starlink Jewels website.</p>

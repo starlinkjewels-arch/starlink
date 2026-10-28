@@ -96,6 +96,42 @@
     </image:image>
   </url>
   <url>
+    <loc>https://starlinkjewels.com/category/rings/round</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/rings/oval</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/rings/emerald</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/rings/pear</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/rings/marquise</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/rings/heart</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://starlinkjewels.com/category/eternity-bands</loc>
     <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -104,6 +140,12 @@
       <image:loc>https://firebasestorage.googleapis.com/v0/b/starlinkjewels109.firebasestorage.app/o/categories%2F1764824645000_Eternity_band_copy.webp?alt=media&amp;token=194b36df-fdbb-44e9-bf3c-6b84535ce975</image:loc>
       <image:title>Eternity Bands - Starlink Jewels</image:title>
     </image:image>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/eternity-bands/round</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://starlinkjewels.com/category/bracelets</loc>
@@ -116,6 +158,18 @@
     </image:image>
   </url>
   <url>
+    <loc>https://starlinkjewels.com/category/bracelets/round</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/bracelets/emerald</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://starlinkjewels.com/category/earrings</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>weekly</changefreq>
@@ -124,6 +178,18 @@
       <image:loc>https://firebasestorage.googleapis.com/v0/b/starlinkjewels109.firebasestorage.app/o/categories%2F1764823712702_Stud.webp?alt=media&amp;token=0a76aa0b-df86-4fcc-81c2-a4bafedf4e61</image:loc>
       <image:title>Earrings - Starlink Jewels</image:title>
     </image:image>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/earrings/round</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/earrings/pear</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://starlinkjewels.com/category/pendants</loc>
@@ -136,6 +202,12 @@
     </image:image>
   </url>
   <url>
+    <loc>https://starlinkjewels.com/category/pendants/round</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://starlinkjewels.com/category/necklaces</loc>
     <lastmod>2026-09-26</lastmod>
     <changefreq>weekly</changefreq>
@@ -144,6 +216,12 @@
       <image:loc>https://firebasestorage.googleapis.com/v0/b/starlinkjewels109.firebasestorage.app/o/categories%2F1764824075442_95dc3d9fc4155c316113e5e44c8f7df1.jpg?alt=media&amp;token=6442dd99-a98a-4948-a64d-4bd84a26f655</image:loc>
       <image:title>Necklaces - Starlink Jewels</image:title>
     </image:image>
+  </url>
+  <url>
+    <loc>https://starlinkjewels.com/category/necklaces/round</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://starlinkjewels.com/category/custom-jewelry</loc>

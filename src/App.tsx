@@ -190,6 +190,8 @@ const AppContent = () => {
       <Route path="/about" element={<About />} />
       <Route path="/categories" element={<Categories />} />
       <Route path="/category/:id" element={<CategoryProducts />} />
+      {/* Shape sub-collections, e.g. /category/rings/oval (see src/lib/subcollections.ts). */}
+      <Route path="/category/:id/:shape" element={<CategoryProducts />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/gallery" element={<Gallery />} />
       <Route path="/blog" element={<Blog />} />
