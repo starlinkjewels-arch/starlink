@@ -71,8 +71,10 @@ const headFor = (r) => {
   return tags.join("\n  ");
 };
 
+// The template's robots meta is "index, follow". A route flagged noindex gets it swapped
+// in the static HTML, where crawlers that do not run JavaScript read it.
 const render = (template, r) =>
-  template
+  (r.noindex ? withRobots(template, "noindex, follow") : template)
     .replace(GENERIC_HEAD_TAGS, "")
     .replace("</head>", `  ${headFor(r)}\n</head>`)
     .replace('<div id="root"></div>', `<div id="root">${r.body}</div>`);

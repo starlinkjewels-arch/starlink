@@ -79,7 +79,12 @@ const CountryLanding = () => {
 
   return (
     <SiteLayout>
+      {/* noindex, follow — mirrors the pre-rendered HTML (scripts/seo-data.mjs). These
+          four pages are templated near-duplicates; see the comment there before
+          making them indexable again. */}
       <SEOHead
+        noIndex
+        followLinks
         title={`Diamond Jewelry Shipping to ${config.name}`}
         description={config.description}
         keywords={config.keywords}

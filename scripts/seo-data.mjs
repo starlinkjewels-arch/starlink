@@ -343,9 +343,16 @@ ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0,
     ["australia", "Australia", "Premium diamond jewelry for Australia", "Shop certified diamond jewelry and custom designs delivered to Australia. Lab-grown and natural diamonds with expert craftsmanship."],
     ["germany", "Germany", "Certified diamond jewelry delivered to Germany", "Explore Starlink Jewels diamond collections with secure delivery to Germany. Lab-grown and natural diamonds, custom jewelry and expert support."],
   ];
+  // Country pages are noindex. Measured on the live site, /usa and /canada share 97% of
+  // their vocabulary and 12 of 13 long sentences word for word: four templated pages
+  // that differ by a headline and one shipping line, which is what Google treats as
+  // doorway pages. They stay live for visitors, links and ads, and stay out of the
+  // index and the sitemap. To make them indexable again, give each one real
+  // country-specific substance (duties, delivery times, local certification) and drop
+  // the flag — do not just remove the flag.
   for (const [slug, name, headline, description] of countries) {
     const crumbs = [home, { name, url: `${SITE_URL}/${slug}` }];
-    routes.push({ path: `/${slug}`, title: `Diamond Jewelry Shipping to ${name}`, description, priority: "0.6", changefreq: "monthly", jsonLd: [breadcrumbLd(crumbs)], body: shell(crumbs, `<h1>${esc(headline)}</h1><p>${esc(description)}</p>${categoryLinks}`) });
+    routes.push({ path: `/${slug}`, noindex: true, title: `Diamond Jewelry Shipping to ${name}`, description, priority: "0.6", changefreq: "monthly", jsonLd: [breadcrumbLd(crumbs)], body: shell(crumbs, `<h1>${esc(headline)}</h1><p>${esc(description)}</p>${categoryLinks}`) });
   }
 
   // Privacy & cookie policy
@@ -659,7 +666,10 @@ const xmlEsc = (v) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").rep
 
 export const buildSitemapXml = (routes) => {
   const today = new Date().toISOString().split("T")[0];
-  const entries = routes.map((r) => {
+  // A sitemap lists canonical, indexable URLs only. The filter lives here rather than
+  // at a call site because two things build this file — the pre-render and the daily
+  // sitemap workflow — and both must agree, or the workflow re-adds noindex pages.
+  const entries = routes.filter((r) => !r.noindex).map((r) => {
     const images = (r.images || [])
       .filter((i) => i.loc)
       .map((i) => `\n    <image:image>\n      <image:loc>${xmlEsc(i.loc)}</image:loc>${i.title ? `\n      <image:title>${xmlEsc(i.title)}</image:title>` : ""}\n    </image:image>`)
