@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Gem, Truck, PencilRuler, ShieldCheck, Star, Quote } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Gem, Truck, PencilRuler, ShieldCheck } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import SiteLayout from '@/components/site/SiteLayout';
 import SectionHeading from '@/components/site/SectionHeading';
@@ -12,6 +12,8 @@ import CountUp from '@/components/site/CountUp';
 import CdnImage from '@/components/site/CdnImage';
 import Marquee from '@/components/site/Marquee';
 import CraftStory from '@/components/site/CraftStory';
+import TestimonialCarousel from '@/components/site/TestimonialCarousel';
+import { REVIEWS_INTRO, splitTestimonialName } from '@/lib/testimonials';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -79,6 +81,18 @@ const Index = () => {
 
   const orderedCategories = useMemo(() => orderCategoriesWithCustomFirst(categories), [categories]);
   const categoryNameById = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
+
+  // "Rated 4.4 / 5 by clients in 4 countries" — worked out from the testimonials themselves,
+  // so it can never claim more than the reviews shown underneath.
+  const reviewSummary = useMemo(() => {
+    if (testimonials.length === 0) return undefined;
+    const avg = testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length;
+    const countries = new Set(
+      testimonials.map((t) => splitTestimonialName(t.name).place.split(',').pop()?.trim()).filter(Boolean)
+    );
+    const where = countries.size > 1 ? ` by clients in ${countries.size} countries` : '';
+    return `${REVIEWS_INTRO} Rated ${avg.toFixed(1)} out of 5${where}.`;
+  }, [testimonials]);
   const newArrivals = useMemo(
     () => [...products].sort((a, b) => getProductTime(b) - getProductTime(a)).slice(0, 8),
     [products]
@@ -284,29 +298,14 @@ const Index = () => {
       {testimonials.length > 0 && (
         <section className="section bg-secondary">
           <div className="container-wide">
-            <SectionHeading eyebrow="Client love" title={<>Worn and loved <em className="accent">worldwide</em></>} align="center" />
-            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:gap-5 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0">
-              {testimonials.map((t, i) => (
-                <Reveal
-                  key={t.id}
-                  delay={(i % 3) * 90}
-                  className="flex w-[82vw] max-w-[420px] shrink-0 snap-start flex-col rounded-3xl border bg-card p-6 md:p-8 lg:w-[calc((100%-2.5rem)/3)] lg:max-w-none"
-                >
-                  <Quote className="h-6 w-6 text-brand/40" strokeWidth={1.2} />
-                  <p className="mt-4 flex-1 font-display text-lg leading-relaxed md:text-[22px]">
-                    “{t.text.trim().replace(/^["“”'‘’]+|["“”'‘’]+$/g, '')}”
-                  </p>
-                  <div className="mt-6 flex items-center justify-between border-t pt-5">
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <div className="flex gap-0.5" aria-label={`${t.rating} out of 5 stars`}>
-                      {Array.from({ length: 5 }).map((_, s) => (
-                        <Star key={s} className={`h-3.5 w-3.5 ${s < t.rating ? 'fill-brand text-brand' : 'text-border'}`} />
-                      ))}
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
+            <SectionHeading
+              eyebrow="Client love"
+              title={<>Worn and loved <em className="accent">worldwide</em></>}
+              description={reviewSummary}
+              align="center"
+              className="mb-4 md:mb-6"
+            />
+            <TestimonialCarousel items={testimonials} />
           </div>
         </section>
       )}

@@ -129,6 +129,8 @@ export interface Testimonial {
   name: string;
   text: string;
   rating: number;
+  /** Set only when the review was copied from the business's Google profile. */
+  source?: 'google';
 }
 
 export interface Office {

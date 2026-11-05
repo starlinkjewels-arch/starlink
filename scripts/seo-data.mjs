@@ -43,7 +43,7 @@ export const fetchCatalog = async () => {
     const snap = await getDocs(collection(db, name));
     return snap.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
   };
-  const [categories, products, blogs, buyingGuides, reviews, banners] = await Promise.all([
+  const [categories, products, blogs, buyingGuides, reviews, banners, testimonials] = await Promise.all([
     read("categories"),
     read("products"),
     read("blogs"),
@@ -54,6 +54,8 @@ export const fetchCatalog = async () => {
     // Optional: only used to preload the homepage hero. A failure here must not
     // cost the whole pre-render, so it degrades to "no preload".
     read("banners").catch(() => []),
+    // Optional too: the homepage reviews section.
+    read("testimonials").catch(() => []),
   ]);
   return {
     // Same ordering as getBanners() in src/lib/storage.ts, so banners[0] is the slide
@@ -64,6 +66,7 @@ export const fetchCatalog = async () => {
     blogs: blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     buyingGuides: buyingGuides.filter((g) => g.published && g.slug).sort((a, b) => (a.order || 0) - (b.order || 0)),
     reviews,
+    testimonials,
   };
 };
 
@@ -343,7 +346,7 @@ const productList = (products, categoriesById) =>
  * { path, title, description, ogImage, ogType, jsonLd: object[], body, lastmod, changefreq, priority, images: [{loc,title}] }
  */
 export const buildRoutes = (data) => {
-  const { categories, products, blogs, buyingGuides, reviews = [] } = data;
+  const { categories, products, blogs, buyingGuides, reviews = [], testimonials = [] } = data;
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
   const newest = [...products].sort((a, b) => createdAt(b) - createdAt(a));
   const productsIn = (id) => newest.filter((p) => categoryIdsOf(p).includes(id));
@@ -363,6 +366,23 @@ export const buildRoutes = (data) => {
       ? [{ href: cdnImg(hero.image, { width: 1024, quality: HERO_QUALITY }), srcset: cdnSrcSet(hero.image), sizes: HERO_SIZES }]
       : [];
 
+  // Same reviews, in the same words, as the homepage carousel (src/components/site/TestimonialCarousel.tsx).
+  // No Review/AggregateRating markup: reviews a business publishes about itself are not
+  // eligible for review rich results, and marking them up anyway risks a manual action.
+  // Mirrors REVIEWS_INTRO in src/lib/testimonials.ts and the rating line in src/pages/Index.tsx.
+  const reviewsIntro =
+    "What clients say about Starlink Jewels, in their own words. We design custom engagement rings, wedding bands and fine diamond jewelry in-house, approve every design in CAD before crafting, and have master artisans in Surat set each piece with IGI or GIA certified lab-grown and natural diamonds, then ship it insured worldwide.";
+  const reviewCountries = new Set(
+    testimonials.map((t) => String(t.name || "").split(/\s+[–—-]\s+/).slice(1).join(", ").split(",").pop()?.trim()).filter(Boolean)
+  );
+  const reviewAvg = testimonials.reduce((sum, t) => sum + (Number(t.rating) || 0), 0) / (testimonials.length || 1);
+  const reviewSummary = `${reviewsIntro} Rated ${reviewAvg.toFixed(1)} out of 5${reviewCountries.size > 1 ? ` by clients in ${reviewCountries.size} countries` : ""}.`;
+  const testimonialsHtml = testimonials.length
+    ? `<h2>Worn and loved worldwide</h2><p>${esc(reviewSummary)}</p>${testimonials
+        .map((t) => `<figure><blockquote>${esc(String(t.text || "").trim().replace(/^["“”'‘’]+|["“”'‘’]+$/g, ""))}</blockquote><figcaption>${esc(t.name)} — ${Number(t.rating) || 0} out of 5</figcaption></figure>`)
+        .join("")}`
+    : "";
+
   // Home
   routes.push({
     path: "/",
@@ -379,6 +399,7 @@ export const buildRoutes = (data) => {
 <h2>Shop by collection</h2>${categoryLinks}
 <h2>New arrivals</h2>${productList(newest.slice(0, 12), categoriesById)}
 <h2>Design your own ring</h2><p>Build a custom engagement ring with our <a href="/ring-builder">3D Ring Builder</a> and inspect every angle in the <a href="/3d-jewelry-viewer">3D jewelry viewer</a>.</p>
+${testimonialsHtml}
 ${blogs.length ? `<h2>From the journal</h2><ul class="pr-links">${blogs.slice(0, 3).map((b) => `<li><a href="/blog/${esc(b.id)}">${esc(b.title)}</a></li>`).join("")}</ul>` : ""}`),
   });
 

@@ -14,6 +14,7 @@ const AdminTestimonials = () => {
   const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [rating, setRating] = useState(5);
+  const [fromGoogle, setFromGoogle] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,6 +29,7 @@ const AdminTestimonials = () => {
     setName('');
     setText('');
     setRating(5);
+    setFromGoogle(false);
     setDialogOpen(true);
   };
 
@@ -36,6 +38,7 @@ const AdminTestimonials = () => {
     setName(testimonial.name);
     setText(testimonial.text);
     setRating(testimonial.rating);
+    setFromGoogle(testimonial.source === 'google');
     setDialogOpen(true);
   };
 
@@ -45,6 +48,7 @@ const AdminTestimonials = () => {
     setName('');
     setText('');
     setRating(5);
+    setFromGoogle(false);
   };
 
   const handleSave = async () => {
@@ -59,6 +63,8 @@ const AdminTestimonials = () => {
         name: name.trim(),
         text: text.trim(),
         rating,
+        // Firestore rejects undefined fields, so the key is left out rather than cleared.
+        ...(fromGoogle ? { source: 'google' as const } : {}),
       };
       await saveTestimonial(testimonial);
       const updated = await getTestimonials();
@@ -108,6 +114,7 @@ const AdminTestimonials = () => {
                 ))}
               </div>
               <p className="font-semibold">— {testimonial.name}</p>
+              {testimonial.source === 'google' && <p className="text-xs text-muted-foreground">Google review</p>}
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" size="sm" onClick={() => handleEdit(testimonial)} disabled={isDeleting === testimonial.id} className="flex-1">
                   <Pencil className="h-4 w-4 mr-2" />
@@ -165,6 +172,20 @@ const AdminTestimonials = () => {
                 ))}
               </div>
             </div>
+            <label className="flex items-start gap-3 rounded-md border p-3 text-sm">
+              <input
+                type="checkbox"
+                checked={fromGoogle}
+                onChange={(e) => setFromGoogle(e.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span>
+                <span className="font-medium">Copied from our Google reviews</span>
+                <span className="block text-muted-foreground">
+                  Shows a "Google review" label on the site. Tick only for a review that is really on the Google profile, copied word for word.
+                </span>
+              </span>
+            </label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={handleClose} disabled={isSaving}>Cancel</Button>
